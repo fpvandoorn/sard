@@ -35,4 +35,3 @@ another Corollary. regular values are comeagre.
 ## follow-up questions
 - does this hold over other fields? I don't think so (but haven't really checked)
 - can we include boundary or corners?
-
