@@ -29,6 +29,26 @@ for all charts $(φ, U)$ of $N$, $φ(U∩ S) ⊂ ℝ^n$ has measure zero. -/
 def measure_zero (s : Set N) : Prop :=
   ∀ (μ : Measure F) [IsAddHaarMeasure μ], ∀ e ∈ atlas G N, μ (J ∘ e '' s) = 0
 
+/- Let U c ℝ^n be an open set and f: U → ℝ^n be a C^1 map.
+  If $X\subset U$ has measure zero, so has $f(X)$. -/
+lemma measure_zero_preserved (f : E → E) (hf : ContMDiff I J 1 f)
+  -- FIXME: want weaker version, just f C¹ on U (not on E)
+  [MeasurableSpace E] (μ : Measure E)
+  (s : Set E) (hs: μ s = 0) : μ (f '' s) = 0 := by sorry
+
+/- Local version of Sard's theorem. If $W ⊂ ℝ^m$ is open and $f: W → ℝ^n$ is $C^r$,
+the set of critical values has measure zero. -/
+theorem sard_local (s w : Set E) (f : E → F)
+  (μ : Measure F) [IsAddHaarMeasure μ]
+  (hf : ContDiffOn ℝ r f w)
+  (f' : E → E →L[ℝ] F)
+  (hf' : ∀ x ∈ s, HasFDerivWithinAt f (f' x) s x)
+  (h'f' : ∀ x ∈ s, ¬ Surjective (f' x))
+: μ (f '' s) = 0:= by
+  by_cases hyp: m < n
+  · sorry -- show f(W) has measure zero; use `measure_zero_preserved`
+  · sorry
+
 /- **Sard's theorem**. Let $M$ and $N$ be real $C^r$ manifolds of dimensions
 $m$ and $n$, and $f:M→N$ a $C^r$ map. If $r>\max{0, m-n}$,
 the set of regular values of $f$ has full measure. -/
@@ -39,3 +59,4 @@ theorem sard (f : M → N) (hf : ContMDiff I J r f)
     sorry
 
 -- Corollary. The set of regular values is residual and therefore dense.
+-- note: `ContDiffOn.dense_compl_image_of_dimH_lt_finrank` looks related, I want a version on manifolds
