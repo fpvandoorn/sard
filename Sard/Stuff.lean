@@ -20,19 +20,14 @@ variable
   [NormedAddCommGroup F] [NormedSpace ℝ F] {G : Type*} [TopologicalSpace G]
   (J : ModelWithCorners ℝ F G) {N : Type*} [TopologicalSpace N] [ChartedSpace G N]
   [SmoothManifoldWithCorners J N] [FiniteDimensional ℝ F]
-  [MeasurableSpace F] (μ: Measure F) [IsAddHaarMeasure μ]
+  [MeasurableSpace F]
 
 variable {m n r : ℕ} (hm : finrank ℝ E = m) (hn : finrank ℝ F = n) (hr : r > m-n)
 
--- definition: measure zero subset of N
--- for all charts (φ, U) of N, φ(U∩ S) ⊂ R^n has measure zero 
-def measure_zero (s: Set N) : Prop :=
-  ∀ e ∈ atlas G N, μ (J ∘ e '' s) = 0
-
--- lemma: is independent of μ
-
--- xxx this is the wrong statement: need "measure zero" concept on manifolds!
--- this part is simpler in finite dimensions!!
+/- A measure zero subset of a manifold $N$ is a subset $S⊂N$ such that
+for all charts $(φ, U)$ of $N$, $φ(U∩ S) ⊂ ℝ^n$ has measure zero. -/
+def measure_zero (s : Set N) : Prop :=
+  ∀ (μ : Measure F) [IsAddHaarMeasure μ], ∀ e ∈ atlas G N, μ (J ∘ e '' s) = 0
 
 /- **Sard's theorem**. Let $M$ and $N$ be real $C^r$ manifolds of dimensions
 $m$ and $n$, and $f:M→N$ a $C^r$ map. If $r>\max{0, m-n}$,
