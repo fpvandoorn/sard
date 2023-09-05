@@ -28,7 +28,7 @@ variable {m n r : ℕ} (hm : finrank ℝ E = m) (hn : finrank ℝ F = n) (hr : r
 /- A measure zero subset of a manifold $N$ is a subset $S⊂N$ such that
 for all charts $(φ, U)$ of $N$, $φ(U∩ S) ⊂ ℝ^n$ has measure zero. -/
 def measure_zero (s : Set N) : Prop :=
-  ∀ (μ : Measure F) [IsAddHaarMeasure μ], ∀ e ∈ atlas G N, μ (J ∘ e '' s) = 0
+  ∀ (μ : Measure F) /-[IsAddHaarMeasure μ] HACK, re-instatiate! -/, ∀ e ∈ atlas G N, μ (J ∘ e '' s) = 0
 
 /- Let U c ℝ^n be an open set and f: U → ℝ^n be a C^1 map.
   If $X\subset U$ has measure zero, so has $f(X)$. -/
@@ -44,14 +44,41 @@ lemma C1_image_null_set_null (f : E → E)
   It suffices to show that it has empty interior. -/
 lemma closed_measure_zero_empty_interior (s : Set N) (h₁s : IsClosed s) (h₂s : measure_zero J s)
 : (interior s) = ∅ := by
-  -- choose a (countable? probably superfluous) atlas (φ_α, U_α) aof N
-  -- suffices: each U_α∩ S has empty interior
-  --    xxx why? open cover mumble mumble
-  -- let α be arbitrary. prove that U_α∩ S has empty interior
-  --   by definition/h₂s,  measure zero
-  --   each φ_α(U_α∩S) has empty interior by measure_pos_of_non_empty_interior/contrapositive
-  --   each U_α∩S has empty interior (φ_α are homomorphisms)
+  -- For each chart (φ: U → ℝ^n) of N, the set U ∩ S ⊂ N has empty interior.
+  have hα : ∀ e ∈ atlas G N, interior (e.source ∩ s) = ∅ := by
+  -- N is the source, the model space G is the target
+    intro e
+    -- by hypothesis, that set has measure zero
+    have h : ∀ μ: Measure F, (hu : IsAddHaarMeasure μ) /- [IsAddHaarMeasure μ] HACK, re-insert -/ μ (J ∘ e '' (e.source ∩ s)) = 0 := by
+      intro μ
+      have h'' : μ (J ∘ e '' s) = 0 := by
+        apply h₂s μ
+        sorry -- What is happening? Uncommenting this produces strange errors.
+      have h''' : J ∘ e '' (e.source ∩ s) ⊆ J ∘e '' s := by
+        apply Set.image_subset
+        apply Set.inter_subset_right
+      exact measure_mono_null h''' h''
+    -- each φ(U ∩ S) has empty interior
+    have h' : interior (J ∘ e '' (e.source ∩ s)) = ∅ := by
+      -- contrapose only works on implications... need to rephrase
+      -- apply measure_pos_of_non_empty_interior
+      sorry
+
+    -- conclusion: each U ∩ S has empty interior (φ are homomorphisms)
+    intro he
+    sorry -- should_be_obvious, give or take
+
+  -- now: this implies the claim. open cover mumble mumble
   sorry
+
+-- should be obvious, but cannot find this at first glance...
+lemma should_be_obvious {α β : Type} [TopologicalSpace α] [TopologicalSpace β]
+  (f : LocalHomeomorph α β)
+  (s : Set α) (hs : s ⊆ f.source) (h₂s : interior s = ∅) :
+  -- TODO: doesn't compile yet
+  interior f.toFun '' s = ∅ := by
+  sorry
+
 
 /- If M, N are C¹ manifolds with dim M < dim N and f:M → N is C¹, then f(M) has measure zero. -/
 lemma image_C1_dimension_increase_image_null (f : M → N) (hf : ContMDiff I J r f)
