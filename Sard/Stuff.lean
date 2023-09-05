@@ -32,19 +32,26 @@ def measure_zero (s : Set N) : Prop :=
 
 /- Let U c ℝ^n be an open set and f: U → ℝ^n be a C^1 map.
   If $X\subset U$ has measure zero, so has $f(X)$. -/
+-- NB: this is false for mere C⁰ maps, the Cantor function f provides a counterexample:
+-- the standard Cantor set has measure zero, but its image has measure one
+-- (the complement [0,1]\C has countable image by definition of f).
 lemma C1_image_null_set_null (f : E → E)
   (U : Set E) (hU : IsOpen U) (hf : ContDiffOn ℝ 1 f U)
   [MeasurableSpace E] (μ : Measure E) [IsAddHaarMeasure μ]
   (s : Set E) (h₁s: s ⊆ U) (h₂s: μ s = 0) : μ (f '' s) = 0 := by sorry
--- NB: this is false for mere C⁰ maps, the Cantor function f provides a counterexample:
--- the standard Cantor set has measure zero, but its image has measure one
--- (the complement [0,1]\C has countable image by definition of f).
 
 /- A closed measure zero subset of a manifold N is nowhere dense.
   It suffices to show that it has empty interior. -/
 lemma closed_measure_zero_empty_interior (s : Set N) (h₁s : IsClosed s) (h₂s : measure_zero J s)
 : (interior s) = ∅ := by
-  sorry -- use measure_pos_of_non_empty_interior, statement for R^n
+  -- choose a (countable? probably superfluous) atlas (φ_α, U_α) aof N
+  -- suffices: each U_α∩ S has empty interior
+  --    xxx why? open cover mumble mumble
+  -- let α be arbitrary. prove that U_α∩ S has empty interior
+  --   by definition/h₂s,  measure zero
+  --   each φ_α(U_α∩S) has empty interior by measure_pos_of_non_empty_interior/contrapositive
+  --   each U_α∩S has empty interior (φ_α are homomorphisms)
+  sorry
 
 /- If M, N are C¹ manifolds with dim M < dim N and f:M → N is C¹, then f(M) has measure zero. -/
 lemma image_C1_dimension_increase_image_null (f : M → N) (hf : ContMDiff I J r f)
