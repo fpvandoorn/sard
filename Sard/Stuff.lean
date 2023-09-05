@@ -40,6 +40,49 @@ lemma C1_image_null_set_null (f : E → E)
   [MeasurableSpace E] (μ : Measure E) [IsAddHaarMeasure μ]
   (s : Set E) (h₁s: s ⊆ U) (h₂s: μ s = 0) : μ (f '' s) = 0 := by sorry
 
+-- Helper results in topology which should go in mathlib.
+section Topology
+-- this lemma is in mathlib, in LocalHomeomorph
+-- theorem preimage_interior (s : Set β) :
+--     e.source ∩ e ⁻¹' interior s = e.source ∩ interior (e ⁻¹' s) :=
+--   (IsImage.of_preimage_eq rfl).interior.preimage_eq
+
+-- the counterpart for image is currently missing
+lemma image_interior {α β : Type} [TopologicalSpace α] [TopologicalSpace β]
+  (e : LocalHomeomorph α β) (s : Set α) :
+  e.target ∩ e '' interior s = e '' (e.source ∩ interior s) := by
+  -- idea: restrict the local homeo to the appropriate part; then it's a homeo
+  sorry
+
+-- this is the lemma I'm actually interested in, for Homeomorphisms (also not in mathlib)
+lemma homeo_preserves_empty_interior {α β : Type} [TopologicalSpace α] [TopologicalSpace β]
+  (f : Homeomorph α β)
+  (s : Set α) (h₂s : interior s = ∅) :
+  interior (f '' s) = ∅ := by
+  rw [← Homeomorph.image_interior, h₂s]
+  exact Set.image_empty ↑f
+
+open Set
+lemma local_homeo_preserves_empty_interior {α β : Type} [TopologicalSpace α] [TopologicalSpace β]
+  (f : LocalHomeomorph α β) (s : Set α) (hs : s ⊆ f.source) (h₂s : interior s = ∅) :
+  interior (f '' s) = ∅ := by
+  -- xxx clean up these partial steps
+  -- restrict to domain and target: mathematically trivial
+  have h₁ : s = s ∩ f.source := by
+    rw [← @inter_eq_left_iff_subset α s f.source] at hs
+    symm
+    exact hs
+  have h₂ : interior s = interior (s ∩ f.source) := by
+    sorry -- how hard to deduce this?? just redo the proof of h₁?
+  rw [h₁] at h₂s
+  have h₃ : f '' (interior s ∩ f.source) = ∅ := by sorry
+
+  --rw [← image_interior f] at h₃
+  --rw [← h₂]
+  -- exact Set.image_empty ↑f
+  sorry
+end Topology
+
 /- A closed measure zero subset of a manifold N is nowhere dense.
   It suffices to show that it has empty interior. -/
 lemma closed_measure_zero_empty_interior (s : Set N) (h₁s : IsClosed s) (h₂s : measure_zero J s)
@@ -49,7 +92,7 @@ lemma closed_measure_zero_empty_interior (s : Set N) (h₁s : IsClosed s) (h₂s
   -- N is the source, the model space G is the target
     intro e
     -- by hypothesis, that set has measure zero
-    have h : ∀ μ: Measure F, (hu : IsAddHaarMeasure μ) /- [IsAddHaarMeasure μ] HACK, re-insert -/ μ (J ∘ e '' (e.source ∩ s)) = 0 := by
+    have h : ∀ μ: Measure F, /-(hu : IsAddHaarMeasure μ) [IsAddHaarMeasure μ] HACK, re-insert -/ μ (J ∘ e '' (e.source ∩ s)) = 0 := by
       intro μ
       have h'' : μ (J ∘ e '' s) = 0 := by
         apply h₂s μ
@@ -60,25 +103,16 @@ lemma closed_measure_zero_empty_interior (s : Set N) (h₁s : IsClosed s) (h₂s
       exact measure_mono_null h''' h''
     -- each φ(U ∩ S) has empty interior
     have h' : interior (J ∘ e '' (e.source ∩ s)) = ∅ := by
-      -- contrapose only works on implications... need to rephrase
+      -- contrapose only works on implications... need to rephrase this!
       -- apply measure_pos_of_non_empty_interior
       sorry
 
     -- conclusion: each U ∩ S has empty interior (φ are homomorphisms)
     intro he
-    sorry -- should_be_obvious, give or take
-
-  -- now: this implies the claim. open cover mumble mumble
+    -- should follow from local_homeo_preserves_empty_interior, more or less
+    sorry
+  -- deduce the claim. open cover mumble mumble
   sorry
-
--- should be obvious, but cannot find this at first glance...
-lemma should_be_obvious {α β : Type} [TopologicalSpace α] [TopologicalSpace β]
-  (f : LocalHomeomorph α β)
-  (s : Set α) (hs : s ⊆ f.source) (h₂s : interior s = ∅) :
-  -- TODO: doesn't compile yet
-  interior f.toFun '' s = ∅ := by
-  sorry
-
 
 /- If M, N are C¹ manifolds with dim M < dim N and f:M → N is C¹, then f(M) has measure zero. -/
 lemma image_C1_dimension_increase_image_null (f : M → N) (hf : ContMDiff I J r f)
