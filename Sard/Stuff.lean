@@ -31,10 +31,10 @@ def measure_zero (s : Set N) : Prop :=
 
 /- Let U c ℝ^n be an open set and f: U → ℝ^n be a C^1 map.
   If $X\subset U$ has measure zero, so has $f(X)$. -/
-lemma measure_zero_preserved (f : E → E) (hf : ContMDiff I J 1 f)
-  -- FIXME: want weaker version, just f C¹ on U (not on E)
-  [MeasurableSpace E] (μ : Measure E)
-  (s : Set E) (hs: μ s = 0) : μ (f '' s) = 0 := by sorry
+lemma measure_zero_preserved (f : E → E)
+  (U : Set E) (hU : IsOpen U) (hf : ContDiffOn ℝ 1 f U)
+  [MeasurableSpace E] (μ : Measure E) [IsAddHaarMeasure μ]
+  (s : Set E) (h₁s: s ⊆ U) (h₂s: μ s = 0) : μ (f '' s) = 0 := by sorry
 
 /- Local version of Sard's theorem. If $W ⊂ ℝ^m$ is open and $f: W → ℝ^n$ is $C^r$,
 the set of critical values has measure zero. -/
