@@ -36,9 +36,9 @@ def measure_zero (s : Set N) : Prop :=
 -- the standard Cantor set has measure zero, but its image has measure one
 -- (the complement [0,1]\C has countable image by definition of f).
 lemma C1_image_null_set_null (f : E → E)
-  (U : Set E) (hU : IsOpen U) (hf : ContDiffOn ℝ 1 f U)
-  [MeasurableSpace E] (μ : Measure E) [IsAddHaarMeasure μ]
-  (s : Set E) (h₁s: s ⊆ U) (h₂s: μ s = 0) : μ (f '' s) = 0 := by sorry
+    (U : Set E) (hU : IsOpen U) (hf : ContDiffOn ℝ 1 f U)
+    [MeasurableSpace E] (μ : Measure E) [IsAddHaarMeasure μ]
+    (s : Set E) (h₁s: s ⊆ U) (h₂s: μ s = 0) : μ (f '' s) = 0 := by sorry
 
 -- Helper results in topology which should go in mathlib.
 section Topology
@@ -49,23 +49,21 @@ section Topology
 
 -- the counterpart for image is currently missing
 lemma image_interior {α β : Type} [TopologicalSpace α] [TopologicalSpace β]
-  (e : LocalHomeomorph α β) (s : Set α) :
-  e.target ∩ e '' interior s = e '' (e.source ∩ interior s) := by
+    (e : LocalHomeomorph α β) (s : Set α) :
+    e.target ∩ e '' interior s = e '' (e.source ∩ interior s) := by
   -- idea: restrict the local homeo to the appropriate part; then it's a homeo
   sorry
 
 -- this is the lemma I'm actually interested in, for Homeomorphisms (also not in mathlib)
 lemma homeo_preserves_empty_interior {α β : Type} [TopologicalSpace α] [TopologicalSpace β]
-  (f : Homeomorph α β)
-  (s : Set α) (h₂s : interior s = ∅) :
-  interior (f '' s) = ∅ := by
+    (f : Homeomorph α β) (s : Set α) (h₂s : interior s = ∅) : interior (f '' s) = ∅ := by
   rw [← Homeomorph.image_interior, h₂s]
   exact Set.image_empty ↑f
 
 open Set
-lemma local_homeo_preserves_empty_interior {α β : Type} [TopologicalSpace α] [TopologicalSpace β]
-  (f : LocalHomeomorph α β) (s : Set α) (hs : s ⊆ f.source) (h₂s : interior s = ∅) :
-  interior (f '' s) = ∅ := by
+lemma local_homeo_preserves_empty_interior {α β : Type}
+    [TopologicalSpace α] [TopologicalSpace β] (f : LocalHomeomorph α β)
+    (s : Set α) (hs : s ⊆ f.source) (h₂s : interior s = ∅) : interior (f '' s) = ∅ := by
   -- xxx clean up these partial steps
   -- restrict to domain and target: mathematically trivial
   have h₁ : s = s ∩ f.source := by
@@ -85,8 +83,8 @@ end Topology
 
 /- A closed measure zero subset of a manifold N is nowhere dense.
   It suffices to show that it has empty interior. -/
-lemma closed_measure_zero_empty_interior (s : Set N) (h₁s : IsClosed s) (h₂s : measure_zero J s)
-: (interior s) = ∅ := by
+lemma closed_measure_zero_empty_interior (s : Set N) (h₁s : IsClosed s)
+    (h₂s : measure_zero J s) : (interior s) = ∅ := by
   -- For each chart (φ: U → ℝ^n) of N, the set U ∩ S ⊂ N has empty interior.
   have hα : ∀ e ∈ atlas G N, interior (e.source ∩ s) = ∅ := by
   -- N is the source, the model space G is the target
@@ -116,18 +114,15 @@ lemma closed_measure_zero_empty_interior (s : Set N) (h₁s : IsClosed s) (h₂s
 
 /- If M, N are C¹ manifolds with dim M < dim N and f:M → N is C¹, then f(M) has measure zero. -/
 lemma image_C1_dimension_increase_image_null (f : M → N) (hf : ContMDiff I J r f)
-  (hdim : m < n) : measure_zero J (Set.range f) := by
+    (hdim : m < n) : measure_zero J (Set.range f) := by
   sorry -- use C1_image_null_set_null and closed_measure_zero_empty_interior
 
 /- Local version of Sard's theorem. If $W ⊂ ℝ^m$ is open and $f: W → ℝ^n$ is $C^r$,
 the set of critical values has measure zero. -/
-theorem sard_local (s w : Set E) (f : E → F)
-  (μ : Measure F) [IsAddHaarMeasure μ]
-  (hf : ContDiffOn ℝ r f w)
-  (f' : E → E →L[ℝ] F)
-  (hf' : ∀ x ∈ s, HasFDerivWithinAt f (f' x) s x)
-  (h'f' : ∀ x ∈ s, ¬ Surjective (f' x))
-: μ (f '' s) = 0:= by
+theorem sard_local (s w : Set E) (f : E → F) (hf : ContDiffOn ℝ r f w)
+    (f' : E → E →L[ℝ] F) (hf' : ∀ x ∈ s, HasFDerivWithinAt f (f' x) s x)
+    (h'f' : ∀ x ∈ s, ¬ Surjective (f' x)) (μ : Measure F) [IsAddHaarMeasure μ] :
+    μ (f '' s) = 0:= by
   by_cases hyp: m < n
   · sorry -- show f(W) has measure zero; use `C1_image_null_set_null`
   · sorry
@@ -136,10 +131,10 @@ theorem sard_local (s w : Set E) (f : E → F)
 $m$ and $n$, and $f:M→N$ a $C^r$ map. If $r>\max{0, m-n}$,
 the set of regular values of $f$ has full measure. -/
 theorem sard (f : M → N) (hf : ContMDiff I J r f)
-  (f' : ∀x, TangentSpace I x →L[ℝ] TangentSpace J (f x))
-  (s : Set M) (hf' : ∀ x ∈ s, HasMFDerivWithinAt I J f s x (f' x))
-  (h'f' : ∀ x ∈ s, ¬ Surjective (f' x)) : measure_zero J (f '' s) := by
-    sorry
+    (f' : ∀x, TangentSpace I x →L[ℝ] TangentSpace J (f x))
+    (s : Set M) (hf' : ∀ x ∈ s, HasMFDerivWithinAt I J f s x (f' x))
+    (h'f' : ∀ x ∈ s, ¬ Surjective (f' x)) : measure_zero J (f '' s) := by
+  sorry
 
 -- Corollary. The set of regular values is residual and therefore dense.
 -- note: `ContDiffOn.dense_compl_image_of_dimH_lt_finrank` looks related, I want a version on manifolds
