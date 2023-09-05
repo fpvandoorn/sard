@@ -1,4 +1,5 @@
 import Mathlib.MeasureTheory.Function.Jacobian
+import Mathlib.MeasureTheory.Measure.OpenPos
 import Mathlib.Geometry.Manifold.VectorBundle.SmoothSection
 
 open Manifold MeasureTheory FiniteDimensional
@@ -31,10 +32,24 @@ def measure_zero (s : Set N) : Prop :=
 
 /- Let U c ℝ^n be an open set and f: U → ℝ^n be a C^1 map.
   If $X\subset U$ has measure zero, so has $f(X)$. -/
-lemma measure_zero_preserved (f : E → E)
+lemma C1_image_null_set_null (f : E → E)
   (U : Set E) (hU : IsOpen U) (hf : ContDiffOn ℝ 1 f U)
   [MeasurableSpace E] (μ : Measure E) [IsAddHaarMeasure μ]
   (s : Set E) (h₁s: s ⊆ U) (h₂s: μ s = 0) : μ (f '' s) = 0 := by sorry
+-- NB: this is false for mere C⁰ maps, the Cantor function f provides a counterexample:
+-- the standard Cantor set has measure zero, but its image has measure one
+-- (the complement [0,1]\C has countable image by definition of f).
+
+/- A closed measure zero subset of a manifold N is nowhere dense.
+  It suffices to show that it has empty interior. -/
+lemma closed_measure_zero_empty_interior (s : Set N) (h₁s : IsClosed s) (h₂s : measure_zero J s)
+: (interior s) = ∅ := by
+  sorry -- use measure_pos_of_non_empty_interior, statement for R^n
+
+/- If M, N are C¹ manifolds with dim M < dim N and f:M → N is C¹, then f(M) has measure zero. -/
+lemma image_C1_dimension_increase_image_null (f : M → N) (hf : ContMDiff I J r f)
+  (hdim : m < n) : measure_zero J (Set.range f) := by
+  sorry -- use C1_image_null_set_null and closed_measure_zero_empty_interior
 
 /- Local version of Sard's theorem. If $W ⊂ ℝ^m$ is open and $f: W → ℝ^n$ is $C^r$,
 the set of critical values has measure zero. -/
@@ -46,7 +61,7 @@ theorem sard_local (s w : Set E) (f : E → F)
   (h'f' : ∀ x ∈ s, ¬ Surjective (f' x))
 : μ (f '' s) = 0:= by
   by_cases hyp: m < n
-  · sorry -- show f(W) has measure zero; use `measure_zero_preserved`
+  · sorry -- show f(W) has measure zero; use `C1_image_null_set_null`
   · sorry
 
 /- **Sard's theorem**. Let $M$ and $N$ be real $C^r$ manifolds of dimensions
