@@ -25,8 +25,8 @@ variable
 
 variable {m n r : ℕ} (hm : finrank ℝ E = m) (hn : finrank ℝ F = n) (hr : r > m-n)
 
-/- A measure zero subset of a manifold $N$ is a subset $S⊂N$ such that
-for all charts $(φ, U)$ of $N$, $φ(U∩ S) ⊂ ℝ^n$ has measure zero. -/
+/- A measure zero subset of a manifold $N$ is a subset $S⊆N$ such that
+for all charts $(φ, U)$ of $N$, $φ(U∩ S) ⊆ ℝ^n$ has measure zero. -/
 def measure_zero (s : Set N) : Prop :=
   ∀ (μ : Measure F), ∀ e ∈ atlas G N, μ (J ∘ e '' s) = 0
 
@@ -81,18 +81,59 @@ lemma local_homeo_preserves_empty_interior {α β : Type}
   sorry
 end Topology
 
+section local_stuff
+/-- Let $(U_α)$ be an open cover of a topological space X.
+A subset $S ⊆ X$ has empty interior iff all $S∩U_α$ have empty interior. -/
+theorem interior_zero_iff_open_cover {X : Type} [TopologicalSpace X]
+    (I : Type) (U : I → Set X) (hU : ∀ α : I,  IsOpen (U α)) (hcover : ⋃ (α : I), U α = X) (s : Set X) :
+    interior s = ∅ ↔ ∀ α : I, interior (s ∩ U α) = ∅ := by
+  constructor
+  · -- suppose interior S = ∅
+    intro hs α
+    have aux: interior (s ∩ U α) ⊆ interior s := by
+      apply interior_mono
+      apply Set.inter_subset_left
+    -- by hypothesis hs, the rhs is empty, so the lhs also is
+    exact Set.subset_eq_empty aux hs
+  · intro h -- suppose each s ∩ U_α has empty interior
+    -- it suffices to show that each open subset of s is empty
+    suffices ∀ V : Set X, (hV : V ⊆ s ∧ IsOpen V) → V = ∅ by sorry
+    -- let V ⊆ S be open
+    rintro V ⟨hVS, hV⟩
+
+    have h' : ∀ α : I, V ∩ U α = ∅ := by
+      intro α
+      -- each V ∩ U_α is open and contained in s ∩ U_α
+      have h₁ : IsOpen (V ∩ U α) := by exact IsOpen.inter hV (hU α)
+      have h₂ : V ∩ U α ⊆ s ∩ U α := by exact Set.inter_subset_inter_left (U α) hVS
+      -- by hypothesis, the rhs has empty interior, hence is empty and V ∩ U α = ∅
+      have h₃ : V ∩ U α ⊆ interior (s ∩ U α) := by exact interior_maximal h₂ h₁
+      exact Set.subset_eq_empty h₃ (h α)
+
+    -- so V=∅ and we're done
+    have h'' : V = ⋃ (α : I), (V ∩ U α) := by
+      ext i
+      rw [Set.mem_iUnion]
+      sorry
+    rw [h'']
+    -- warning for shadowing of hypotheses
+    simp [Set.mem_iUnion]
+    tauto
+end local_stuff
+
 /- A closed measure zero subset of a manifold N is nowhere dense.
   It suffices to show that it has empty interior. -/
 lemma closed_measure_zero_empty_interior (s : Set N) (h₁s : IsClosed s)
     (h₂s : measure_zero J s) : (interior s) = ∅ := by
-  -- It suffices to show that for each chart, the set U ∩ S ⊂ N has empty interior.
+  -- It suffices to show that for each chart, the set U ∩ S ⊆ N has empty interior.
   suffices ∀ e ∈ atlas G N, interior (e.source ∩ s) = ∅ by
+    extract_goal
     sorry
     -- open cover yada yada
 
   intro e
   -- by hypothesis, μ(U ∩ S) has measure zero
-  have h : ∀ μ: Measure F, /-(hu : IsAddHaarMeasure μ) [IsAddHaarMeasure μ] HACK, re-insert -/ μ (J ∘ e '' (e.source ∩ s)) = 0 := by
+  have h : ∀ μ: Measure F, μ (J ∘ e '' (e.source ∩ s)) = 0 := by
     intro μ
     have h'' : μ (J ∘ e '' s) = 0 := by
       apply h₂s μ
@@ -117,7 +158,7 @@ lemma image_C1_dimension_increase_image_null (f : M → N) (hf : ContMDiff I J r
     (hdim : m < n) : measure_zero J (Set.range f) := by
   sorry -- use C1_image_null_set_null and closed_measure_zero_empty_interior
 
-/- Local version of Sard's theorem. If $W ⊂ ℝ^m$ is open and $f: W → ℝ^n$ is $C^r$,
+/- Local version of Sard's theorem. If $W ⊆ ℝ^m$ is open and $f: W → ℝ^n$ is $C^r$,
 the set of critical values has measure zero. -/
 theorem sard_local (s w : Set E) (f : E → F) (hf : ContDiffOn ℝ r f w)
     (f' : E → E →L[ℝ] F) (hf' : ∀ x ∈ s, HasFDerivWithinAt f (f' x) s x)
