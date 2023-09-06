@@ -27,6 +27,15 @@ for all charts $(φ, U)$ of $N$, $φ(U ∩ S) ⊆ ℝ^n$ has measure zero. -/
 def measure_zero (s : Set N) : Prop :=
   ∀ (μ : Measure F) [IsAddHaarMeasure μ], ∀ e ∈ atlas G N, μ (J ∘ e '' (e.source ∩ s)) = 0
 
+/-- Having measure zero is monotone: a subset of a set with measure zero has measure zero. -/
+lemma measure_zero_subset (s t: Set N) (hst : s ⊆ t) (ht : measure_zero J t) : (measure_zero J s) := by
+  rw [measure_zero]
+  intro μ hμ e he
+  have : J ∘ e '' (e.source ∩ s) ⊆  J ∘ e '' (e.source ∩ t) := by
+    apply image_subset
+    exact inter_subset_inter_right e.source hst
+  exact measure_mono_null this (ht μ e he)
+
 /- Let U c ℝ^n be an open set and f: U → ℝ^n be a C^1 map.
   If $X\subset U$ has measure zero, so has $f(X)$. -/
 -- NB: this is false for mere C⁰ maps, the Cantor function f provides a counterexample:
@@ -118,12 +127,6 @@ theorem interior_zero_iff_open_cover {X : Type} [TopologicalSpace X]
     tauto
 end local_stuff
 
-/- A closed measure zero subset of ℝ^m has empty interior. -/
--- probably, that's in mathlib: I just want to see where I'm stuck.
-lemma closed_null_has_empty_interior(s : Set F) (h₁s : IsClosed s)
-    (μ : Measure F) [IsAddHaarMeasure μ] (h₂s : μ s = 0) : (interior s) = ∅ := by
-  sorry -- does IsOpenPosMeasure suffice here?
-
 /-- An open subset of a topological manifold contains an interior point (not on the boundary). -/
 -- lemma open_subset_contains_interior_point : (s : Set N) (hs : IsOpen s) :
 -- ∃ p ∈ s, p ∈ interior N := by sorry --- how to even state this??
@@ -138,8 +141,8 @@ theorem empty_iff_open_cover {X : Type} [TopologicalSpace X]
   nth_rewrite 1 [← this]
   simp only [iUnion_eq_empty]
 
--- better approach: prove this lemma first
-lemma open_null_set_is_empty (s : Set N) (h₁s : IsOpen s) (h₂s : measure_zero J s): s = ∅ := by
+/-- An open set of measure zero is empty. -/
+lemma open_measure_zero_set_is_empty (s : Set N) (h₁s : IsOpen s) (h₂s : measure_zero J s): s = ∅ := by
   suffices ∀ e ∈ atlas G N, (e.source ∩ s) = ∅ by
     by_contra h
     obtain ⟨x, hx⟩ : Set.Nonempty s := Iff.mp nmem_singleton_empty h
@@ -175,23 +178,16 @@ lemma open_null_set_is_empty (s : Set N) (h₁s : IsOpen s) (h₂s : measure_zer
   apply (measure_pos_of_nonempty_interior (μ := μ) h').ne'
   exact h₂s
 
-/- A measure zero subset of a manifold N has empty interior. -/
+/- A subset of a manifold `N` with measure zero has empty interior. -/
 -- Cor. A *closed* measure zero subset of N is nowhere dense.
-lemma closed_null_set_empty_interior (s : Set N)
+lemma closed_measure_zero_set_empty_interior (s : Set N)
     (h₂s : measure_zero J s) : (interior s) = ∅ := by
   have hlocal : ∀ (u : Set N) (_ : IsOpen u) (_ : u ⊆ s), u = ∅ := by
     -- let U ⊆ N be open with U ⊆ S
     intro u hu hus
-    -- then U also has measure zero (make separate lemma!)
-    have : measure_zero J u := by
-      rw [measure_zero]
-      intro μ hμ e he
-      have : J ∘ e '' (e.source ∩ u) ⊆  J ∘ e '' (e.source ∩ s) := by
-        apply image_subset
-        exact inter_subset_inter_right e.source hus
-      exact measure_mono_null this (h₂s μ e he)
-    -- hence the previous lemma applies
-    exact open_null_set_is_empty J u hu this
+    -- then U also has measure zero, hence the previous lemma applies
+    have : measure_zero J u := measure_zero_subset J u s hus h₂s
+    exact open_measure_zero_set_is_empty J u hu this
 
   -- this suffices: for the sake of contradiction, assume the interior is non-empty
   by_contra h
@@ -202,37 +198,6 @@ lemma closed_null_set_empty_interior (s : Set N)
   -- by the previous lemma, we have an element x ∈ t, but t=∅, contradiction!
   specialize hlocal t htopen hts
   simp_all only [ge_iff_le, gt_iff_lt, ne_eq, empty_subset, isOpen_empty, mem_empty_iff_false]
-
-  #exit
-  -- It suffices to show that for each chart, the set U ∩ S ⊆ N has empty interior.
-  suffices ∀ e ∈ atlas G N, interior (e.source ∩ s) = ∅ by
-    -- the atlas forms an open cover -> use interior_zero_iff_open_cover
-    sorry
-
-  intro e
-  -- by hypothesis, μ(U ∩ S) has measure zero
-  have h : ∀ (μ: Measure F) [IsAddHaarMeasure μ], μ (J ∘ e '' (e.source ∩ s)) = 0 := by
-    intro μ hμ
-    have h'' : μ (J ∘ e '' (e.source ∩ s)) = 0 := by
-      apply h₂s μ
-      sorry -- What is happening? Uncommenting this produces strange errors.
-    have h''' : J ∘ e '' (e.source ∩ s) ⊆ J ∘e '' s := by
-      apply Set.image_subset
-      apply Set.inter_subset_right
-    sorry -- exact measure_mono_null h''' h''
-  -- each φ(U ∩ S) has empty interior
-  have h' : ∀ (μ: Measure F) [IsAddHaarMeasure μ], interior (J ∘ e '' (e.source ∩ s)) = ∅ := by
-    intro μ hμ
-    have aux : IsClosed (J ∘ e '' (e.source ∩ s)) := by sorry
-    apply closed_null_has_empty_interior (μ := μ)
-    exact aux
-    exact h μ
-
-  -- since φ is a homeomorphism on U, the same follows
-  -- complication: local homeo on the whole domain...
-  intro he
-  -- should follow from local_homeo_preserves_empty_interior, more or less
-  sorry
 
 /- If M, N are C¹ manifolds with dim M < dim N and f:M → N is C¹, then f(M) has measure zero. -/
 lemma image_C1_dimension_increase_image_null (f : M → N) (hf : ContMDiff I J r f)
