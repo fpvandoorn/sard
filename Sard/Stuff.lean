@@ -121,14 +121,23 @@ theorem interior_zero_iff_open_cover {X : Type} [TopologicalSpace X]
     tauto
 end local_stuff
 
+/- A closed measure zero subset of ℝ^m has empty interior. -/
+-- probably, that's in mathlib: I just want to see where I'm stuck.
+lemma closed_null_has_empty_interior(s : Set F) (h₁s : IsClosed s)
+    (μ : Measure F) [IsAddHaarMeasure μ] (h₂s : μ s = 0) : (interior s) = ∅ := by
+  sorry -- does IsOpenPosMeasure suffice here?
+
 /- A closed measure zero subset of a manifold N is nowhere dense.
   It suffices to show that it has empty interior. -/
 lemma closed_measure_zero_empty_interior (s : Set N) (h₁s : IsClosed s)
     (h₂s : measure_zero J s) : (interior s) = ∅ := by
+  -- suppose U ⊂ s open, then show U is empty (by lemma above)
+  -- U open implies phi(U) is open
+
   -- It suffices to show that for each chart, the set U ∩ S ⊆ N has empty interior.
   suffices ∀ e ∈ atlas G N, interior (e.source ∩ s) = ∅ by
+    -- the atlas forms an open cover -> use interior_zero_iff_open_cover
     sorry
-    -- open cover yada yada
 
   intro e
   -- by hypothesis, μ(U ∩ S) has measure zero
@@ -142,10 +151,13 @@ lemma closed_measure_zero_empty_interior (s : Set N) (h₁s : IsClosed s)
       apply Set.inter_subset_right
     exact measure_mono_null h''' h''
   -- each φ(U ∩ S) has empty interior
-  have h' : interior (J ∘ e '' (e.source ∩ s)) = ∅ := by
-    -- contrapose only works on implications... need to rephrase this!
-    -- apply measure_pos_of_non_empty_interior
-    sorry
+  have h' : ∀ (μ: Measure F) [IsAddHaarMeasure μ], interior (J ∘ e '' (e.source ∩ s)) = ∅ := by
+    intro μ hμ
+    have aux : IsClosed (J ∘ e '' (e.source ∩ s)) := by sorry
+    apply closed_null_has_empty_interior (μ := μ)
+    exact aux
+    exact h μ
+
   -- since φ is a homeomorphism on U, the same follows
   -- complication: local homeo on the whole domain...
   intro he
