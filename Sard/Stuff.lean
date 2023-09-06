@@ -28,7 +28,7 @@ variable {m n r : ℕ} (hm : finrank ℝ E = m) (hn : finrank ℝ F = n) (hr : r
 /- A measure zero subset of a manifold $N$ is a subset $S⊂N$ such that
 for all charts $(φ, U)$ of $N$, $φ(U∩ S) ⊂ ℝ^n$ has measure zero. -/
 def measure_zero (s : Set N) : Prop :=
-  ∀ (μ : Measure F) /-[IsAddHaarMeasure μ] HACK, re-instatiate! -/, ∀ e ∈ atlas G N, μ (J ∘ e '' s) = 0
+  ∀ (μ : Measure F), ∀ e ∈ atlas G N, μ (J ∘ e '' s) = 0
 
 /- Let U c ℝ^n be an open set and f: U → ℝ^n be a C^1 map.
   If $X\subset U$ has measure zero, so has $f(X)$. -/
