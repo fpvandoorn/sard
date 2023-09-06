@@ -85,31 +85,31 @@ end Topology
   It suffices to show that it has empty interior. -/
 lemma closed_measure_zero_empty_interior (s : Set N) (h₁s : IsClosed s)
     (h₂s : measure_zero J s) : (interior s) = ∅ := by
-  -- For each chart (φ: U → ℝ^n) of N, the set U ∩ S ⊂ N has empty interior.
-  have hα : ∀ e ∈ atlas G N, interior (e.source ∩ s) = ∅ := by
-  -- N is the source, the model space G is the target
-    intro e
-    -- by hypothesis, that set has measure zero
-    have h : ∀ μ: Measure F, /-(hu : IsAddHaarMeasure μ) [IsAddHaarMeasure μ] HACK, re-insert -/ μ (J ∘ e '' (e.source ∩ s)) = 0 := by
-      intro μ
-      have h'' : μ (J ∘ e '' s) = 0 := by
-        apply h₂s μ
-        sorry -- What is happening? Uncommenting this produces strange errors.
-      have h''' : J ∘ e '' (e.source ∩ s) ⊆ J ∘e '' s := by
-        apply Set.image_subset
-        apply Set.inter_subset_right
-      exact measure_mono_null h''' h''
-    -- each φ(U ∩ S) has empty interior
-    have h' : interior (J ∘ e '' (e.source ∩ s)) = ∅ := by
-      -- contrapose only works on implications... need to rephrase this!
-      -- apply measure_pos_of_non_empty_interior
-      sorry
-
-    -- conclusion: each U ∩ S has empty interior (φ are homomorphisms)
-    intro he
-    -- should follow from local_homeo_preserves_empty_interior, more or less
+  -- It suffices to show that for each chart, the set U ∩ S ⊂ N has empty interior.
+  suffices ∀ e ∈ atlas G N, interior (e.source ∩ s) = ∅ by
     sorry
-  -- deduce the claim. open cover mumble mumble
+    -- open cover yada yada
+
+  intro e
+  -- by hypothesis, μ(U ∩ S) has measure zero
+  have h : ∀ μ: Measure F, /-(hu : IsAddHaarMeasure μ) [IsAddHaarMeasure μ] HACK, re-insert -/ μ (J ∘ e '' (e.source ∩ s)) = 0 := by
+    intro μ
+    have h'' : μ (J ∘ e '' s) = 0 := by
+      apply h₂s μ
+      sorry -- What is happening? Uncommenting this produces strange errors.
+    have h''' : J ∘ e '' (e.source ∩ s) ⊆ J ∘e '' s := by
+      apply Set.image_subset
+      apply Set.inter_subset_right
+    exact measure_mono_null h''' h''
+  -- each φ(U ∩ S) has empty interior
+  have h' : interior (J ∘ e '' (e.source ∩ s)) = ∅ := by
+    -- contrapose only works on implications... need to rephrase this!
+    -- apply measure_pos_of_non_empty_interior
+    sorry
+  -- since φ is a homeomorphism on U, the same follows
+  -- complication: local homeo on the whole domain...
+  intro he
+  -- should follow from local_homeo_preserves_empty_interior, more or less
   sorry
 
 /- If M, N are C¹ manifolds with dim M < dim N and f:M → N is C¹, then f(M) has measure zero. -/
