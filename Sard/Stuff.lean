@@ -13,8 +13,6 @@ variable
   [SmoothManifoldWithCorners I M] [FiniteDimensional ℝ E]
   -- declare a smooth manifold `N` over the pair `(F, G)`.
   {F : Type*}
-  -- F is basically R^n, G might be a half-space or so (if corners)
-  -- J can be regarded as a map G→F
   [NormedAddCommGroup F] [NormedSpace ℝ F] {G : Type*} [TopologicalSpace G]
   (J : ModelWithCorners ℝ F G) {N : Type*} [TopologicalSpace N] [ChartedSpace G N] [J.Boundaryless]
   [SmoothManifoldWithCorners J N] [FiniteDimensional ℝ F]
@@ -29,7 +27,7 @@ def measure_zero (s : Set N) : Prop :=
 
 variable {J}
 /-- Having measure zero is monotone: a subset of a set with measure zero has measure zero. -/
-lemma measure_zero_subset {s t: Set N} (hst : s ⊆ t) (ht : measure_zero J t) :
+lemma measure_zero_subset {s t : Set N} (hst : s ⊆ t) (ht : measure_zero J t) :
     (measure_zero J s) := by
   rw [measure_zero]
   intro μ hμ e he
@@ -37,6 +35,50 @@ lemma measure_zero_subset {s t: Set N} (hst : s ⊆ t) (ht : measure_zero J t) :
     apply image_subset
     exact inter_subset_inter_right e.source hst
   exact measure_mono_null this (ht μ e he)
+
+-- if there's a measure compatible on each chart, that coincides
+-- perhaps-cor: if M is a normed space with Haar measure, that also coincides
+
+/- The empty set has measure zero. -/
+lemma empty_measure_zero : measure_zero J (∅: Set N) := by
+  --rw [measure_zero]
+  intro μ _ e _
+  simp only [comp_apply, inter_empty, image_empty, OuterMeasure.empty']
+
+/- The countable union of measure zero sets has measure zero. -/
+lemma measure_zero_union { s t : Set N } (hs : measure_zero J s) (ht : measure_zero J t)
+    : measure_zero J (s ∪ t) := by -- TODO: want the version below...
+ --{ s : ℕ → Set N } (hs : ∀ n : ℕ, measure_zero J (s n)) : measure_zero J (⋃ (n ∈ ℕ), s n)
+  -- rw [measure_zero] at hs ht ⊢
+  intro μ hμ e he
+  specialize hs μ e he
+  specialize ht μ e he
+  have : J ∘ e '' (e.source ∩ (s ∪ t))
+      = J ∘ e '' (e.source ∩ s) ∪ J ∘ e  '' (e.source ∩ t) := by
+    rw [inter_distrib_left e.source s t]
+    exact image_union (↑J ∘ ↑e) (e.source ∩ s) (e.source ∩ t)
+  rw [this]
+  exact measure_union_null hs ht
+
+/-- The “almost everywhere” filter of co-measure zero sets in a manifold. -/
+def ModelWithCorners.ae
+    { E : Type* } [NormedAddCommGroup E] [NormedSpace ℝ E]
+    { F : Type*} [TopologicalSpace F] (J : ModelWithCorners ℝ E F)
+    { M : Type* } [TopologicalSpace M] [ChartedSpace F M]
+    [SmoothManifoldWithCorners J M] [FiniteDimensional ℝ E]
+    [MeasurableSpace E] : Filter M where
+  sets := { s | measure_zero J sᶜ }
+  univ_sets := by
+    rw [@mem_setOf, compl_univ]
+    apply empty_measure_zero
+  inter_sets hx hy:= by
+    simp only [mem_setOf_eq] at *
+    rw [compl_inter]
+    exact measure_zero_union hx hy
+  sets_of_superset hs hst := by
+    apply measure_zero_subset (Iff.mpr compl_subset_compl hst)
+    exact hs
+#exit
 
 /- Let U c ℝ^n be an open set and f: U → ℝ^n be a C^1 map.
   If $X\subset U$ has measure zero, so has $f(X)$. -/
