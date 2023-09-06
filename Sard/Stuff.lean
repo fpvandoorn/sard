@@ -12,23 +12,23 @@ variable
   -- declare a smooth manifold `M` over the pair `(E, H)`.
   {E : Type*}
   [NormedAddCommGroup E] [NormedSpace ℝ E] {H : Type*} [TopologicalSpace H]
-  (I : ModelWithCorners ℝ E H) {M : Type*} [TopologicalSpace M] [ChartedSpace H M]
+  (I : ModelWithCorners ℝ E H) {M : Type*} [TopologicalSpace M] [ChartedSpace H M] -- I.Boundaryless?
   [SmoothManifoldWithCorners I M] [FiniteDimensional ℝ E]
   -- declare a smooth manifold `N` over the pair `(F, G)`.
   {F : Type*}
   -- F is basically R^n, G might be a half-space or so (if corners)
   -- J can be regarded as a map G→F
   [NormedAddCommGroup F] [NormedSpace ℝ F] {G : Type*} [TopologicalSpace G]
-  (J : ModelWithCorners ℝ F G) {N : Type*} [TopologicalSpace N] [ChartedSpace G N]
+  (J : ModelWithCorners ℝ F G) {N : Type*} [TopologicalSpace N] [ChartedSpace G N] [J.Boundaryless]
   [SmoothManifoldWithCorners J N] [FiniteDimensional ℝ F]
-  [MeasurableSpace F]
+  [MeasurableSpace F] [BorelSpace F]
 
 variable {m n r : ℕ} (hm : finrank ℝ E = m) (hn : finrank ℝ F = n) (hr : r > m-n)
 
-/- A measure zero subset of a manifold $N$ is a subset $S⊆N$ such that
-for all charts $(φ, U)$ of $N$, $φ(U∩ S) ⊆ ℝ^n$ has measure zero. -/
+/- A measure zero subset of a manifold $N$ is a subset $S ⊆ N$ such that
+for all charts $(φ, U)$ of $N$, $φ(U ∩ S) ⊆ ℝ^n$ has measure zero. -/
 def measure_zero (s : Set N) : Prop :=
-  ∀ (μ : Measure F) [IsAddHaarMeasure μ], ∀ e ∈ atlas G N, μ (J ∘ e '' s) = 0
+  ∀ (μ : Measure F) [IsAddHaarMeasure μ], ∀ e ∈ atlas G N, μ (J ∘ e '' (e.source ∩ s)) = 0
 
 /- Let U c ℝ^n be an open set and f: U → ℝ^n be a C^1 map.
   If $X\subset U$ has measure zero, so has $f(X)$. -/
@@ -127,9 +127,42 @@ lemma closed_null_has_empty_interior(s : Set F) (h₁s : IsClosed s)
     (μ : Measure F) [IsAddHaarMeasure μ] (h₂s : μ s = 0) : (interior s) = ∅ := by
   sorry -- does IsOpenPosMeasure suffice here?
 
+open TopologicalSpace
+
+/-- An open subset of a topological manifold contains an interior point (not on the boundary). -/
+-- lemma open_subset_contains_interior_point : (s : Set N) (hs : IsOpen s) :
+-- ∃ p ∈ s, p ∈ interior N := by sorry --- how to even state this??
+-- is this true or are our local models too wild?
+
 -- better approach: prove this lemma first
 lemma open_measure_zero_is_empty (s : Set N) (h₁s : IsOpen s) (h₂s : measure_zero J s): s = ∅ := by
-  sorry -- (just deduce from measure_pos_of_non_empty_interior in mathlib)
+  suffices ∀ e ∈ atlas G N, (e.source ∩ s) = ∅ by
+    sorry -- the atlas forms an open cover -> use interior_zero_iff_open_cover
+  intro e he
+  have hsdf : IsOpen (e.source ∩ s) := IsOpen.inter e.open_source h₁s
+  simp [measure_zero] at h₂s
+
+  -- choose any measure μ that's a Haar measure
+  obtain ⟨K''⟩ : Nonempty (PositiveCompacts F) := PositiveCompacts.nonempty'
+  let μ : Measure F := addHaarMeasure K''
+  -- by h₂s μ e, we have μ (J∘e '' s) = 0; that's a set in N
+  specialize h₂s μ e he
+  by_contra h
+  -- in particular, e.source ∩ s is an open subset contained in that -> also has measure zero
+  have h' : Set.Nonempty (interior (J ∘ e '' (e.source ∩ s))) := by
+    have : Set.Nonempty (J ∘ e '' (e.source ∩ s)) := by
+      exact (Iff.mp Set.nmem_singleton_empty h).image _
+    have : IsOpen (e '' (e.source ∩ s)) := by
+        apply e.image_open_of_open'
+        exact h₁s
+    have : IsOpen (J ∘ e '' (e.source ∩ s)) := by
+      rw [Set.image_comp]
+      -- FUTURE: for manifolds with boundary, use open_subset_contains_interior_point above
+      apply J.toHomeomorph.isOpenMap
+      apply this
+    rwa [this.interior_eq]
+  apply (measure_pos_of_nonempty_interior (μ := μ) h').ne'
+  exact h₂s
 
 -- then: deduce the statement below from it
 
@@ -149,13 +182,13 @@ lemma closed_measure_zero_empty_interior (s : Set N) (h₁s : IsClosed s)
   -- by hypothesis, μ(U ∩ S) has measure zero
   have h : ∀ (μ: Measure F) [IsAddHaarMeasure μ], μ (J ∘ e '' (e.source ∩ s)) = 0 := by
     intro μ hμ
-    have h'' : μ (J ∘ e '' s) = 0 := by
+    have h'' : μ (J ∘ e '' (e.source ∩ s)) = 0 := by
       apply h₂s μ
       sorry -- What is happening? Uncommenting this produces strange errors.
     have h''' : J ∘ e '' (e.source ∩ s) ⊆ J ∘e '' s := by
       apply Set.image_subset
       apply Set.inter_subset_right
-    exact measure_mono_null h''' h''
+    sorry -- exact measure_mono_null h''' h''
   -- each φ(U ∩ S) has empty interior
   have h' : ∀ (μ: Measure F) [IsAddHaarMeasure μ], interior (J ∘ e '' (e.source ∩ s)) = ∅ := by
     intro μ hμ
