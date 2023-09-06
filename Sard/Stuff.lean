@@ -139,7 +139,7 @@ theorem empty_iff_open_cover {X : Type} [TopologicalSpace X]
   simp only [iUnion_eq_empty]
 
 -- better approach: prove this lemma first
-lemma open_measure_zero_is_empty (s : Set N) (h₁s : IsOpen s) (h₂s : measure_zero J s): s = ∅ := by
+lemma open_null_set_is_empty (s : Set N) (h₁s : IsOpen s) (h₂s : measure_zero J s): s = ∅ := by
   suffices ∀ e ∈ atlas G N, (e.source ∩ s) = ∅ by
     by_contra h
     obtain ⟨x, hx⟩ : Set.Nonempty s := Iff.mp nmem_singleton_empty h
@@ -175,15 +175,35 @@ lemma open_measure_zero_is_empty (s : Set N) (h₁s : IsOpen s) (h₂s : measure
   apply (measure_pos_of_nonempty_interior (μ := μ) h').ne'
   exact h₂s
 
--- then: deduce the statement below from it
-
-/- A closed measure zero subset of a manifold N is nowhere dense.
-  It suffices to show that it has empty interior. -/
-lemma closed_measure_zero_empty_interior (s : Set N) (h₁s : IsClosed s)
+/- A measure zero subset of a manifold N has empty interior. -/
+-- Cor. A *closed* measure zero subset of N is nowhere dense.
+lemma closed_null_set_empty_interior (s : Set N)
     (h₂s : measure_zero J s) : (interior s) = ∅ := by
-  -- suppose U ⊂ s open, then show U is empty (by lemma above)
-  -- U open implies phi(U) is open
+  have hlocal : ∀ (u : Set N) (_ : IsOpen u) (_ : u ⊆ s), u = ∅ := by
+    -- let U ⊆ N be open with U ⊆ S
+    intro u hu hus
+    -- then U also has measure zero (make separate lemma!)
+    have : measure_zero J u := by
+      rw [measure_zero]
+      intro μ hμ e he
+      have : J ∘ e '' (e.source ∩ u) ⊆  J ∘ e '' (e.source ∩ s) := by
+        apply image_subset
+        exact inter_subset_inter_right e.source hus
+      exact measure_mono_null this (h₂s μ e he)
+    -- hence the previous lemma applies
+    exact open_null_set_is_empty J u hu this
 
+  -- this suffices: for the sake of contradiction, assume the interior is non-empty
+  by_contra h
+  -- an element in the interior: this yields an open subset t of s containing x
+  obtain ⟨x, hx⟩ : Set.Nonempty (interior s) := Iff.mp nmem_singleton_empty h
+  rw [mem_interior] at hx
+  rcases hx with ⟨t, hts, htopen, ht⟩
+  -- by the previous lemma, we have an element x ∈ t, but t=∅, contradiction!
+  specialize hlocal t htopen hts
+  simp_all only [ge_iff_le, gt_iff_lt, ne_eq, empty_subset, isOpen_empty, mem_empty_iff_false]
+
+  #exit
   -- It suffices to show that for each chart, the set U ∩ S ⊆ N has empty interior.
   suffices ∀ e ∈ atlas G N, interior (e.source ∩ s) = ∅ by
     -- the atlas forms an open cover -> use interior_zero_iff_open_cover
