@@ -127,6 +127,12 @@ lemma closed_null_has_empty_interior(s : Set F) (h₁s : IsClosed s)
     (μ : Measure F) [IsAddHaarMeasure μ] (h₂s : μ s = 0) : (interior s) = ∅ := by
   sorry -- does IsOpenPosMeasure suffice here?
 
+-- better approach: prove this lemma first
+lemma open_measure_zero_is_empty (s : Set N) (h₁s : IsOpen s) (h₂s : measure_zero J s): s = ∅ := by
+  sorry -- (just deduce from measure_pos_of_non_empty_interior in mathlib)
+
+-- then: deduce the statement below from it
+
 /- A closed measure zero subset of a manifold N is nowhere dense.
   It suffices to show that it has empty interior. -/
 lemma closed_measure_zero_empty_interior (s : Set N) (h₁s : IsClosed s)
