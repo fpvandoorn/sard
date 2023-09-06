@@ -2,10 +2,7 @@ import Mathlib.MeasureTheory.Function.Jacobian
 import Mathlib.MeasureTheory.Measure.OpenPos
 import Mathlib.Geometry.Manifold.VectorBundle.SmoothSection
 
-open Manifold MeasureTheory FiniteDimensional
-open Measure
-open Function
-
+open Manifold MeasureTheory FiniteDimensional Measure Function TopologicalSpace Set
 set_option autoImplicit false
 
 variable
@@ -127,21 +124,35 @@ lemma closed_null_has_empty_interior(s : Set F) (h₁s : IsClosed s)
     (μ : Measure F) [IsAddHaarMeasure μ] (h₂s : μ s = 0) : (interior s) = ∅ := by
   sorry -- does IsOpenPosMeasure suffice here?
 
-open TopologicalSpace
-
 /-- An open subset of a topological manifold contains an interior point (not on the boundary). -/
 -- lemma open_subset_contains_interior_point : (s : Set N) (hs : IsOpen s) :
 -- ∃ p ∈ s, p ∈ interior N := by sorry --- how to even state this??
 -- is this true or are our local models too wild?
 
+/- Let $(U_α)$ be a cover of a topological space X.
+A subset $S ⊆ X$ is empty iff all $S ∩ U_α$ are empty. -/
+theorem empty_iff_open_cover {X : Type} [TopologicalSpace X]
+    (I : Type) (U : I → Set X)
+    (hcover : ⋃ (α : I), U α = univ) (s : Set X) : s = ∅ ↔ ∀ α : I, s ∩ U α = ∅ := by
+  have : ⋃ (α : I), s ∩ U α = s := by rw [←inter_iUnion, hcover, inter_univ s]
+  nth_rewrite 1 [← this]
+  simp only [iUnion_eq_empty]
+
 -- better approach: prove this lemma first
 lemma open_measure_zero_is_empty (s : Set N) (h₁s : IsOpen s) (h₂s : measure_zero J s): s = ∅ := by
   suffices ∀ e ∈ atlas G N, (e.source ∩ s) = ∅ by
-    sorry -- the atlas forms an open cover -> use interior_zero_iff_open_cover
+    by_contra h
+    obtain ⟨x, hx⟩ : Set.Nonempty s := Iff.mp nmem_singleton_empty h
+    specialize this (chartAt G x) (chart_mem_atlas G x)
+    have h₂: x ∈ (chartAt G x).toLocalEquiv.source ∩ s := by
+      constructor
+      simp
+      exact hx
+    rw [this] at h₂
+    contradiction
+    -- alternatively: the atlas forms an open cover -> use interior_zero_iff_open_cover
   intro e he
-  have hsdf : IsOpen (e.source ∩ s) := IsOpen.inter e.open_source h₁s
   simp [measure_zero] at h₂s
-
   -- choose any measure μ that's a Haar measure
   obtain ⟨K''⟩ : Nonempty (PositiveCompacts F) := PositiveCompacts.nonempty'
   let μ : Measure F := addHaarMeasure K''
