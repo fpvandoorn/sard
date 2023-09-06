@@ -27,8 +27,10 @@ for all charts $(φ, U)$ of $N$, $φ(U ∩ S) ⊆ ℝ^n$ has measure zero. -/
 def measure_zero (s : Set N) : Prop :=
   ∀ (μ : Measure F) [IsAddHaarMeasure μ], ∀ e ∈ atlas G N, μ (J ∘ e '' (e.source ∩ s)) = 0
 
+variable {J}
 /-- Having measure zero is monotone: a subset of a set with measure zero has measure zero. -/
-lemma measure_zero_subset (s t: Set N) (hst : s ⊆ t) (ht : measure_zero J t) : (measure_zero J s) := by
+lemma measure_zero_subset {s t: Set N} (hst : s ⊆ t) (ht : measure_zero J t) :
+    (measure_zero J s) := by
   rw [measure_zero]
   intro μ hμ e he
   have : J ∘ e '' (e.source ∩ s) ⊆  J ∘ e '' (e.source ∩ t) := by
@@ -41,10 +43,9 @@ lemma measure_zero_subset (s t: Set N) (hst : s ⊆ t) (ht : measure_zero J t) :
 -- NB: this is false for mere C⁰ maps, the Cantor function f provides a counterexample:
 -- the standard Cantor set has measure zero, but its image has measure one
 -- (the complement [0,1]\C has countable image by definition of f).
-lemma C1_image_null_set_null (f : E → E)
-    (U : Set E) (hU : IsOpen U) (hf : ContDiffOn ℝ 1 f U)
-    [MeasurableSpace E] (μ : Measure E) [IsAddHaarMeasure μ]
-    (s : Set E) (h₁s: s ⊆ U) (h₂s: μ s = 0) : μ (f '' s) = 0 := by sorry
+lemma C1_image_null_set_null {f : E → E} {U : Set E} (hU : IsOpen U)
+    (hf : ContDiffOn ℝ 1 f U) [MeasurableSpace E] (μ : Measure E) [IsAddHaarMeasure μ]
+    {s : Set E} (h₁s: s ⊆ U) (h₂s: μ s = 0) : μ (f '' s) = 0 := by sorry
 
 -- Helper results in topology which should go in mathlib.
 section Topology
@@ -91,7 +92,7 @@ section local_stuff
 /-- Let $(U_α)$ be an open cover of a topological space X.
 A subset $S ⊆ X$ has empty interior iff all $S∩U_α$ have empty interior. -/
 theorem interior_zero_iff_open_cover {X : Type} [TopologicalSpace X]
-    (I : Type) (U : I → Set X) (hU : ∀ α : I,  IsOpen (U α)) (hcover : ⋃ (α : I), U α = X) (s : Set X) :
+    {I : Type} {U : I → Set X} (hU : ∀ α : I,  IsOpen (U α)) (hcover : ⋃ (α : I), U α = X) (s : Set X) :
     interior s = ∅ ↔ ∀ α : I, interior (s ∩ U α) = ∅ := by
   constructor
   · -- suppose interior S = ∅
@@ -134,15 +135,14 @@ end local_stuff
 
 /- Let $(U_α)$ be a cover of a topological space X.
 A subset $S ⊆ X$ is empty iff all $S ∩ U_α$ are empty. -/
-theorem empty_iff_open_cover {X : Type} [TopologicalSpace X]
-    (I : Type) (U : I → Set X)
-    (hcover : ⋃ (α : I), U α = univ) (s : Set X) : s = ∅ ↔ ∀ α : I, s ∩ U α = ∅ := by
+theorem empty_iff_open_cover {X : Type} [TopologicalSpace X] {I : Type} {U : I → Set X}
+    (hcover : ⋃ (α : I), U α = univ) {s : Set X} : s = ∅ ↔ ∀ α : I, s ∩ U α = ∅ := by
   have : ⋃ (α : I), s ∩ U α = s := by rw [←inter_iUnion, hcover, inter_univ s]
   nth_rewrite 1 [← this]
   simp only [iUnion_eq_empty]
 
 /-- An open set of measure zero is empty. -/
-lemma open_measure_zero_set_is_empty (s : Set N) (h₁s : IsOpen s) (h₂s : measure_zero J s): s = ∅ := by
+lemma open_measure_zero_set_is_empty {s : Set N} (h₁s : IsOpen s) (h₂s : measure_zero J s): s = ∅ := by
   suffices ∀ e ∈ atlas G N, (e.source ∩ s) = ∅ by
     by_contra h
     obtain ⟨x, hx⟩ : Set.Nonempty s := Iff.mp nmem_singleton_empty h
@@ -153,7 +153,7 @@ lemma open_measure_zero_set_is_empty (s : Set N) (h₁s : IsOpen s) (h₂s : mea
       exact hx
     rw [this] at h₂
     contradiction
-    -- alternatively: the atlas forms an open cover -> use interior_zero_iff_open_cover
+    -- alternative proof: the atlas forms an open cover -> use interior_zero_iff_open_cover
   intro e he
   simp [measure_zero] at h₂s
   -- choose any measure μ that's a Haar measure
@@ -178,38 +178,25 @@ lemma open_measure_zero_set_is_empty (s : Set N) (h₁s : IsOpen s) (h₂s : mea
   apply (measure_pos_of_nonempty_interior (μ := μ) h').ne'
   exact h₂s
 
-/- A subset of a manifold `N` with measure zero has empty interior. -/
--- Cor. A *closed* measure zero subset of N is nowhere dense.
-lemma closed_measure_zero_set_empty_interior (s : Set N)
-    (h₂s : measure_zero J s) : (interior s) = ∅ := by
-  have hlocal : ∀ (u : Set N) (_ : IsOpen u) (_ : u ⊆ s), u = ∅ := by
-    -- let U ⊆ N be open with U ⊆ S
-    intro u hu hus
-    -- then U also has measure zero, hence the previous lemma applies
-    have : measure_zero J u := measure_zero_subset J u s hus h₂s
-    exact open_measure_zero_set_is_empty J u hu this
+/- A subset of a manifold `N` with measure zero has empty interior.
 
-  -- this suffices: for the sake of contradiction, assume the interior is non-empty
-  by_contra h
-  -- an element in the interior: this yields an open subset t of s containing x
-  obtain ⟨x, hx⟩ : Set.Nonempty (interior s) := Iff.mp nmem_singleton_empty h
-  rw [mem_interior] at hx
-  rcases hx with ⟨t, hts, htopen, ht⟩
-  -- by the previous lemma, we have an element x ∈ t, but t=∅, contradiction!
-  specialize hlocal t htopen hts
-  simp_all only [ge_iff_le, gt_iff_lt, ne_eq, empty_subset, isOpen_empty, mem_empty_iff_false]
+In particular, a *closed* measure zero subset of N is nowhere dense. -/
+lemma closed_measure_zero_set_empty_interior {s : Set N}
+    (h₂s : measure_zero J s) : (interior s) = ∅ := by
+  have : measure_zero J (interior s) := measure_zero_subset interior_subset h₂s
+  apply open_measure_zero_set_is_empty isOpen_interior this
 
 /- If M, N are C¹ manifolds with dim M < dim N and f:M → N is C¹, then f(M) has measure zero. -/
-lemma image_C1_dimension_increase_image_null (f : M → N) (hf : ContMDiff I J r f)
+lemma image_C1_dimension_increase_image_null {f : M → N} (hf : ContMDiff I J r f)
     (hdim : m < n) : measure_zero J (Set.range f) := by
   sorry -- use C1_image_null_set_null and closed_measure_zero_empty_interior
 
 /- Local version of Sard's theorem. If $W ⊆ ℝ^m$ is open and $f: W → ℝ^n$ is $C^r$,
 the set of critical values has measure zero. -/
-theorem sard_local (s w : Set E) (f : E → F) (hf : ContDiffOn ℝ r f w)
-    (f' : E → E →L[ℝ] F) (hf' : ∀ x ∈ s, HasFDerivWithinAt f (f' x) s x)
+theorem sard_local {s w : Set E} {f : E → F} (hf : ContDiffOn ℝ r f w)
+    {f' : E → E →L[ℝ] F} (hf' : ∀ x ∈ s, HasFDerivWithinAt f (f' x) s x)
     (h'f' : ∀ x ∈ s, ¬ Surjective (f' x)) (μ : Measure F) [IsAddHaarMeasure μ] :
-    μ (f '' s) = 0:= by
+    μ (f '' s) = 0 := by
   by_cases hyp: m < n
   · sorry -- show f(W) has measure zero; use `C1_image_null_set_null`
   · sorry
@@ -217,9 +204,9 @@ theorem sard_local (s w : Set E) (f : E → F) (hf : ContDiffOn ℝ r f w)
 /- **Sard's theorem**. Let $M$ and $N$ be real $C^r$ manifolds of dimensions
 $m$ and $n$, and $f:M→N$ a $C^r$ map. If $r>\max{0, m-n}$,
 the set of regular values of $f$ has full measure. -/
-theorem sard (f : M → N) (hf : ContMDiff I J r f)
-    (f' : ∀x, TangentSpace I x →L[ℝ] TangentSpace J (f x))
-    (s : Set M) (hf' : ∀ x ∈ s, HasMFDerivWithinAt I J f s x (f' x))
+theorem sard {f : M → N} (hf : ContMDiff I J r f)
+    {f' : ∀x, TangentSpace I x →L[ℝ] TangentSpace J (f x)} {s : Set M}
+    (hf' : ∀ x ∈ s, HasMFDerivWithinAt I J f s x (f' x))
     (h'f' : ∀ x ∈ s, ¬ Surjective (f' x)) : measure_zero J (f '' s) := by
   sorry
 
