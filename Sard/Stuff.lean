@@ -17,7 +17,7 @@ variable
   -- declare a smooth manifold `N` over the pair `(F, G)`.
   {F : Type*}
   -- F is basically R^n, G might be a half-space or so (if corners)
-  -- J can be regarded as a map G→F 
+  -- J can be regarded as a map G→F
   [NormedAddCommGroup F] [NormedSpace ℝ F] {G : Type*} [TopologicalSpace G]
   (J : ModelWithCorners ℝ F G) {N : Type*} [TopologicalSpace N] [ChartedSpace G N]
   [SmoothManifoldWithCorners J N] [FiniteDimensional ℝ F]
@@ -28,7 +28,7 @@ variable {m n r : ℕ} (hm : finrank ℝ E = m) (hn : finrank ℝ F = n) (hr : r
 /- A measure zero subset of a manifold $N$ is a subset $S⊆N$ such that
 for all charts $(φ, U)$ of $N$, $φ(U∩ S) ⊆ ℝ^n$ has measure zero. -/
 def measure_zero (s : Set N) : Prop :=
-  ∀ (μ : Measure F), ∀ e ∈ atlas G N, μ (J ∘ e '' s) = 0
+  ∀ (μ : Measure F) [IsAddHaarMeasure μ], ∀ e ∈ atlas G N, μ (J ∘ e '' s) = 0
 
 /- Let U c ℝ^n be an open set and f: U → ℝ^n be a C^1 map.
   If $X\subset U$ has measure zero, so has $f(X)$. -/
@@ -127,14 +127,13 @@ lemma closed_measure_zero_empty_interior (s : Set N) (h₁s : IsClosed s)
     (h₂s : measure_zero J s) : (interior s) = ∅ := by
   -- It suffices to show that for each chart, the set U ∩ S ⊆ N has empty interior.
   suffices ∀ e ∈ atlas G N, interior (e.source ∩ s) = ∅ by
-    extract_goal
     sorry
     -- open cover yada yada
 
   intro e
   -- by hypothesis, μ(U ∩ S) has measure zero
-  have h : ∀ μ: Measure F, μ (J ∘ e '' (e.source ∩ s)) = 0 := by
-    intro μ
+  have h : ∀ (μ: Measure F) [IsAddHaarMeasure μ], μ (J ∘ e '' (e.source ∩ s)) = 0 := by
+    intro μ hμ
     have h'' : μ (J ∘ e '' s) = 0 := by
       apply h₂s μ
       sorry -- What is happening? Uncommenting this produces strange errors.
