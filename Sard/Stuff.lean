@@ -45,11 +45,10 @@ lemma empty_measure_zero : measure_zero J (∅: Set N) := by
   intro μ _ e _
   simp only [comp_apply, inter_empty, image_empty, OuterMeasure.empty']
 
-/- The countable union of measure zero sets has measure zero. -/
+/- The finite union of measure zero sets has measure zero. -/
 lemma measure_zero_union { s t : Set N } (hs : measure_zero J s) (ht : measure_zero J t)
-    : measure_zero J (s ∪ t) := by -- TODO: want the version below...
- --{ s : ℕ → Set N } (hs : ∀ n : ℕ, measure_zero J (s n)) : measure_zero J (⋃ (n ∈ ℕ), s n)
-  -- rw [measure_zero] at hs ht ⊢
+    : measure_zero J (s ∪ t) := by
+  -- FIXME: how to deduce this from `measure_zero_iUnion`?
   intro μ hμ e he
   specialize hs μ e he
   specialize ht μ e he
@@ -59,6 +58,19 @@ lemma measure_zero_union { s t : Set N } (hs : measure_zero J s) (ht : measure_z
     exact image_union (↑J ∘ ↑e) (e.source ∩ s) (e.source ∩ t)
   rw [this]
   exact measure_union_null hs ht
+
+/- The countable index union of measure zero sets has measure zero. -/
+lemma measure_zero_iUnion { s : ℕ → Set N }
+  (hs : ∀ n : ℕ, measure_zero J (s n)) : measure_zero J (⋃ (n : ℕ),  s n) := by
+  intro μ hμ e he
+  have : J ∘ e '' (e.source ∩ (⋃ (n : ℕ),  s n)) = ⋃ (n : ℕ), J ∘ e '' (e.source ∩ s n) := by
+    rw [inter_iUnion]
+    exact image_iUnion
+  -- union of null sets is a null set
+  simp_all only [comp_apply, ge_iff_le, gt_iff_lt, OuterMeasure.iUnion_null_iff]
+  intro i
+  apply hs
+  simp_all only [ge_iff_le]
 
 /-- The “almost everywhere” filter of co-measure zero sets in a manifold. -/
 def ModelWithCorners.ae
