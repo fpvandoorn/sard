@@ -86,36 +86,8 @@ def ModelWithCorners.ae
     exact hx.union hy
   sets_of_superset hs hst := hs.mono (Iff.mpr compl_subset_compl hst)
 
--- FUTURE: show that
--- - if there's a measure compatible on each chart, measure zero means measure zero in that chart
--- - if M is a normed space with Haar measure, that also coincides
-end MeasureZero
-end MeasureZero
-
-/- Let U c ℝ^n be an open set and f: U → ℝ^n be a C^1 map.
-  If $X\subset U$ has measure zero, so has $f(X)$. -/
--- NB: this is false for mere C⁰ maps, the Cantor function f provides a counterexample:
--- the standard Cantor set has measure zero, but its image has measure one
--- (the complement [0,1]\C has countable image by definition of f).
-lemma C1_image_null_set_null {f : E → E} {U : Set E} (hU : IsOpen U)
-    (hf : ContDiffOn ℝ 1 f U) [MeasurableSpace E] (μ : Measure E) [IsAddHaarMeasure μ]
-    {s : Set E} (h₁s: s ⊆ U) (h₂s: μ s = 0) : μ (f '' s) = 0 := by sorry
-
-/-- An open subset of a topological manifold contains an interior point (not on the boundary). -/
--- lemma open_subset_contains_interior_point : (s : Set N) (hs : IsOpen s) :
--- ∃ p ∈ s, p ∈ interior N := by sorry --- how to even state this??
--- is this true or are our local models too wild?
-
-/- Let $(U_α)$ be a cover of a topological space X.
-A subset $S ⊆ X$ is empty iff all $S ∩ U_α$ are empty. -/
-theorem empty_iff_open_cover {X : Type} [TopologicalSpace X] {I : Type} {U : I → Set X}
-    (hcover : ⋃ (α : I), U α = univ) {s : Set X} : s = ∅ ↔ ∀ α : I, s ∩ U α = ∅ := by
-  have : ⋃ (α : I), s ∩ U α = s := by rw [←inter_iUnion, hcover, inter_univ s]
-  nth_rewrite 1 [← this]
-  simp only [iUnion_eq_empty]
-
 /-- An open set of measure zero is empty. -/
-lemma open_measure_zero_set_is_empty {s : Set N} (h₁s : IsOpen s) (h₂s : MeasureZero J s): s = ∅ := by
+protected lemma open_implies_empty {s : Set N} (h₁s : IsOpen s) (h₂s : MeasureZero J s): s = ∅ := by
   suffices ∀ e ∈ atlas G N, (e.source ∩ s) = ∅ by
     by_contra h
     obtain ⟨x, hx⟩ : Set.Nonempty s := Iff.mp nmem_singleton_empty h
@@ -154,15 +126,43 @@ lemma open_measure_zero_set_is_empty {s : Set N} (h₁s : IsOpen s) (h₂s : Mea
 /- A subset of a manifold `N` with measure zero has empty interior.
 
 In particular, a *closed* measure zero subset of N is nowhere dense. -/
-lemma closed_MeasureZero_set_empty_interior {s : Set N}
+protected lemma MeasureZero_implies_empty_interior {s : Set N}
     (h₂s : MeasureZero J s) : (interior s) = ∅ := by
   have : MeasureZero J (interior s) := h₂s.mono interior_subset
-  apply open_measure_zero_set_is_empty isOpen_interior this
+  apply MeasureZero.open_implies_empty isOpen_interior this
+
+-- FUTURE: show that
+-- - if there's a measure compatible on each chart, measure zero means measure zero in that chart
+-- - if M is a normed space with Haar measure, that also coincides
+end MeasureZero
+end MeasureZero
+
+/- Let U c ℝ^n be an open set and f: U → ℝ^n be a C^1 map.
+  If $X\subset U$ has measure zero, so has $f(X)$. -/
+-- NB: this is false for mere C⁰ maps, the Cantor function f provides a counterexample:
+-- the standard Cantor set has measure zero, but its image has measure one
+-- (the complement [0,1]\C has countable image by definition of f).
+lemma C1_image_null_set_null {f : E → E} {U : Set E} (hU : IsOpen U)
+    (hf : ContDiffOn ℝ 1 f U) [MeasurableSpace E] (μ : Measure E) [IsAddHaarMeasure μ]
+    {s : Set E} (h₁s: s ⊆ U) (h₂s: μ s = 0) : μ (f '' s) = 0 := by sorry
+
+/-- An open subset of a topological manifold contains an interior point (not on the boundary). -/
+-- lemma open_subset_contains_interior_point : (s : Set N) (hs : IsOpen s) :
+-- ∃ p ∈ s, p ∈ interior N := by sorry --- how to even state this??
+-- is this true or are our local models too wild?
+
+/- Let $(U_α)$ be a cover of a topological space X.
+A subset $S ⊆ X$ is empty iff all $S ∩ U_α$ are empty. -/
+theorem empty_iff_open_cover {X : Type} [TopologicalSpace X] {I : Type} {U : I → Set X}
+    (hcover : ⋃ (α : I), U α = univ) {s : Set X} : s = ∅ ↔ ∀ α : I, s ∩ U α = ∅ := by
+  have : ⋃ (α : I), s ∩ U α = s := by rw [←inter_iUnion, hcover, inter_univ s]
+  nth_rewrite 1 [← this]
+  simp only [iUnion_eq_empty]
 
 /- If M, N are C¹ manifolds with dim M < dim N and f:M → N is C¹, then f(M) has measure zero. -/
 lemma image_C1_dimension_increase_image_null {f : M → N} (hf : ContMDiff I J r f)
     (hdim : m < n) : MeasureZero J (Set.range f) := by
-  sorry -- use C1_image_null_set_null and closed_MeasureZero_empty_interior
+  sorry -- use C1_image_null_set_null and MeasureZero_empty_interior
 
 /- Local version of Sard's theorem. If $W ⊆ ℝ^m$ is open and $f: W → ℝ^n$ is $C^r$,
 the set of critical values has measure zero. -/
