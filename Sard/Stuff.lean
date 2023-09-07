@@ -130,10 +130,6 @@ protected lemma MeasureZero_implies_empty_interior {s : Set N}
     (h₂s : MeasureZero J s) : (interior s) = ∅ := by
   have : MeasureZero J (interior s) := h₂s.mono interior_subset
   apply MeasureZero.open_implies_empty isOpen_interior this
-
--- FUTURE: show that
--- - if there's a measure compatible on each chart, measure zero means measure zero in that chart
--- - if M is a normed space with Haar measure, that also coincides
 end MeasureZero
 end MeasureZero
 
