@@ -20,34 +20,34 @@ variable
 variable {m n r : ℕ} (hm : finrank ℝ E = m) (hn : finrank ℝ F = n) (hr : r > m-n)
 variable {J}
 
-/- Let U c ℝ^n be an open set and f: U → ℝ^n be a C^1 map.
-  If $X\subset U$ has measure zero, so has $f(X)$. -/
--- NB: this is false for mere C⁰ maps, the Cantor function f provides a counterexample:
--- the standard Cantor set has measure zero, but its image has measure one
--- (the complement [0,1]\C has countable image by definition of f).
+/-- Let U c ℝ^n be an open set and f: U → ℝ^n be a C^1 map.
+  If $X\subset U$ has measure zero, so has $f(X)$.
+  Note: this is false for merely C⁰ maps, the Cantor function $f$ provides a counterexample:
+  the standard Cantor set has measure zero, but its image has measure one
+  (as the complement $$[0,1]\setminus C$$ has countable image by definition of $f$). -/
 lemma C1_image_null_set_null {f : E → E} {U : Set E} (hU : IsOpen U)
     (hf : ContDiffOn ℝ 1 f U) [MeasurableSpace E] (μ : Measure E) [IsAddHaarMeasure μ]
     {s : Set E} (h₁s: s ⊆ U) (h₂s: μ s = 0) : μ (f '' s) = 0 := by sorry
 
-/-- An open subset of a topological manifold contains an interior point (not on the boundary). -/
+-- An open subset of a topological manifold contains an interior point (not on the boundary). -/
 -- lemma open_subset_contains_interior_point : (s : Set N) (hs : IsOpen s) :
 -- ∃ p ∈ s, p ∈ interior N := by sorry --- how to even state this??
 -- is this true or are our local models too wild?
 
-/- Let $(U_α)$ be a cover of a topological space X.
+/-- Let $(U_α)$ be a cover of a topological space X.
 A subset $S ⊆ X$ is empty iff all $S ∩ U_α$ are empty. -/
-theorem empty_iff_open_cover {X : Type} [TopologicalSpace X] {I : Type} {U : I → Set X}
+theorem empty_iff_open_cover {X : Type} {I : Type} {U : I → Set X}
     (hcover : ⋃ (α : I), U α = univ) {s : Set X} : s = ∅ ↔ ∀ α : I, s ∩ U α = ∅ := by
   have : ⋃ (α : I), s ∩ U α = s := by rw [←inter_iUnion, hcover, inter_univ s]
   nth_rewrite 1 [← this]
   simp only [iUnion_eq_empty]
 
-/- If M, N are C¹ manifolds with dim M < dim N and f:M → N is C¹, then f(M) has measure zero. -/
+/-- If M, N are C¹ manifolds with dim M < dim N and f:M → N is C¹, then f(M) has measure zero. -/
 lemma image_C1_dimension_increase_image_null {f : M → N} (hf : ContMDiff I J r f)
     (hdim : m < n) : MeasureZero J (Set.range f) := by
   sorry -- use C1_image_null_set_null and MeasureZero_empty_interior
 
-/- Local version of Sard's theorem. If $W ⊆ ℝ^m$ is open and $f: W → ℝ^n$ is $C^r$,
+/-- Local version of Sard's theorem. If $W ⊆ ℝ^m$ is open and $f: W → ℝ^n$ is $C^r$,
 the set of critical values has measure zero. -/
 theorem sard_local {s w : Set E} {f : E → F} (hf : ContDiffOn ℝ r f w)
     {f' : E → E →L[ℝ] F} (hf' : ∀ x ∈ s, HasFDerivWithinAt f (f' x) s x)
@@ -57,9 +57,16 @@ theorem sard_local {s w : Set E} {f : E → F} (hf : ContDiffOn ℝ r f w)
   · sorry -- show f(W) has measure zero; use `C1_image_null_set_null`
   · sorry
 
-/- **Sard's theorem**. Let $M$ and $N$ be real $C^r$ manifolds of dimensions
+/-- **Sard's theorem**. Let $M$ and $N$ be real $C^r$ manifolds of dimensions
 $m$ and $n$, and $f:M→N$ a $C^r$ map. If $r>\max{0, m-n}$,
-the set of regular values of $f$ has full measure. -/
+the set of regular values of $f$ has full measure.
+
+Note that mathlib already contains a weaker version of Sard's theorem,
+as `addHaar_image_eq_zero_of_det_fderivWithin_eq_zero` in the file `Mathlib.MeasureTheory.Function.Jacobian.Manifold`.
+This local result implies the case $m=n$ for $r\geq 1$ (not hard to show).
+However, note that the case $m > n$ requires a different proof: for $m>n$, the condition
+$f\in C^1$ is not sufficient any more: Whitney (1957) constructed a C¹ function
+$$f : ℝ² → ℝ$$ whose set of critical values contains an open set, thus has positive measure. -/
 theorem sard {f : M → N} (hf : ContMDiff I J r f)
     {f' : ∀x, TangentSpace I x →L[ℝ] TangentSpace J (f x)} {s : Set M}
     (hf' : ∀ x ∈ s, HasMFDerivWithinAt I J f s x (f' x))

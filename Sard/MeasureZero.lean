@@ -44,9 +44,9 @@ variable
   [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
 variable {I}
 
-/- A measure zero subset of an n-dimensional manifold $M$ is a subset $S ⊆ M$ such that
-for all charts $(φ, U)$ of $M$, $φ(U ∩ S) ⊆ ℝ^n$ has measure zero. -/
 variable (I) in
+/-- A measure zero subset of an n-dimensional manifold $M$ is a subset $S ⊆ M$ such that
+for all charts $(φ, U)$ of $M$, $φ(U ∩ S) ⊆ ℝ^n$ has measure zero. -/
 def MeasureZero (s : Set M) : Prop :=
   ∀ (μ : Measure E) [IsAddHaarMeasure μ], ∀ e ∈ atlas H M, μ (I ∘ e '' (e.source ∩ s)) = 0
 
@@ -60,12 +60,12 @@ protected lemma mono {s t : Set M} (hst : s ⊆ t) (ht : MeasureZero I t) :
     exact inter_subset_inter_right e.source hst
   exact measure_mono_null this (ht μ e he)
 
-/- The empty set has measure zero. -/
+/-- The empty set has measure zero. -/
 protected lemma empty : MeasureZero I (∅: Set M) := by
   intro μ _ e _
   simp only [comp_apply, inter_empty, image_empty, OuterMeasure.empty']
 
-/- The countable index union of measure zero sets has measure zero. -/
+/-- The countable index union of measure zero sets has measure zero. -/
 protected lemma iUnion { ι : Type* } [Encodable ι] { s : ι → Set M }
   (hs : ∀ n : ι, MeasureZero I (s n)) : MeasureZero I (⋃ (n : ι),  s n) := by
   intro μ hμ e he
@@ -78,7 +78,7 @@ protected lemma iUnion { ι : Type* } [Encodable ι] { s : ι → Set M }
   apply hs
   exact he
 
-/- The finite union of measure zero sets has measure zero. -/
+/-- The finite union of measure zero sets has measure zero. -/
 protected lemma union { s t : Set M } (hs : MeasureZero I s) (ht : MeasureZero I t)
     : MeasureZero I (s ∪ t) := by
   let u : Bool → Set M := fun b ↦ cond b s t
@@ -94,9 +94,7 @@ protected lemma union { s t : Set M } (hs : MeasureZero I s) (ht : MeasureZero I
 def ModelWithCorners.ae
     { E : Type* } [NormedAddCommGroup E] [NormedSpace ℝ E]
     { F : Type*} [TopologicalSpace F] (I : ModelWithCorners ℝ E F)
-    { M : Type* } [TopologicalSpace M] [ChartedSpace F M]
-    [SmoothManifoldWithCorners I M] [FiniteDimensional ℝ E]
-    [MeasurableSpace E] : Filter M where
+    { M : Type* } [TopologicalSpace M] [ChartedSpace F M] [MeasurableSpace E] : Filter M where
   sets := { s | MeasureZero I sᶜ }
   univ_sets := by
     rw [@mem_setOf, compl_univ]
@@ -122,7 +120,7 @@ protected lemma open_implies_empty {s : Set M} (h₁s : IsOpen s) (h₂s : Measu
 
   intro e he
   simp [MeasureZero] at h₂s
-  -- choose any measure μ that's a Haar measure
+  -- choose any Haar measure μ
   obtain ⟨K''⟩ : Nonempty (PositiveCompacts E) := PositiveCompacts.nonempty'
   let μ : Measure E := addHaarMeasure K''
   -- by h₂s μ e, we have μ (I∘e '' s) = 0
@@ -143,9 +141,10 @@ protected lemma open_implies_empty {s : Set M} (h₁s : IsOpen s) (h₂s : Measu
   apply (measure_pos_of_nonempty_interior (μ := μ) h').ne'
   exact h₂s
 
-/- A subset of a manifold `M` with measure zero has empty interior.
+/-- A subset of a manifold `M` with measure zero has empty interior.
 
-In particular, a *closed* measure zero subset of M is nowhere dense. -/
+In particular, a *closed* measure zero subset of M is nowhere dense.
+(Closedness is required: there are generalised Cantor sets of positive Lebesgue measure.) -/
 protected lemma MeasureZero_implies_empty_interior {s : Set M}
     (h₂s : MeasureZero I s) : (interior s) = ∅ := by
   have : MeasureZero I (interior s) := h₂s.mono interior_subset
