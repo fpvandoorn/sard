@@ -46,10 +46,9 @@ lemma locally_lipschitz_image_of_null_set_is_null_set { X Y : Type }
     { f : X → Y } (hf : ∀ x : X, ∃ K : NNReal, ∃ U : Set X, IsOpen U ∧ LipschitzOnWith K f U)
     { s : Set X } (hs : μH[d] s = 0) : μH[d] (f '' s) = 0 :=
   -- Choose a cover of X by compact sets K_i.
-  -- FIXME. how to use the theorems in the comment?
-  let cov : ℕ → Set X := sorry -- SigmaCompactSpace.compact_covering X
-  have hcov : ⋃ (n : ℕ), cov n = univ := by sorry -- iUnion_compactCovering
-  have hcompact : ∀ n : ℕ, IsCompact (cov n) := by sorry -- isCompact_compactCovering
+  let cov : ℕ → Set X := compactCovering X
+  have hcov : ⋃ (n : ℕ), cov n = univ := iUnion_compactCovering X
+  have hcompact : ∀ n : ℕ, IsCompact (cov n) := isCompact_compactCovering X
   -- It suffices to show the statement for all K_i. Let i be arbitrary.
   suffices ass : ∀ n : ℕ, μH[d] (f '' (s ∩ cov n)) = 0 by
     have : s = ⋃ (n : ℕ), s ∩ cov n := by
