@@ -1,7 +1,5 @@
-import Mathlib.MeasureTheory.Function.Jacobian
-import Mathlib.MeasureTheory.Measure.OpenPos
-import Mathlib.Geometry.Manifold.VectorBundle.SmoothSection
 import Sard.MeasureZero
+import Mathlib.Geometry.Manifold.MFDeriv
 
 open Manifold MeasureTheory FiniteDimensional Measure Function TopologicalSpace Set
 set_option autoImplicit false

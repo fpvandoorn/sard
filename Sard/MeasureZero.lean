@@ -1,5 +1,6 @@
-import Mathlib.MeasureTheory.Function.Jacobian
-import Mathlib.Geometry.Manifold.VectorBundle.SmoothSection
+import Mathlib.Geometry.Manifold.SmoothManifoldWithCorners
+import Mathlib.Topology.MetricSpace.Polish
+import Mathlib.MeasureTheory.Measure.Haar.Basic
 
 open MeasureTheory Measure Function TopologicalSpace Set
 set_option autoImplicit false
