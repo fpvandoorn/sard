@@ -52,24 +52,10 @@ lemma locally_lipschitz_image_of_null_set_is_null_set { X Y : Type }
   -- It suffices to show the statement for all K_i. Let i be arbitrary.
   suffices ass : ∀ n : ℕ, μH[d] (f '' (s ∩ cov n)) = 0 by
     have : s = ⋃ (n : ℕ), s ∩ cov n := by
-      -- FIXME: I'm sure this can be golfed into oblivion!
-      ext x
-      constructor
-      · intro hx
-        rw [mem_iUnion]
-        have h : x ∈ s ∩ ⋃ (n : ℕ), cov n := by
-          rw [← inter_univ s] at hx
-          rw [← hcov] at hx
-          exact hx
-        have : x ∈ ⋃ (n : ℕ), cov n := mem_of_mem_inter_right h
-        have sdf : ∃ i, x ∈ cov i := Iff.mp mem_iUnion this
-        rcases sdf with ⟨i, hi⟩
-        use i
-        exact mem_inter hx hi
-      · intro hx
-        rw [mem_iUnion] at hx
-        obtain ⟨i, hi⟩ := hx
-        exact mem_of_mem_inter_left hi
+      calc s
+        _ = s ∩ univ := by exact Eq.symm (inter_univ s)
+        _ = s ∩ ⋃ (n : ℕ), cov n := by rw [hcov]
+        _ = ⋃ (n : ℕ), s ∩ cov n := by apply inter_iUnion s
     have hless : μH[d] (f '' s) ≤ 0 := by
       calc μH[d] (f '' s)
         _ = μH[d] (f '' (⋃ (n : ℕ), s ∩ cov n)) := by rw [← this]
