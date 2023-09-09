@@ -54,7 +54,6 @@ namespace MeasureZero
 /-- Having measure zero is monotone: a subset of a set with measure zero has measure zero. -/
 protected lemma mono {s t : Set M} (hst : s ⊆ t) (ht : MeasureZero I t) :
     (MeasureZero I s) := by
-  rw [MeasureZero]
   intro μ hμ e he
   have : I ∘ e '' (e.source ∩ s) ⊆  I ∘ e '' (e.source ∩ t) := by
     apply image_subset
@@ -74,10 +73,10 @@ protected lemma iUnion { ι : Type* } [Encodable ι] { s : ι → Set M }
     rw [inter_iUnion]
     exact image_iUnion
   -- union of null sets is a null set
-  simp_all only [comp_apply, ge_iff_le, gt_iff_lt, OuterMeasure.iUnion_null_iff]
+  simp_all only [comp_apply, OuterMeasure.iUnion_null_iff]
   intro i
   apply hs
-  simp_all only [ge_iff_le]
+  exact he
 
 /- The finite union of measure zero sets has measure zero. -/
 protected lemma union { s t : Set M } (hs : MeasureZero I s) (ht : MeasureZero I t)
