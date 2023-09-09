@@ -79,13 +79,15 @@ lemma locally_lipschitz_image_of_null_set_is_null_set { X Y : Type }
     have hyp := hf x -- there exist K U, s.t. U is open and f is K-Lipschitz on U
     -- FIXME: something is off here: this step errors
     sorry --rcases hyp with ⟨KU, hKU⟩
-  have hopen : ∀ x : (K n), IsOpen (U x) := sorry -- almost vacuously
+  have hopen : ∀ x : (K n), IsOpen (U x) := sorry -- almost vacuously true
   have hcovering : K n ⊆ ⋃ (x : (K n)), U x := sorry -- since x ∈ U_x
   -- Since K_n is compact, (U_x) has a finite subcover.
-  -- xxx: this has type ∃ t, K n ⊆ ⋃ (i : X) (_ : i ∈ t), U i : Prop -> not fully what I want
+  -- xxx: both of these don't quite do what I think!! the line below doesn't work...
   let subcover := IsCompact.elim_finite_subcover (hcompact n) U hopen hcovering
-  -- in particular, this doesn't work
-  -- rcases subcover with ⟨t, ht⟩
+  have aux : ∃ t : Finset (K n), K n ⊆ ⋃ (i : (K n)) (_ : i ∈ t), U i := by
+    exact IsCompact.elim_finite_subcover (hcompact n) (fun i => U i) hopen hcovering
+  -- rcases subcover with ⟨t, ht⟩ -- fails!
+  --rcases aux with ⟨t, ht⟩
   -- On each U_x, f is Lipschitz by hypothesis.
   -- Hence, the previous lemma `lipschitz_image_null_set_is_null_set` applies.
   sorry
