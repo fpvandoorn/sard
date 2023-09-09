@@ -71,7 +71,17 @@ lemma locally_lipschitz_image_of_null_set_is_null_set { X Y : Type }
       apply this
       exact ⟨(by simp only [ge_iff_le, zero_le]), hless⟩
     exact this
-  -- Consider the cover induced by hf. This has a finite subcover as K_i is compact.
+
+  -- Consider the open cover of X induced by hf.
+  let fcover : X → Set X := by sorry
+--    intro x
+--    have sdf := hf x
+--    sorry --rcases sdf with ⟨K, ⟨U, hKU⟩⟩
+  have hcover : ∀ x : X, IsOpen (fcover x) := sorry
+  have hcovers : cov n ⊆ ⋃ (x : X), fcover x := sorry
+  -- This has a finite subcover as K_i is compact.
+  let subcover := IsCompact.elim_finite_subcover (hcompact n) fcover hcover hcovers
+
   -- On each open, f is Lipschitz by hypothesis.
   -- Hence, the previous lemma `lipschitz_image_null_set_is_null_set` applies.
   sorry
