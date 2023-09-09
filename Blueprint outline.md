@@ -12,7 +12,7 @@ should be in mathlib, but seems it isn't
 **Lemma 3.** Closed measure zero subset of R^n is nowhere dense
 is in mathlib: measure_pos_of_nonempty_interior in `MeasureTheory.Measure.OpenPos`
 
-**Corollary 4.** closed measure zero subset of M is nowhere dense
+**Corollary 4.** closed measure zero subset of M is nowhere dense       done
 should follow easily from Lemma 3
 
 **Prop 5 (Hirsch, Proposition 1.2).**

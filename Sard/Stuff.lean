@@ -1,5 +1,7 @@
 import Sard.MeasureZero
 import Mathlib.Geometry.Manifold.MFDeriv
+import Mathlib.MeasureTheory.Measure.Hausdorff
+import Mathlib.Topology.MetricSpace.Lipschitz
 
 open Manifold MeasureTheory FiniteDimensional Measure Function TopologicalSpace Set
 set_option autoImplicit false
@@ -20,14 +22,42 @@ variable
 variable {m n r : ℕ} (hm : finrank ℝ E = m) (hn : finrank ℝ F = n) (hr : r > m-n)
 variable {J}
 
-/-- Let U c ℝ^n be an open set and f: U → ℝ^n be a C^1 map.
+section ImageMeasureZeroSet
+/-- Consider metric spaces `X` and `Y` with the `d`-dimensional Hausdorff measure.
+If `X` is $σ$-compact, a locally Lipschitz map $f : X → Y$
+maps null sets in `X` to null sets in `Y`. -/
+lemma locally_lipschitz_image_of_null_set_is_null_set { X Y : Type }
+    [MetricSpace X] [MeasurableSpace X] [BorelSpace X] [SigmaCompactSpace X]
+    [MetricSpace Y] [MeasurableSpace Y] [BorelSpace Y] { d : ℕ }
+    { f : X → Y } --(hf : LocallyLipschitzWith 1 f)
+    { s : Set X } (hs : μH[d] s = 0) : μH[d] (f '' s) = 0 :=
+  -- argue with open cover and use `lipschitz_image_null_set_is_null_set`
+  sorry
+
+/-- If $$f : X → Y$$ is a Lipschitz map between metric spaces, then `f` maps null sets
+to null sets, w.r.t. the `d`-dimensional Hausdorff measure (for $$d ∈ ℕ$$) on `X` resp. `Y`. -/
+lemma lipschitz_image_null_set_is_null_set
+    { X Y : Type } [MetricSpace X] [MeasurableSpace X] [BorelSpace X]
+    [MetricSpace Y] [MeasurableSpace Y] [BorelSpace Y] { f : X → Y } (hf : ∃ K : NNReal, LipschitzWith K f)
+    { d : ℕ } { s : Set X } (hs : μH[d] s = 0) : μH[d] (f '' s) = 0 :=
+  sorry -- mostly in mathlib: Lipschitz maps and Hausdorff measure are related
+  -- mostly just a Lemma
+
+/-- Let $U c ℝ^n$ be an open set and f : U → ℝ^n be a C^1 map.
   If $X\subset U$ has measure zero, so has $f(X)$.
   Note: this is false for merely C⁰ maps, the Cantor function $f$ provides a counterexample:
   the standard Cantor set has measure zero, but its image has measure one
   (as the complement $$[0,1]\setminus C$$ has countable image by definition of $f$). -/
-lemma C1_image_null_set_null {f : E → E} {U : Set E} (hU : IsOpen U)
-    (hf : ContDiffOn ℝ 1 f U) [MeasurableSpace E] (μ : Measure E) [IsAddHaarMeasure μ]
-    {s : Set E} (h₁s: s ⊆ U) (h₂s: μ s = 0) : μ (f '' s) = 0 := by sorry
+lemma C1_image_null_set_null {f : E → F} {U : Set E} (hU : IsOpen U) (hf : ContDiffOn ℝ 1 f U)
+    [MeasurableSpace E] (μ : Measure E) [IsAddHaarMeasure μ]
+    [MeasurableSpace F] (ν : Measure F) [IsAddHaarMeasure ν]
+    {s : Set E} (h₁s: s ⊆ U) (h₂s: μ s = 0) : ν (f '' s) = 0 := by
+  -- C¹ map is locally Lipschitz: use `ContDiffAt.exists_lipschitzOnWith`
+  -- argue: Hausdorff measure agrees with Lebesgue measure (that's done)
+  -- Lebesgue measure is the Haar measure on R^n -> should follow
+  sorry
+end ImageMeasureZeroSet
+#exit
 
 -- An open subset of a topological manifold contains an interior point (not on the boundary). -/
 -- lemma open_subset_contains_interior_point : (s : Set N) (hs : IsOpen s) :
