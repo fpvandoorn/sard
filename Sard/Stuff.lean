@@ -45,22 +45,22 @@ lemma locally_lipschitz_image_of_null_set_is_null_set { X Y : Type }
     [MetricSpace Y] [MeasurableSpace Y] [BorelSpace Y] { d : ℕ }
     { f : X → Y } (hf : ∀ x : X, ∃ K : NNReal, ∃ U : Set X, IsOpen U ∧ LipschitzOnWith K f U)
     { s : Set X } (hs : μH[d] s = 0) : μH[d] (f '' s) = 0 :=
-  -- Choose a cover of X by compact sets K_i.
-  let cov : ℕ → Set X := compactCovering X
-  have hcov : ⋃ (n : ℕ), cov n = univ := iUnion_compactCovering X
-  have hcompact : ∀ n : ℕ, IsCompact (cov n) := isCompact_compactCovering X
-  -- It suffices to show the statement for all K_i. Let i be arbitrary.
-  suffices ass : ∀ n : ℕ, μH[d] (f '' (s ∩ cov n)) = 0 by
-    have : s = ⋃ (n : ℕ), s ∩ cov n := by
+  -- Choose a countable cover of X by compact sets K_n.
+  let K : ℕ → Set X := compactCovering X
+  have hcov : ⋃ (n : ℕ), K n = univ := iUnion_compactCovering X
+  have hcompact : ∀ n : ℕ, IsCompact (K n) := isCompact_compactCovering X
+  -- It suffices to show the statement for all K_n.
+  suffices ass : ∀ n : ℕ, μH[d] (f '' (s ∩ K n)) = 0 by
+    have : s = ⋃ (n : ℕ), s ∩ K n := by
       calc s
         _ = s ∩ univ := by exact Eq.symm (inter_univ s)
-        _ = s ∩ ⋃ (n : ℕ), cov n := by rw [hcov]
-        _ = ⋃ (n : ℕ), s ∩ cov n := by apply inter_iUnion s
+        _ = s ∩ ⋃ (n : ℕ), K n := by rw [hcov]
+        _ = ⋃ (n : ℕ), s ∩ K n := by apply inter_iUnion s
     have hless : μH[d] (f '' s) ≤ 0 := by
       calc μH[d] (f '' s)
-        _ = μH[d] (f '' (⋃ (n : ℕ), s ∩ cov n)) := by rw [← this]
-        _ = μH[d] (⋃ (n : ℕ), f '' (s ∩ cov n)) := by rw [@image_iUnion]
-        _ ≤ ∑' (n : ℕ), μH[d] (f '' (s ∩ cov n)) := by apply OuterMeasure.iUnion_nat
+        _ = μH[d] (f '' (⋃ (n : ℕ), s ∩ K n)) := by rw [← this]
+        _ = μH[d] (⋃ (n : ℕ), f '' (s ∩ K n)) := by rw [@image_iUnion]
+        _ ≤ ∑' (n : ℕ), μH[d] (f '' (s ∩ K n)) := by apply OuterMeasure.iUnion_nat
         _ = ∑' (n : ℕ), 0 := by simp_rw [ass]
         _ = 0 := by rw [@tsum_zero]
     have : 0 ≤ μH[d] (f '' s) ∧ μH[d] (f '' s) ≤ 0 → μH[d] (f '' s) = 0 := by
@@ -72,17 +72,21 @@ lemma locally_lipschitz_image_of_null_set_is_null_set { X Y : Type }
       exact ⟨(by simp only [ge_iff_le, zero_le]), hless⟩
     exact this
 
-  -- Consider the open cover of X induced by hf.
-  let fcover : X → Set X := by sorry
---    intro x
---    have sdf := hf x
---    sorry --rcases sdf with ⟨K, ⟨U, hKU⟩⟩
-  have hcover : ∀ x : X, IsOpen (fcover x) := sorry
-  have hcovers : cov n ⊆ ⋃ (x : X), fcover x := sorry
-  -- This has a finite subcover as K_i is compact.
-  let subcover := IsCompact.elim_finite_subcover (hcompact n) fcover hcover hcovers
-
-  -- On each open, f is Lipschitz by hypothesis.
+  -- Consider the open cover (U_x) of K_n induced by hf: each U_x is an open subset containing x
+  -- on which f is Lipschitz, say with constant K_x.
+  let U : K n → Set X := by
+    intro x
+    have hyp := hf x -- there exist K U, s.t. U is open and f is K-Lipschitz on U
+    -- FIXME: something is off here: this step errors
+    sorry --rcases hyp with ⟨KU, hKU⟩
+  have hopen : ∀ x : (K n), IsOpen (U x) := sorry -- almost vacuously
+  have hcovering : K n ⊆ ⋃ (x : (K n)), U x := sorry -- since x ∈ U_x
+  -- Since K_n is compact, (U_x) has a finite subcover.
+  -- xxx: this has type ∃ t, K n ⊆ ⋃ (i : X) (_ : i ∈ t), U i : Prop -> not fully what I want
+  let subcover := IsCompact.elim_finite_subcover (hcompact n) U hopen hcovering
+  -- in particular, this doesn't work
+  -- rcases subcover with ⟨t, ht⟩
+  -- On each U_x, f is Lipschitz by hypothesis.
   -- Hence, the previous lemma `lipschitz_image_null_set_is_null_set` applies.
   sorry
 
