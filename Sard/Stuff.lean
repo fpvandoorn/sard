@@ -46,6 +46,7 @@ lemma locally_lipschitz_image_of_null_set_is_null_set { X Y : Type }
     { f : X → Y } (hf : ∀ x : X, ∃ K : NNReal, ∃ U : Set X, IsOpen U ∧ LipschitzOnWith K f U)
     { s : Set X } (hs : μH[d] s = 0) : μH[d] (f '' s) = 0 :=
   -- Choose a cover of X by compact sets K_i.
+  -- FIXME. how to use the theorems in the comment?
   let cov : ℕ → Set X := sorry -- SigmaCompactSpace.compact_covering X
   have hcov : ⋃ (n : ℕ), cov n = univ := by sorry -- iUnion_compactCovering
   have hcompact : ∀ n : ℕ, IsCompact (cov n) := by sorry -- isCompact_compactCovering
@@ -63,12 +64,14 @@ lemma locally_lipschitz_image_of_null_set_is_null_set { X Y : Type }
         _ ≤ ∑' (n : ℕ), μH[d] (f '' (s ∩ cov n)) := by apply OuterMeasure.iUnion_nat
         _ = ∑' (n : ℕ), 0 := by simp_rw [ass]
         _ = 0 := by rw [@tsum_zero]
-    have hmore : 0 ≤ μH[d] (f '' s) := by simp only [ge_iff_le, zero_le]
-    -- XXX. is this even true? or does this only hold for NNReals?
-    --have aux : ∀ a b : ENNReal, a ≤ b ∧ b ≤ a → a = b := by sorry
-    --have aux2 : ∀ a b : NNReal, a ≤ b ∧ b ≤ a → (a : ℝ) = (b : ℝ) := by rw?
-    sorry
-  --intro n
+    have : 0 ≤ μH[d] (f '' s) ∧ μH[d] (f '' s) ≤ 0 → μH[d] (f '' s) = 0 := by
+      simp only [zero_le, nonpos_iff_eq_zero, true_and]
+      rw [← hs]
+      simp only [imp_self]
+    have : μH[d] (f '' s) = 0 := by
+      apply this
+      exact ⟨(by simp only [ge_iff_le, zero_le]), hless⟩
+    exact this
   -- Consider the cover induced by hf. This has a finite subcover as K_i is compact.
   -- On each open, f is Lipschitz by hypothesis.
   -- Hence, the previous lemma `lipschitz_image_null_set_is_null_set` applies.
