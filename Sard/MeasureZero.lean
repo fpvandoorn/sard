@@ -1,6 +1,38 @@
+/-
+Copyright (c) 2023 Michael Rothgang. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Author: Michael Rothgang.
+-/
 import Mathlib.Geometry.Manifold.SmoothManifoldWithCorners
 import Mathlib.Topology.MetricSpace.Polish
 import Mathlib.MeasureTheory.Measure.Haar.Basic
+
+/-!
+# Measure zero subsets of a manifold
+
+Defines the notion of "measure zero" subsets on a finite-dimensional topological manifold.
+
+Let $M$ be a finite-dimensional manifold. While $M$ is a measurable space (for instance, pull back the Lebesgue measure on each chart and use a partition of unity) , it has no canonical measure. However, there is a natural notion of *measure zero* subsets of $M$: a subset $A\subset M$ has measure zero iff for each chart $(\phi, U)$ of $M$ the set $\phi(U\cap A)\subset R^n$ has measure zero (w.r.t. to any additive Haar measure).
+
+Measure zero sets are closed under subsets and countable unions, hence their complement defines the *almost everywhere filter* on a manifold. Measure zero subsets have empty interior, hence closed measure zero sets are nowhere dense.
+
+**TODO**
+- show that if $M$ is a normed space with Haar measure $\mu$, a set $A ⊆ M$ has measure zero iff $μ A = 0$.
+- show the same if $M$ is a manifold with a suitable measure $\mu$. If `MeasureZero` were defined using `IsOpenPosMeasure` on a chart, that would probably be a suitable class on `M`.
+- include manifolds with boundary: in `open_implies_empty`, one needs to show that an open subset of `M` includes an interior point of `M`. (The current definition of manifolds with boundary seems to be too general for that.)
+
+
+## Main results
+- `MeasureZero`: Prop for measure zero subsets in `M`
+- `MeasureZero.mono`: measure zero subsets are closed under subsets
+- `MeasureZero.union` and `MeasureZero.iUnion`: measure zero subsets are closed under countable unions
+- `MeasureZero.ae`: the complements of measure zero sets form a filter, the **almost everywhere filter**.
+- `open_implies_empty`: an open measure zero subset is empty
+- `MeasureZero_implies_empty_interior`: a measure zero subset has empty interior.
+
+## References
+See [Hirsch76], chapter 3.1 for the definition of measure zero subsets in a manifold.
+-/
 
 open MeasureTheory Measure Function TopologicalSpace Set
 set_option autoImplicit false
@@ -88,16 +120,16 @@ protected lemma open_implies_empty {s : Set M} (h₁s : IsOpen s) (h₂s : Measu
       exact hx
     rw [this] at h₂
     contradiction
-    -- alternative proof: the atlas forms an open cover -> use interior_zero_iff_open_cover
+
   intro e he
   simp [MeasureZero] at h₂s
   -- choose any measure μ that's a Haar measure
   obtain ⟨K''⟩ : Nonempty (PositiveCompacts E) := PositiveCompacts.nonempty'
   let μ : Measure E := addHaarMeasure K''
-  -- by h₂s μ e, we have μ (I∘e '' s) = 0; that's a set in M
+  -- by h₂s μ e, we have μ (I∘e '' s) = 0
   specialize h₂s μ e he
   by_contra h
-  -- in particular, e.source ∩ s is an open subset contained in that -> also has measure zero
+  -- in particular, e.source ∩ s is an open subset contained in that, hence has measure zero
   have h' : Set.Nonempty (interior (I ∘ e '' (e.source ∩ s))) := by
     have : Set.Nonempty (I ∘ e '' (e.source ∩ s)) := by
       exact (Iff.mp Set.nmem_singleton_empty h).image _
@@ -106,7 +138,6 @@ protected lemma open_implies_empty {s : Set M} (h₁s : IsOpen s) (h₂s : Measu
         exact h₁s
     have : IsOpen (I ∘ e '' (e.source ∩ s)) := by
       rw [Set.image_comp]
-      -- FUTURE: for manifolds with boundary, use open_subset_contains_interior_point above
       apply I.toHomeomorph.isOpenMap
       apply this
     rwa [this.interior_eq]
