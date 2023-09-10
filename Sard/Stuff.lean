@@ -133,10 +133,64 @@ lemma C1_image_null_set_null {f : E → F} {U : Set E} (hU : IsOpen U) (hf : Con
   rw [h₂, ← hd]
   exact this
 
+/-- If $U ⊆ ℝ^m$ is open and f : U → ℝ^n is a C^1 map with `m < n`, then $f(U)$ has measure zero. -/
+lemma image_C1_dimension_increase_null_local {g : E → F} {U : Set E} (hU : IsOpen U)
+    [MeasurableSpace E] [BorelSpace E] (μ : Measure E) [IsAddHaarMeasure μ]
+    [MeasurableSpace F] [BorelSpace F] (ν : Measure F) [IsAddHaarMeasure ν]
+    --[NormedAddCommGroup M]
+    (hf : ContDiffOn ℝ 1 g U) (hmn : m < n) : ν (g '' U) = 0 := by
+
+
+  -- Since n > m, g factors through the projection R^n → R^m.
+  -- More precisely: consider the function g' also mapping to the extra factor.
+  let g' : E × Fin 1 → F × (Fin (m-n) → ℝ) := fun ⟨y, _⟩ ↦ ⟨g y, 0⟩
+  let incl : E → E × (Fin (m-n) → ℝ) := fun x ↦ ⟨x, 0⟩
+  let pi : F × (Fin (m-n) → ℝ) → F := fun ⟨f, _⟩ ↦ f
+  have : ∀ x : U, (pi ∘ g' ∘ incl) x = g x:= by -- can I golf this to one line?
+    intro x--ext y
+    rw [comp_apply, comp_apply]
+    sorry
+
+  -- Choose a Haar measure on E × R^{n-m}, so we can speak about the measure of U×{0},
+  obtain ⟨K''⟩ : Nonempty (PositiveCompacts (E × (Fin (n-m) → ℝ))) := PositiveCompacts.nonempty'
+  let μ' : Measure (E × (Fin (n-m) → ℝ)) := addHaarMeasure K''
+  -- U×0 has measure zero in E × ℝ^{n-m} -- almost trivial
+  have : μ' (incl '' U) = 0 := by sorry
+  have : g '' U = range (pi ∘ g' ∘ incl) := sorry
+  rw [this]
+
+  -- M×Fin(1) is a smooth manifold, with charts given by (φ, _),
+  -- so U × Fin(1) is a chart. also has measure zero
+  -- by proposition above, im(g) has measure zero -> im g also has
+  -- NO, do not need this!
+
 /-- If M, N are C¹ manifolds with dim M < dim N and f:M → N is C¹, then f(M) has measure zero. -/
-lemma image_C1_dimension_increase_image_null {f : M → N} (hf : ContMDiff I J r f)
+lemma image_C1_dimension_increase_image_measure_zero {f : M → N} (hf : ContMDiff I J r f)
     (hdim : m < n) : MeasureZero J (Set.range f) := by
-  sorry -- use C1_image_null_set_null and MeasureZero_empty_interior
+  -- It suffices to show that the image of each chart domain has measure zero.
+  suffices ∀ e ∈ atlas H M, MeasureZero J (f '' (e.source)) by
+    intro μ hμ e he
+    -- should be a stnadard open cover argument now: Lindelöf, countable unions etc.
+    sorry
+  -- Fix a chart; we want to show f(U ∩ M) has measure zero.
+  intro e he
+  rw [MeasureZero]
+  intro μ hμ e' he'
+  have aux : J ∘ e' '' (e'.source ∩ f '' e.source) = (J ∘ e' ∘ f) '' e.source := by sorry
+  rw [aux]
+  -- Consider the function g : U → ℝ^m. Defined on all of E (taking junk values outside of the chart).
+  let g : E → F := J ∘ e' ∘ f ∘ e.invFun ∘ I.invFun
+  have : (J ∘ ↑e' ∘ f '' e.source) = g '' (I '' e.target) := by sorry
+  -- g is C¹: argue that everything is on the chart domains, then by definition
+  have gdiff : ContDiffOn ℝ 1 g (I '' e.target) := by
+    sorry
+  rw [this]
+  -- now, this is basically image_C1_dimension_increase_null_local
+  -- applied to g, with hypotheses gdiff hdim, measure μ...
+  sorry
+
+-- now comes the real argument from Hirsch's book
+  --sorry -- use C1_image_null_set_null and MeasureZero_empty_interior
 
 /-- Local version of Sard's theorem. If $W ⊆ ℝ^m$ is open and $f: W → ℝ^n$ is $C^r$,
 the set of critical values has measure zero. -/
