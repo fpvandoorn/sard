@@ -76,12 +76,15 @@ lemma locally_lipschitz_image_of_null_set_is_null_set { X Y : Type }
     have hyp := hf x -- there exist K U, s.t. U is open and f is K-Lipschitz on U
     -- FIXME: make this step work: rcases hyp with ⟨KU, hKU⟩
     sorry
-  have hopen : ∀ x : (K n), IsOpen (U x) := sorry -- almost vacuously true
   have hcovering : K n ⊆ ⋃ (x : (K n)), U x := sorry -- since x ∈ U_x
-  -- Since K_n is compact, (U_x) has a finite subcover.
+  have hopen : ∀ x : (K n), IsOpen (U x) := sorry -- almost vacuously true
+  have hLipschitz : ∀ x : (K n), ∃ K, LipschitzOnWith K f (U x) := by sorry -- by construction
+
+  -- Since K_n is compact, (U_x) has a finite subcover U_1, ..., U_l.
   let subcover := IsCompact.elim_finite_subcover (hcompact n) U hopen hcovering
   rcases subcover with ⟨t, ht⟩
-  -- On each U_x, f is Lipschitz by hypothesis.
+  -- On each U_j, f is Lipschitz by hypothesis.
+  have : ∀ i : t, ∃ K : NNReal, LipschitzOnWith K f (U i) := by sorry
   -- Hence, the previous lemma `lipschitz_image_null_set_is_null_set` applies.
   sorry
 end ImageMeasureZeroSet
