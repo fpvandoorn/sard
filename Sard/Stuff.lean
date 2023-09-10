@@ -25,8 +25,8 @@ variable
 
 section ImageMeasureZeroSet
 /-- If $$f : X → Y$$ is a Lipschitz map between metric spaces, then `f` maps null sets
-to null sets, w.r.t. the `d`-dimensional Hausdorff measure (for $$d ∈ ℕ$$) on `X` resp. `Y`. -/
--- this is just an auxiliary lemma -> perhaps inline later
+to null sets, w.r.t. the `d`-dimensional Hausdorff measure on `X` resp. `Y`. -/
+-- xxx. inline this into `locally_lipschitz_image_of_null_set_is_null_set`?
 lemma lipschitz_image_null_set_is_null_set
     { X Y : Type } [MetricSpace X] [MeasurableSpace X] [BorelSpace X]
     [MetricSpace Y] [MeasurableSpace Y] [BorelSpace Y]
@@ -38,13 +38,13 @@ lemma lipschitz_image_null_set_is_null_set
   rw [hs] at aux
   simp_all only [ge_iff_le, mul_zero, nonpos_iff_eq_zero, le_refl, hs]
 
-/-- Consider metric spaces `X` and `Y` with the `d`-dimensional Hausdorff measure.
+/-- Consider two metric spaces `X` and `Y` with the `d`-dimensional Hausdorff measure.
 If `X` is $σ$-compact, a locally Lipschitz map $f : X → Y$
 maps null sets in `X` to null sets in `Y`. -/
 lemma locally_lipschitz_image_of_null_set_is_null_set { X Y : Type }
     [MetricSpace X] [MeasurableSpace X] [BorelSpace X] [SigmaCompactSpace X]
-    [MetricSpace Y] [MeasurableSpace Y] [BorelSpace Y] { d : ℕ }
-    { f : X → Y } (hf : ∀ x : X, ∃ K : NNReal, ∃ U : Set X, IsOpen U ∧ LipschitzOnWith K f U)
+    [MetricSpace Y] [MeasurableSpace Y] [BorelSpace Y] { d : ℕ } { f : X → Y }
+    (hf : ∀ x : X, ∃ K : NNReal, ∃ U : Set X, IsOpen U ∧ x ∈ U ∧ LipschitzOnWith K f U)
     { s : Set X } (hs : μH[d] s = 0) : μH[d] (f '' s) = 0 := by
   -- Choose a countable cover of X by compact sets K_n.
   let K : ℕ → Set X := compactCovering X
@@ -77,12 +77,14 @@ lemma locally_lipschitz_image_of_null_set_is_null_set { X Y : Type }
   -- on which f is Lipschitz, say with constant K_x.
   let U : K n → Set X := by
     intro x
-    have hyp := hf x -- there exist K U, s.t. U is open and f is K-Lipschitz on U
-    -- FIXME: make this step work: rcases hyp with ⟨KU, hKU⟩
-    sorry
-  have hcovering : K n ⊆ ⋃ (x : (K n)), U x := sorry -- since x ∈ U_x
-  have hopen : ∀ x : (K n), IsOpen (U x) := sorry -- almost vacuously true
-  have hLipschitz : ∀ x : (K n), ∃ K, LipschitzOnWith K f (U x) := by sorry -- by construction
+    have hyp := hf x
+    -- FIXME: make this work, complains with root cause
+    -- tactic 'induction' failed, recursor 'Exists.casesOn' can only eliminate into Prop
+    sorry -- rcases hyp with ⟨K, ⟨U, ⟨hK, hU, hKU⟩⟩⟩
+  -- These properties hold by construction.
+  have hcovering : K n ⊆ ⋃ (x : (K n)), U x := sorry -- use kU above
+  have hopen : ∀ x : (K n), IsOpen (U x) := sorry -- use kU above
+  have hLipschitz : ∀ x : (K n), ∃ K, LipschitzOnWith K f (U x) := by sorry -- use hKU
 
   -- Since K_n is compact, (U_x) has a finite subcover U_1, ..., U_l.
   let subcover := IsCompact.elim_finite_subcover (hcompact n) U hopen hcovering
@@ -146,19 +148,18 @@ lemma image_C1_dimension_increase_null_local {g : E → F} {U : Set E} (hU : IsO
   --      | incl                           | pi
   --      |                                |
   --      E × ℝ^{n-m}     ---- g' -->   F × ℝ^{n-m}
-  -- More precisely: consider the function g' also mapping to the extra factor.
   let incl : E → E × (Fin (n-m) → ℝ) := fun x ↦ ⟨x, 0⟩
   let g' : E × (Fin (n-m) → ℝ) → F × (Fin (n-m) → ℝ) := fun ⟨y, _⟩ ↦ ⟨g y, 0⟩
   let pi : F × (Fin (n-m) → ℝ) → F := fun ⟨f, _⟩ ↦ f
-  have commutes: pi ∘ g' ∘ incl = g := by -- can I golf this to one line?
+  have commutes: pi ∘ g' ∘ incl = g := by
      ext y
      rw [comp_apply, comp_apply]
-  -- Now, incl(U)=U × 0 has measure zero in E × ℝ^{n-m}.
+  -- Now, incl U = U × 0 has measure zero in E × ℝ^{n-m}.
   -- Choose a Haar measure on E × ℝ^{n-m}, so we can speak about the measure of U × {0},
   obtain ⟨K''⟩ : Nonempty (PositiveCompacts (E × (Fin (n-m) → ℝ))) := PositiveCompacts.nonempty'
   let μ' : Measure (E × (Fin (n-m) → ℝ)) := addHaarMeasure K''
   have hisHaar: IsAddHaarMeasure μ' := isAddHaarMeasure_addHaarMeasure K''
-  -- U × 0 has measure zero in E × ℝ^{n-m}: need to pass to product measures.
+  -- U × 0 has measure zero in E × ℝ^{n-m}: use Fubini and product measures.
   have aux : μ' (incl '' U) = 0 := by sorry
   -- Hence so does its image pi ∘ g' ∘ incl (U) = g '' U.
   have : ν ((pi ∘ g' ∘ incl) '' U) = 0 := by
@@ -217,16 +218,18 @@ lemma image_C1_dimension_increase_image_measure_zero {f : M → N} (hf : ContMDi
     exact measure_zero_image_iff_chart_domains hyp
   -- Fix a chart; we want to show f(U ∩ M) has measure zero.
   intro e he μ hμ e' he'
+  -- FIXME. This looks a bit sketchy... adapt proof if necessary!
   have aux : J ∘ e' '' (e'.source ∩ f '' e.source) = (J ∘ e' ∘ f) '' e.source := by sorry
   rw [@inter_univ, aux]
-  -- Consider the function g : U → ℝ^m. Defined on all of E (taking junk values outside of the chart).
+  -- Consider the local coordinate expression g : U → ℝ^m of f.
+  -- We define g on all of E, taking junk values outside of U.
   let g : E → F := J ∘ e' ∘ f ∘ e.invFun ∘ I.invFun
   have : (J ∘ ↑e' ∘ f '' e.source) = g '' (I '' e.target) := by sorry
-  -- g is C¹: argue that everything is on the chart domains, then by definition
+  -- g is C¹: suffices on chart domains; there it's by definition.
   have gdiff : ContDiffOn ℝ 1 g (I '' e.target) := by sorry
   rw [this]
-  -- this is basically image_C1_dimension_increase_null_local
-  -- applied to g, with hypotheses gdiff hdim, measure μ... doesn't typecheck yet
+  -- this is basically image_C1_dimension_increase_null_local applied to g,
+  -- with hypotheses gdiff hdim, measure μ... except that this doesn't typecheck yet...
   sorry
 
 /-- Local version of Sard's theorem. If $W ⊆ ℝ^m$ is open and $f: W → ℝ^n$ is $C^r$,
