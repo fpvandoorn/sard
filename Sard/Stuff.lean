@@ -1,9 +1,11 @@
 import Sard.MeasureZero
+import Mathlib.Analysis.Calculus.ContDiff
 import Mathlib.Geometry.Manifold.MFDeriv
 import Mathlib.MeasureTheory.Measure.Hausdorff
+import Mathlib.Topology.Basic
 import Mathlib.Topology.MetricSpace.Lipschitz
 
-open Manifold MeasureTheory FiniteDimensional Measure Function TopologicalSpace Set
+open FiniteDimensional Function Manifold MeasureTheory Measure Set TopologicalSpace Topology
 set_option autoImplicit false
 
 variable
@@ -98,13 +100,32 @@ variable {J}
   the standard Cantor set has measure zero, but its image has measure one
   (as the complement $$[0,1]\setminus C$$ has countable image by definition of $f$). -/
 lemma C1_image_null_set_null {f : E → F} {U : Set E} (hU : IsOpen U) (hf : ContDiffOn ℝ 1 f U)
-    [MeasurableSpace E] (μ : Measure E) [IsAddHaarMeasure μ]
-    [MeasurableSpace F] (ν : Measure F) [IsAddHaarMeasure ν]
-    {s : Set E} (h₁s: s ⊆ U) (h₂s: μ s = 0) : ν (f '' s) = 0 := by
-  -- C¹ map is locally Lipschitz: use `ContDiffAt.exists_lipschitzOnWith`
-  -- argue: Hausdorff measure agrees with Lebesgue measure (that's done)
+    [MeasurableSpace E] [BorelSpace E] (μ : Measure E) [IsAddHaarMeasure μ]
+    [MeasurableSpace F] [BorelSpace F] (ν : Measure F) [IsAddHaarMeasure ν]
+    (hd : m = n) {s : Set E} (h₁s: s ⊆ U) (h₂s: μ s = 0) : ν (f '' s) = 0 := by
+  -- The m-dimensional Hausdorff measure on E resp. F agrees with the Lebesgue measure.
+  -- Hausdorff measure is the Lebesgue measure xxx
   -- Lebesgue measure is the Haar measure on R^n -> should follow
-  sorry
+  have h₁ : μ = μH[m] := by sorry
+  have h₂ : ν = μH[n] := by sorry
+  -- Since f is C¹, it's locally Lipschitz and we can apply the previous lemma.
+  have : μH[m] (f '' s) = 0 := by
+    -- f is locally Lipschitz (xxx: introduce a predicate for this?)
+    have hf' : ∀ x : E, ∃ K : NNReal, ∃ U : Set E, IsOpen U ∧ LipschitzOnWith K f U := by
+      intro x
+      have : ∃ K, ∃ t ∈ 𝓝 x, LipschitzOnWith K f t := by
+        sorry -- somehow, apply ContDiffAt.exists_lipschitzOnWith
+      rcases this with ⟨K, ⟨t, ⟨ht, hfloc⟩⟩⟩
+      rw [mem_nhds_iff] at ht
+      rcases ht with ⟨U, ⟨hUt, hU, hxU⟩⟩
+      have : LipschitzOnWith K f U := LipschitzOnWith.mono hfloc hUt
+      use K
+      use U
+    -- TODO: doesn't work, for reasons I don't understand
+    -- apply locally_lipschitz_image_of_null_set_is_null_set hf' (X := E) (d := m) hs
+    sorry
+  rw [h₂, ← hd]
+  exact this
 
 /-- If M, N are C¹ manifolds with dim M < dim N and f:M → N is C¹, then f(M) has measure zero. -/
 lemma image_C1_dimension_increase_image_null {f : M → N} (hf : ContMDiff I J r f)
