@@ -104,9 +104,15 @@ lemma C1_image_null_set_null {f : E → F} {U : Set E} (hU : IsOpen U) (hf : Con
     [MeasurableSpace F] [BorelSpace F] (ν : Measure F) [IsAddHaarMeasure ν]
     (hd : m = n) {s : Set E} (h₁s: s ⊆ U) (h₂s: μ s = 0) : ν (f '' s) = 0 := by
   -- The m-dimensional Hausdorff measure on E resp. F agrees with the Lebesgue measure.
-  -- Hausdorff measure is the Lebesgue measure xxx
-  -- Lebesgue measure is the Haar measure on R^n -> should follow
-  have h₁ : μ = μH[m] := by sorry
+  have h₁ : μ = μH[m] := by
+    -- The m-dimensional Hausdorff measure is the Lebesgue measure on R^m.
+    -- apply hausdorffMeasure_pi_real
+    have aux : μH[m] = (volume : Measure (Fin m → ℝ)) := by sorry
+      -- have : m = Fintype.Card (Fin m) := by sorry
+    -- The Lebesgue measure is the Haar measure on R^m
+    --have : μ = (volume : Measure (ι → ℝ)) := by sorry -- MeasureTheory.addHaarMeasure_eq_volume_pi
+    -- TODO: combining them doesn't work yet, types are always different.
+    sorry
   have h₂ : ν = μH[n] := by sorry
   -- Since f is C¹, it's locally Lipschitz and we can apply the previous lemma.
   have : μH[m] (f '' s) = 0 := by
