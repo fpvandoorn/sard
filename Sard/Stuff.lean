@@ -106,14 +106,13 @@ lemma C1_image_null_set_null {f : E → F} {U : Set E} (hU : IsOpen U) (hf : Con
   -- The m-dimensional Hausdorff measure on E resp. F agrees with the Lebesgue measure.
   have h₁ : μ = μH[m] := by
     -- The m-dimensional Hausdorff measure is the Lebesgue measure on R^m.
-    -- apply hausdorffMeasure_pi_real
-    have aux : μH[m] = (volume : Measure (Fin m → ℝ)) := by sorry
-      -- have : m = Fintype.Card (Fin m) := by sorry
-    -- The Lebesgue measure is the Haar measure on R^m
-    --have : μ = (volume : Measure (ι → ℝ)) := by sorry -- MeasureTheory.addHaarMeasure_eq_volume_pi
-    -- TODO: combining them doesn't work yet, types are always different.
+    have aux : μH[m] = (volume : Measure (Fin m → ℝ)) := by sorry -- apply hausdorffMeasure_pi_real
+    -- The Lebesgue measure is the Haar measure on R^m.
+    -- xxx: doesn't typecheck yet, need a measurable equivalence between E and R^m
+    -- have : μ = (volume : Measure (Fin m → ℝ)) := by sorry -- MeasureTheory.addHaarMeasure_eq_volume_pi
+    -- TODO: combining these doesn't work yet
     sorry
-  have h₂ : ν = μH[n] := by sorry
+  have h₂ : ν = μH[n] := by sorry -- same argument like for μ
   -- Since f is C¹, it's locally Lipschitz and we can apply the previous lemma.
   have : μH[m] (f '' s) = 0 := by
     -- f is locally Lipschitz (xxx: introduce a predicate for this?)
@@ -137,32 +136,35 @@ lemma C1_image_null_set_null {f : E → F} {U : Set E} (hU : IsOpen U) (hf : Con
 lemma image_C1_dimension_increase_null_local {g : E → F} {U : Set E} (hU : IsOpen U)
     [MeasurableSpace E] [BorelSpace E] (μ : Measure E) [IsAddHaarMeasure μ]
     [MeasurableSpace F] [BorelSpace F] (ν : Measure F) [IsAddHaarMeasure ν]
-    --[NormedAddCommGroup M]
-    (hf : ContDiffOn ℝ 1 g U) (hmn : m < n) : ν (g '' U) = 0 := by
-
-
+    (hg : ContDiffOn ℝ 1 g U) (hmn : m < n) : ν (g '' U) = 0 := by
   -- Since n > m, g factors through the projection R^n → R^m.
+  -- We consider the commutative diagram
+  --      E ------------------ g --------> F
+  --      |                                ^
+  --      | incl                           | pi
+  --      |                                |
+  --      E × ℝ^{n-m}     ---- g' -->   F × ℝ^{n-m}
   -- More precisely: consider the function g' also mapping to the extra factor.
-  let g' : E × Fin 1 → F × (Fin (m-n) → ℝ) := fun ⟨y, _⟩ ↦ ⟨g y, 0⟩
-  let incl : E → E × (Fin (m-n) → ℝ) := fun x ↦ ⟨x, 0⟩
-  let pi : F × (Fin (m-n) → ℝ) → F := fun ⟨f, _⟩ ↦ f
-  have : ∀ x : U, (pi ∘ g' ∘ incl) x = g x:= by -- can I golf this to one line?
-    intro x--ext y
-    rw [comp_apply, comp_apply]
-    sorry
-
-  -- Choose a Haar measure on E × R^{n-m}, so we can speak about the measure of U×{0},
+  let incl : E → E × (Fin (n-m) → ℝ) := fun x ↦ ⟨x, 0⟩
+  let g' : E × (Fin (n-m) → ℝ) → F × (Fin (n-m) → ℝ) := fun ⟨y, _⟩ ↦ ⟨g y, 0⟩
+  let pi : F × (Fin (n-m) → ℝ) → F := fun ⟨f, _⟩ ↦ f
+  have commutes: pi ∘ g' ∘ incl = g := by -- can I golf this to one line?
+     ext y
+     rw [comp_apply, comp_apply]
+  -- Now, incl(U)=U × 0 has measure zero in E × ℝ^{n-m}.
+  -- Choose a Haar measure on E × ℝ^{n-m}, so we can speak about the measure of U × {0},
   obtain ⟨K''⟩ : Nonempty (PositiveCompacts (E × (Fin (n-m) → ℝ))) := PositiveCompacts.nonempty'
   let μ' : Measure (E × (Fin (n-m) → ℝ)) := addHaarMeasure K''
-  -- U×0 has measure zero in E × ℝ^{n-m} -- almost trivial
-  have : μ' (incl '' U) = 0 := by sorry
-  have : g '' U = range (pi ∘ g' ∘ incl) := sorry
-  rw [this]
-
-  -- M×Fin(1) is a smooth manifold, with charts given by (φ, _),
-  -- so U × Fin(1) is a chart. also has measure zero
-  -- by proposition above, im(g) has measure zero -> im g also has
-  -- NO, do not need this!
+  have hisHaar: IsAddHaarMeasure μ' := isAddHaarMeasure_addHaarMeasure K''
+  -- U × 0 has measure zero in E × ℝ^{n-m}: need to pass to product measures.
+  have aux : μ' (incl '' U) = 0 := by sorry
+  -- Hence so does its image pi ∘ g' ∘ incl (U) = g '' U.
+  have : ν ((pi ∘ g' ∘ incl) '' U) = 0 := by
+    -- XXX: statement doesn't typecheck yet. have : ContDiffOn ℝ 1 (pi ∘ g') (U × (Fin (n-m) → ℝ)) := sorry
+    -- apply C1_image_null_set_null, XXX doesn't apply yet
+    sorry
+  rw [← commutes]
+  exact this
 
 /-- If M, N are C¹ manifolds with dim M < dim N and f:M → N is C¹, then f(M) has measure zero. -/
 lemma image_C1_dimension_increase_image_measure_zero {f : M → N} (hf : ContMDiff I J r f)
@@ -170,7 +172,7 @@ lemma image_C1_dimension_increase_image_measure_zero {f : M → N} (hf : ContMDi
   -- It suffices to show that the image of each chart domain has measure zero.
   suffices ∀ e ∈ atlas H M, MeasureZero J (f '' (e.source)) by
     intro μ hμ e he
-    -- should be a stnadard open cover argument now: Lindelöf, countable unions etc.
+    -- should be a stnadard open cover argument: Lindelöf, countable unions etc.
     sorry
   -- Fix a chart; we want to show f(U ∩ M) has measure zero.
   intro e he
@@ -182,15 +184,11 @@ lemma image_C1_dimension_increase_image_measure_zero {f : M → N} (hf : ContMDi
   let g : E → F := J ∘ e' ∘ f ∘ e.invFun ∘ I.invFun
   have : (J ∘ ↑e' ∘ f '' e.source) = g '' (I '' e.target) := by sorry
   -- g is C¹: argue that everything is on the chart domains, then by definition
-  have gdiff : ContDiffOn ℝ 1 g (I '' e.target) := by
-    sorry
+  have gdiff : ContDiffOn ℝ 1 g (I '' e.target) := by sorry
   rw [this]
-  -- now, this is basically image_C1_dimension_increase_null_local
-  -- applied to g, with hypotheses gdiff hdim, measure μ...
+  -- this is basically image_C1_dimension_increase_null_local
+  -- applied to g, with hypotheses gdiff hdim, measure μ... doesn't typecheck yet
   sorry
-
--- now comes the real argument from Hirsch's book
-  --sorry -- use C1_image_null_set_null and MeasureZero_empty_interior
 
 /-- Local version of Sard's theorem. If $W ⊆ ℝ^m$ is open and $f: W → ℝ^n$ is $C^r$,
 the set of critical values has measure zero. -/
@@ -199,7 +197,7 @@ theorem sard_local {s w : Set E} {f : E → F} (hf : ContDiffOn ℝ r f w)
     (h'f' : ∀ x ∈ s, ¬ Surjective (f' x)) (μ : Measure F) [IsAddHaarMeasure μ] :
     μ (f '' s) = 0 := by
   by_cases hyp: m < n
-  · sorry -- show f(W) has measure zero; use `C1_image_null_set_null`
+  · sorry -- show f(W) has measure zero; use `image_C1_dimension_increase_null_local`
   · sorry
 
 /-- **Sard's theorem**. Let $M$ and $N$ be real $C^r$ manifolds of dimensions
