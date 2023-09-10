@@ -91,7 +91,8 @@ end ImageMeasureZeroSet
 
 variable {m n r : ℕ} (hm : finrank ℝ E = m) (hn : finrank ℝ F = n) (hr : r > m-n)
 variable {J}
-/-- Let $U c ℝ^n$ be an open set and f : U → ℝ^n be a C^1 map.
+
+/-- Let $U ⊆ ℝ^n$ be an open set and f : U → ℝ^n be a C^1 map.
   If $X\subset U$ has measure zero, so has $f(X)$.
   Note: this is false for merely C⁰ maps, the Cantor function $f$ provides a counterexample:
   the standard Cantor set has measure zero, but its image has measure one
@@ -104,20 +105,6 @@ lemma C1_image_null_set_null {f : E → F} {U : Set E} (hU : IsOpen U) (hf : Con
   -- argue: Hausdorff measure agrees with Lebesgue measure (that's done)
   -- Lebesgue measure is the Haar measure on R^n -> should follow
   sorry
-
-
--- An open subset of a topological manifold contains an interior point (not on the boundary). -/
--- lemma open_subset_contains_interior_point : (s : Set N) (hs : IsOpen s) :
--- ∃ p ∈ s, p ∈ interior N := by sorry --- how to even state this??
--- is this true or are our local models too wild?
-
-/-- Let $(U_α)$ be a cover of a topological space X.
-A subset $S ⊆ X$ is empty iff all $S ∩ U_α$ are empty. -/
-theorem empty_iff_open_cover {X : Type} {I : Type} {U : I → Set X}
-    (hcover : ⋃ (α : I), U α = univ) {s : Set X} : s = ∅ ↔ ∀ α : I, s ∩ U α = ∅ := by
-  have : ⋃ (α : I), s ∩ U α = s := by rw [←inter_iUnion, hcover, inter_univ s]
-  nth_rewrite 1 [← this]
-  simp only [iUnion_eq_empty]
 
 /-- If M, N are C¹ manifolds with dim M < dim N and f:M → N is C¹, then f(M) has measure zero. -/
 lemma image_C1_dimension_increase_image_null {f : M → N} (hf : ContMDiff I J r f)

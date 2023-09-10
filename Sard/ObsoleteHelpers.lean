@@ -6,6 +6,14 @@ set_option autoImplicit false
 
 -- Helper results (mostly topological) which I didn't need. Mostly missing from mathlib.
 section helpers_obsolete
+/-- Let $(U_α)$ be a cover of a topological space X.
+A subset $S ⊆ X$ is empty iff all $S ∩ U_α$ are empty. -/
+theorem empty_iff_open_cover {X : Type} {I : Type} {U : I → Set X}
+    (hcover : ⋃ (α : I), U α = univ) {s : Set X} : s = ∅ ↔ ∀ α : I, s ∩ U α = ∅ := by
+  have : ⋃ (α : I), s ∩ U α = s := by rw [←inter_iUnion, hcover, inter_univ s]
+  nth_rewrite 1 [← this]
+  simp only [iUnion_eq_empty]
+
 -- this lemma is in mathlib, in LocalHomeomorph
 -- theorem preimage_interior (s : Set β) :
 --     e.source ∩ e ⁻¹' interior s = e.source ∩ interior (e ⁻¹' s) :=
