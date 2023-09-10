@@ -19,9 +19,6 @@ variable
   [SmoothManifoldWithCorners J N] [FiniteDimensional ℝ F]
   [MeasurableSpace F] [BorelSpace F]
 
-variable {m n r : ℕ} (hm : finrank ℝ E = m) (hn : finrank ℝ F = n) (hr : r > m-n)
-variable {J}
-
 section ImageMeasureZeroSet
 /-- If $$f : X → Y$$ is a Lipschitz map between metric spaces, then `f` maps null sets
 to null sets, w.r.t. the `d`-dimensional Hausdorff measure (for $$d ∈ ℕ$$) on `X` resp. `Y`. -/
@@ -44,12 +41,13 @@ lemma locally_lipschitz_image_of_null_set_is_null_set { X Y : Type }
     [MetricSpace X] [MeasurableSpace X] [BorelSpace X] [SigmaCompactSpace X]
     [MetricSpace Y] [MeasurableSpace Y] [BorelSpace Y] { d : ℕ }
     { f : X → Y } (hf : ∀ x : X, ∃ K : NNReal, ∃ U : Set X, IsOpen U ∧ LipschitzOnWith K f U)
-    { s : Set X } (hs : μH[d] s = 0) : μH[d] (f '' s) = 0 :=
+    { s : Set X } (hs : μH[d] s = 0) : μH[d] (f '' s) = 0 := by
   -- Choose a countable cover of X by compact sets K_n.
   let K : ℕ → Set X := compactCovering X
   have hcov : ⋃ (n : ℕ), K n = univ := iUnion_compactCovering X
   have hcompact : ∀ n : ℕ, IsCompact (K n) := isCompact_compactCovering X
-  -- It suffices to show the statement for all K_n.
+
+  -- By countable subadditivity, it suffices to show the claim for each K_n.
   suffices ass : ∀ n : ℕ, μH[d] (f '' (s ∩ K n)) = 0 by
     have : s = ⋃ (n : ℕ), s ∩ K n := by
       calc s
@@ -67,31 +65,29 @@ lemma locally_lipschitz_image_of_null_set_is_null_set { X Y : Type }
       simp only [zero_le, nonpos_iff_eq_zero, true_and]
       rw [← hs]
       simp only [imp_self]
-    have : μH[d] (f '' s) = 0 := by
-      apply this
-      exact ⟨(by simp only [ge_iff_le, zero_le]), hless⟩
-    exact this
+    apply this
+    exact ⟨(by simp only [ge_iff_le, zero_le]), hless⟩
 
+  intro n
   -- Consider the open cover (U_x) of K_n induced by hf: each U_x is an open subset containing x
   -- on which f is Lipschitz, say with constant K_x.
   let U : K n → Set X := by
     intro x
     have hyp := hf x -- there exist K U, s.t. U is open and f is K-Lipschitz on U
-    -- FIXME: something is off here: this step errors
-    sorry --rcases hyp with ⟨KU, hKU⟩
+    -- FIXME: make this step work: rcases hyp with ⟨KU, hKU⟩
+    sorry
   have hopen : ∀ x : (K n), IsOpen (U x) := sorry -- almost vacuously true
   have hcovering : K n ⊆ ⋃ (x : (K n)), U x := sorry -- since x ∈ U_x
   -- Since K_n is compact, (U_x) has a finite subcover.
-  -- xxx: both of these don't quite do what I think!! the line below doesn't work...
   let subcover := IsCompact.elim_finite_subcover (hcompact n) U hopen hcovering
-  have aux : ∃ t : Finset (K n), K n ⊆ ⋃ (i : (K n)) (_ : i ∈ t), U i := by
-    exact IsCompact.elim_finite_subcover (hcompact n) (fun i => U i) hopen hcovering
-  -- rcases subcover with ⟨t, ht⟩ -- fails!
-  --rcases aux with ⟨t, ht⟩
+  rcases subcover with ⟨t, ht⟩
   -- On each U_x, f is Lipschitz by hypothesis.
   -- Hence, the previous lemma `lipschitz_image_null_set_is_null_set` applies.
   sorry
+end ImageMeasureZeroSet
 
+variable {m n r : ℕ} (hm : finrank ℝ E = m) (hn : finrank ℝ F = n) (hr : r > m-n)
+variable {J}
 /-- Let $U c ℝ^n$ be an open set and f : U → ℝ^n be a C^1 map.
   If $X\subset U$ has measure zero, so has $f(X)$.
   Note: this is false for merely C⁰ maps, the Cantor function $f$ provides a counterexample:
@@ -105,7 +101,7 @@ lemma C1_image_null_set_null {f : E → F} {U : Set E} (hU : IsOpen U) (hf : Con
   -- argue: Hausdorff measure agrees with Lebesgue measure (that's done)
   -- Lebesgue measure is the Haar measure on R^n -> should follow
   sorry
-end ImageMeasureZeroSet
+
 
 -- An open subset of a topological manifold contains an interior point (not on the boundary). -/
 -- lemma open_subset_contains_interior_point : (s : Set N) (hs : IsOpen s) :
