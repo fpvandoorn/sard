@@ -1,7 +1,9 @@
 import Sard.MeasureZero
 import Mathlib.Analysis.Calculus.ContDiff
+import Mathlib.Geometry.Manifold.ChartedSpace
 import Mathlib.Geometry.Manifold.MFDeriv
 import Mathlib.MeasureTheory.Measure.Hausdorff
+import Mathlib.Topology.Bases
 import Mathlib.Topology.Basic
 import Mathlib.Topology.MetricSpace.Lipschitz
 
@@ -167,13 +169,44 @@ lemma image_C1_dimension_increase_null_local {g : E → F} {U : Set E} (hU : IsO
   exact this
 
 /-- If M, N are C¹ manifolds with dim M < dim N and f:M → N is C¹, then f(M) has measure zero. -/
+-- XXX: why am I proving this? is this result useful anyway?
+-- because I think the same argument is used for Sard's theorem locally...
 lemma image_C1_dimension_increase_image_measure_zero {f : M → N} (hf : ContMDiff I J r f)
+    [SecondCountableTopology M]
     (hdim : m < n) : MeasureZero J (Set.range f) := by
   -- It suffices to show that the image of each chart domain has measure zero.
   suffices ∀ e ∈ atlas H M, MeasureZero J (f '' (e.source)) by
-    intro μ hμ e he
-    -- should be a stnadard open cover argument: Lindelöf, countable unions etc.
-    sorry
+    let s : Set M := univ -- so we can generalise later
+    -- The charts of M form an open cover.
+    let U : M → Set M := fun x ↦ (ChartedSpace.chartAt x : LocalHomeomorph M H).source
+    have hcovering : univ ⊆ ⋃ (x : M), U x := by -- XXX: can golf this??
+      intro x
+      have : x ∈ U x := mem_chart_source H x
+      rw [@mem_iUnion]
+      intro _
+      use x
+    have hopen : ∀ x : M, IsOpen (U x) := fun x => (ChartedSpace.chartAt x).open_source
+    -- since M is second countable, it is Lindelöf: there is a countable subcover U_n of M.
+    let subcover := TopologicalSpace.isOpen_iUnion_countable U hopen
+    rcases subcover with ⟨T, ⟨hTCountable, hTcover⟩⟩
+    -- Each f(U_n ∩ S) has measure zero by hypothesis, we have f '' S = ∪ f (U_n ∩ S).
+    have : ∀ i : T, MeasureZero J (f '' ((U i) ∩ s)) := by
+      intro i
+      simp_all only [chart_mem_atlas, ge_iff_le, gt_iff_lt, inter_univ]
+    -- The countable union of measure zero sets has measure zero.
+    have decomp : ⋃ (i : T), f '' ((U i) ∩ s) = range f := by sorry
+      -- calc
+      --   range f
+      --   _ = f '' univ := by sorry
+      --   _ = f '' (⋃ (x : M), U x) := by sorry
+      --   _ = f '' (⋃ (i : M) (_ : i ∈ T), U i) := by sorry
+      --   --_ = f '' (⋃ (i : T), T i) := by sorry
+      --simp only [inter_univ, iUnion_coe_set]
+    rw [← decomp]
+    have todo : Encodable T := by sorry --infer_instance
+    apply @MeasureZero.iUnion (ι := T)
+    exact this
+
   -- Fix a chart; we want to show f(U ∩ M) has measure zero.
   intro e he
   rw [MeasureZero]
@@ -214,7 +247,13 @@ theorem sard {f : M → N} (hf : ContMDiff I J r f)
     {f' : ∀x, TangentSpace I x →L[ℝ] TangentSpace J (f x)} {s : Set M}
     (hf' : ∀ x ∈ s, HasMFDerivWithinAt I J f s x (f' x))
     (h'f' : ∀ x ∈ s, ¬ Surjective (f' x)) : MeasureZero J (f '' s) := by
-  sorry
+  -- It suffices to show that the image of each chart domain has measure zero.
+  suffices ∀ e ∈ atlas H M, MeasureZero J (f '' (e.source)) by
+    intro μ hμ e he
+    -- should be a standard open cover argument: Lindelöf, countable unions etc.
+    -- same as for image_C1_dimension_increase_image_measure_zero
+    sorry
+  sorry-- apply sard_local
 
 -- Corollary. The set of regular values is residual and therefore dense.
 -- note: `ContDiffOn.dense_compl_image_of_dimH_lt_finrank` looks related, I want a version on manifolds
