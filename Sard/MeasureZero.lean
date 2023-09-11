@@ -206,4 +206,52 @@ lemma measure_zero_image_iff_chart_domains {f : M → N} {s : Set M}
   have todo : Encodable T := by sorry --infer_instance
   apply MeasureZero.iUnion (ι := T)
   exact this
+
+-- from Topology.Gdelta, residual sets: mem_residual_iff says s is residual iff
+-- ∃ S : Set (Set α), (∀ t ∈ S, IsOpen t) ∧ (∀ t ∈ S, Dense t) ∧ S.Countable ∧ ⋂₀ S ⊆ s
+-- /-- A Gδ set is a countable intersection of open sets. -/
+-- def IsGδ (s : Set α) : Prop :=
+--   ∃ T : Set (Set α), (∀ t ∈ T, IsOpen t) ∧ T.Countable ∧ s = ⋂₀ T
+-- xxx Topology.GDelta uses residual but IsGδ - how does that match?
+
+/-- A set is nowhere dense iff its closure has empty interior. -/
+def IsNowhereDense {α : Type*} [TopologicalSpace α] (s : Set α) := IsEmpty (interior (closure s))
+
+-- A closed set is nowhere dense iff its interior is empty.
+lemma closed_nowhere_dense_iff {α : Type*} [TopologicalSpace α] {s : Set α} (hs : IsClosed s) :
+    IsNowhereDense s ↔ IsEmpty (interior s) := by
+      rw [IsNowhereDense, IsClosed.closure_eq hs]
+
+/-- A set is **meagre** iff it is contained in the countable union of nowhere dense sets. -/
+def IsMeagre {α : Type*} [TopologicalSpace α] (s : Set α) :=
+    ∃ S : Set (Set α), (∀ t ∈ S, IsNowhereDense t) ∧ S.Countable ∧ s ⊆ sInter S
+
+/-- A countable union of meagre sets is meagre. -/
+lemma meagre_iUnion {α : Type*} [TopologicalSpace α] (s : ℕ → Set α)
+  (hs : ∀ n : ℕ, IsMeagre (s n)) : IsMeagre (⋃ (n : ℕ), (s n)) := by sorry
+
+-- A closed measure zero set is nowhere dense.
+lemma MeasureZero.closed_implies_nowhere_dense {s : Set N} (h₁ : MeasureZero J s)
+    (h₂ : IsClosed s) : IsNowhereDense s := by sorry
+
+/-- A sigma-compact measure zero set is meagre (the countable union of nowhere dense sets). -/
+-- XXX: there's no notion of nowhere dense sets; complements raises an error...
+lemma meagre_if_sigma_compact {s : Set N} (h₁ : MeasureZero J s)
+    (h₂ : ∃ K : ℕ → Set N, (∀ n, IsCompact (K n)) ∧ ⋃ n, K n = s) : IsMeagre s := by
+  -- decompose into countably many pieces, using h₂
+  obtain ⟨K, ⟨hcompact, hcover⟩⟩ := h₂
+  -- countable union of meagre sets is meagre
+  suffices ∀ n : ℕ, IsMeagre (K n) by sorry
+  intro n
+  have h : K n ⊆ s := by sorry
+  -- each K_n has measure zero (by monotonicity), hence has empty interior
+  have : MeasureZero J (K n) := MeasureZero.mono h h₁
+  have : interior (K n) = ∅ := MeasureZero.MeasureZero_implies_empty_interior this
+  --have IsClosed (K n) := sorry --is closed (since compact and N is Hausdorff)
+  have : IsNowhereDense (K n) := by
+    sorry -- apply MeasureZero.closed_implies_nowhere_dense--refine closed_nowhere_dense_iff ?_
+  --have IsClosed (K n) := by exact E
+  -- each piece is closed and has measure zero (follows from h₂)
+  -- by `...`, it has empty interior, i.e. it's nowhere dense. done.
+  sorry
 end MeasureZero
