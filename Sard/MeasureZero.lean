@@ -149,3 +149,61 @@ protected lemma MeasureZero_implies_empty_interior {s : Set M}
   have : MeasureZero I (interior s) := h₂s.mono interior_subset
   apply MeasureZero.open_implies_empty isOpen_interior this
 end MeasureZero
+
+---------------------------------------------------------
+-- everything above the fold was already PRed to mathlib
+---------------------------------------------------------
+
+namespace MeasureZero
+variable
+  -- declare a smooth manifold `M` over the pair `(E, H)`.
+  {E : Type*}
+  [NormedAddCommGroup E] [NormedSpace ℝ E] {H : Type*} [TopologicalSpace H]
+  (I : ModelWithCorners ℝ E H) {M : Type*} [TopologicalSpace M] [ChartedSpace H M]
+  [SmoothManifoldWithCorners I M] [FiniteDimensional ℝ E] [SecondCountableTopology M]
+  -- declare a smooth manifold `N` over the pair `(F, G)`.
+  {F : Type*}
+  [NormedAddCommGroup F] [NormedSpace ℝ F] {G : Type*} [TopologicalSpace G]
+  (J : ModelWithCorners ℝ F G) {N : Type*} [TopologicalSpace N] [ChartedSpace G N] [J.Boundaryless]
+  [SmoothManifoldWithCorners J N] [FiniteDimensional ℝ F]
+  [MeasurableSpace F] [BorelSpace F]
+
+/-- The image `f(s)` of a set `s ⊆ M` under a C¹ map `f : M → N` has measure zero
+iff for each chart $(φ, U)$ of $M$, the image $f(U ∩ s)$ has measure zero. -/
+-- is the converse useful or just busywork?
+lemma measure_zero_image_iff_chart_domains {f : M → N} {s : Set M}
+    (hs : ∀ e ∈ atlas H M, MeasureZero J (f '' (e.source ∩ s))) : MeasureZero J (f '' s) := by
+  -- The charts of M form an open cover.
+  let U : M → Set M := fun x ↦ (ChartedSpace.chartAt x : LocalHomeomorph M H).source
+  have hcovering : univ ⊆ ⋃ (x : M), U x := by
+    intro x
+    have : x ∈ U x := mem_chart_source H x
+    rw [@mem_iUnion]
+    intro _
+    use x
+  have hopen : ∀ x : M, IsOpen (U x) := fun x => (ChartedSpace.chartAt x).open_source
+  -- Since M is second countable, it is Lindelöf: there is a countable subcover U_n of M.
+  let ⟨T, ⟨hTCountable, hTcover⟩⟩ := TopologicalSpace.isOpen_iUnion_countable U hopen
+  -- Each f(U_n ∩ S) has measure zero.
+  have : ∀ i : T, MeasureZero J (f '' ((U i) ∩ s)) := by
+    intro i
+    let e : LocalHomeomorph M H := ChartedSpace.chartAt i
+    have h : MeasureZero J (f '' (e.source ∩ s)) := hs e (chart_mem_atlas H _)
+    have h₃ : U i = e.source := by rw [← Filter.principal_eq_iff_eq]
+    apply MeasureZero.mono _ h
+    apply image_subset
+    rw [h₃]
+  -- The countable union of measure zero sets has measure zero.
+  have decomp : ⋃ (i : T), f '' ((U i) ∩ s) = f '' s :=
+    calc ⋃ (i : T), f '' ((U i) ∩ s)
+      _ = f '' (⋃ (i : T), (U i) ∩ s) := by rw [@image_iUnion]
+      _ = f '' ((⋃ (i : T), (U i)) ∩ s) := by rw [@iUnion_inter]
+      _ = f '' ((⋃ (i : M) (_ : i ∈ T), U i) ∩ s) := by rw [iUnion_coe_set]
+      _ = f '' ((⋃ (i : M), U i) ∩ s) := by rw [hTcover]
+      _ = f '' (univ ∩ s) := by rw [subset_antisymm (by simp) (hcovering)]
+      _ = f '' s := by rw [univ_inter]
+  rw [← decomp]
+  have todo : Encodable T := by sorry --infer_instance
+  apply MeasureZero.iUnion (ι := T)
+  exact this
+end MeasureZero
