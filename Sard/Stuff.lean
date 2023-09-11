@@ -28,10 +28,10 @@ section ImageMeasureZeroSet
 to null sets, w.r.t. the `d`-dimensional Hausdorff measure on `X` resp. `Y`. -/
 -- xxx. inline this into `locally_lipschitz_image_of_null_set_is_null_set`?
 lemma lipschitz_image_null_set_is_null_set
-    { X Y : Type } [MetricSpace X] [MeasurableSpace X] [BorelSpace X]
+    {X Y : Type*} [MetricSpace X] [MeasurableSpace X] [BorelSpace X]
     [MetricSpace Y] [MeasurableSpace Y] [BorelSpace Y]
-    { f : X → Y } (hf : ∃ K : NNReal, LipschitzWith K f)
-    { d : ℝ } (hd : d ≥ 0) { s : Set X } (hs : μH[d] s = 0) : μH[d] (f '' s) = 0 := by
+    {f : X → Y} (hf : ∃ K : NNReal, LipschitzWith K f)
+    {d : ℝ} (hd : d ≥ 0) {s : Set X} (hs : μH[d] s = 0) : μH[d] (f '' s) = 0 := by
   obtain ⟨K, hk⟩ := hf
   have aux : μH[d] (f '' s) ≤ (K : ENNReal) ^ d * μH[d] s :=
     LipschitzOnWith.hausdorffMeasure_image_le (LipschitzWith.lipschitzOnWith hk s) hd
@@ -41,11 +41,11 @@ lemma lipschitz_image_null_set_is_null_set
 /-- Consider two metric spaces `X` and `Y` with the `d`-dimensional Hausdorff measure.
 If `X` is $σ$-compact, a locally Lipschitz map $f : X → Y$
 maps null sets in `X` to null sets in `Y`. -/
-lemma locally_lipschitz_image_of_null_set_is_null_set { X Y : Type }
+lemma locally_lipschitz_image_of_null_set_is_null_set {X Y : Type*}
     [MetricSpace X] [MeasurableSpace X] [BorelSpace X] [SigmaCompactSpace X]
-    [MetricSpace Y] [MeasurableSpace Y] [BorelSpace Y] { d : ℕ } { f : X → Y }
+    [MetricSpace Y] [MeasurableSpace Y] [BorelSpace Y] {d : ℕ} {f : X → Y}
     (hf : ∀ x : X, ∃ K : NNReal, ∃ U : Set X, IsOpen U ∧ x ∈ U ∧ LipschitzOnWith K f U)
-    { s : Set X } (hs : μH[d] s = 0) : μH[d] (f '' s) = 0 := by
+    {s : Set X} (hs : μH[d] s = 0) : μH[d] (f '' s) = 0 := by
   -- Choose a countable cover of X by compact sets K_n.
   let K : ℕ → Set X := compactCovering X
   have hcov : ⋃ (n : ℕ), K n = univ := iUnion_compactCovering X
@@ -172,9 +172,8 @@ lemma image_C1_dimension_increase_null_local {g : E → F} {U : Set E} (hU : IsO
 /-- The image `f(s)` of a set `s ⊆ M` under a C¹ map `f : M → N` has measure zero
 iff for each chart $(φ, U)$ of $M$, the image $f(U ∩ s)$ has measure zero. -/
 -- is the converse useful or just busywork?
-lemma measure_zero_image_iff_chart_domains
-    {f : M → N} { s : Set M } (hs : ∀ e ∈ atlas H M, MeasureZero J (f '' (e.source ∩ s)))
-: MeasureZero J (f '' s) := by
+lemma measure_zero_image_iff_chart_domains {f : M → N} {s : Set M}
+    (hs : ∀ e ∈ atlas H M, MeasureZero J (f '' (e.source ∩ s))) : MeasureZero J (f '' s) := by
   -- The charts of M form an open cover.
   let U : M → Set M := fun x ↦ (ChartedSpace.chartAt x : LocalHomeomorph M H).source
   have hcovering : univ ⊆ ⋃ (x : M), U x := by

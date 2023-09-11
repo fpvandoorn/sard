@@ -66,7 +66,7 @@ protected lemma empty : MeasureZero I (∅: Set M) := by
   simp only [comp_apply, inter_empty, image_empty, OuterMeasure.empty']
 
 /-- The countable index union of measure zero sets has measure zero. -/
-protected lemma iUnion { ι : Type* } [Encodable ι] { s : ι → Set M }
+protected lemma iUnion {ι : Type*} [Encodable ι] {s : ι → Set M}
   (hs : ∀ n : ι, MeasureZero I (s n)) : MeasureZero I (⋃ (n : ι),  s n) := by
   intro μ hμ e he
   have : I ∘ e '' (e.source ∩ (⋃ (n : ι),  s n)) = ⋃ (n : ι), I ∘ e '' (e.source ∩ s n) := by
@@ -79,8 +79,7 @@ protected lemma iUnion { ι : Type* } [Encodable ι] { s : ι → Set M }
   exact he
 
 /-- The finite union of measure zero sets has measure zero. -/
-protected lemma union { s t : Set M } (hs : MeasureZero I s) (ht : MeasureZero I t)
-    : MeasureZero I (s ∪ t) := by
+protected lemma union {s t : Set M} (hs : MeasureZero I s) (ht : MeasureZero I t) : MeasureZero I (s ∪ t) := by
   let u : Bool → Set M := fun b ↦ cond b s t
   have : ∀ i : Bool, MeasureZero I (u i) := by
     intro i
@@ -92,9 +91,9 @@ protected lemma union { s t : Set M } (hs : MeasureZero I s) (ht : MeasureZero I
 
 /-- The “almost everywhere” filter of co-measure zero sets in a manifold. -/
 def ModelWithCorners.ae
-    { E : Type* } [NormedAddCommGroup E] [NormedSpace ℝ E]
-    { F : Type*} [TopologicalSpace F] (I : ModelWithCorners ℝ E F)
-    { M : Type* } [TopologicalSpace M] [ChartedSpace F M] [MeasurableSpace E] : Filter M where
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    {F : Type*} [TopologicalSpace F] (I : ModelWithCorners ℝ E F)
+    {M : Type*} [TopologicalSpace M] [ChartedSpace F M] [MeasurableSpace E] : Filter M where
   sets := { s | MeasureZero I sᶜ }
   univ_sets := by
     rw [@mem_setOf, compl_univ]
