@@ -212,11 +212,6 @@ lemma measure_zero_image_iff_chart_domains {f : M → N} {s : Set M}
 lemma MeasureZero.closed_implies_nowhere_dense {s : Set N} (h₁ : MeasureZero J s)
     (h₂ : IsClosed s) : IsNowhereDense s := by sorry
 
-/-- A set is **meagre** iff it is contained in the countable union of nowhere dense sets. -/
--- FIXME: use the definition from `Meagre.lean` instead; fails with typeclass synthesis errors.
-def IsMeagre (s : Set N) := ---
-    ∃ S : Set (Set N), (∀ t ∈ S, IsNowhereDense t) ∧ S.Countable ∧ s ⊆ sInter S
-
 /-- A σ-compact measure zero set is meagre (the countable union of nowhere dense sets). -/
 lemma meagre_if_sigma_compact {s : Set N} (h₁ : MeasureZero J s)
     (h₂ : ∃ K : ℕ → Set N, (∀ n, IsCompact (K n)) ∧ ⋃ n, K n = s) : IsMeagre s := by
