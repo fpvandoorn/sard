@@ -65,17 +65,21 @@ lemma meagre_iff_complement_comeagre (s : Set α) : IsMeagre s ↔ sᶜ ∈ resi
     -- Each u_iᶜ is closed and nowhere dense, hence nowhere dense itself, thus sᶜ is meagre.
     sorry
 
--- TODO: prove the following properties, by using `meagre_iff_complement_comeagre`, taking complements
--- and applying the dual properties of residual sets
 /-- The empty set is meagre. -/
-lemma meagre_empty : IsMeagre (∅ : Set α) := by sorry
+lemma meagre_empty : IsMeagre (∅ : Set α) := by
+  rw [meagre_iff_complement_comeagre, compl_empty, ← Filter.eventuallyEq_univ]
 
 /-- Subsets of meagre sets are meagre. -/
-lemma meagure_mono {s t: Set α} (hs : IsMeagre s) (hts: t ⊆ s) : IsMeagre t := by sorry
+lemma meagre_mono {s t: Set α} (hs : IsMeagre s) (hts: t ⊆ s) : IsMeagre t := by
+  rw [← compl_subset_compl] at hts
+  rw [meagre_iff_complement_comeagre] at *
+  exact Filter.mem_of_superset hs hts
 
 /-- A finite intersection of meagre sets is meagre. -/ -- xxx is this superfluous?
 lemma meagre_inter {s t : Set α} (hs : IsMeagre s) (ht : IsMeagre t) : IsMeagre (s ∩ t) := by sorry
 
 /-- A countable union of meagre sets is meagre. -/
 lemma meagre_iUnion (s : ℕ → Set α)
-    (hs : ∀ n : ℕ, IsMeagre (s n)) : IsMeagre (⋃ (n : ℕ), (s n)) := by sorry
+    (hs : ∀ n : ℕ, IsMeagre (s n)) : IsMeagre (⋃ (n : ℕ), (s n)) := by
+  simp only [meagre_iff_complement_comeagre, compl_iUnion] at *
+  exact Iff.mpr countable_iInter_mem hs
