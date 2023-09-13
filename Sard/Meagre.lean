@@ -48,14 +48,22 @@ def IsMeagre (s : Set α) := ∃ S : Set (Set α), (∀ t ∈ S, IsNowhereDense 
 
 /-- A set is meagre iff its complement is residual (or comeagre). -/
 lemma meagre_iff_complement_comeagre (s : Set α) : IsMeagre s ↔ sᶜ ∈ residual α := by
-  -- compute s = ⋂ U_i => sᶜ = ⋃ u_iᶜ
-  -- "=>" If s is comeagre, have s ⊇ ⋂ U i for open dense sets U_i. Thus, sᶜ ⊆ (⋂ U_i)ᶜ = ⋃ u_iᶜ.
-  --   Each u_iᶜ is closed and nowhere dense, hence nowhere dense itself, thus sᶜ is meagre.
-  -- "<=" If s is meagre, have s ⊆ ⋃ U_i for nowhere dense sets U_i.
-  --   Passing to closure, assume all U_i are closed nowhere dense.
-  --   Then U_i^c is open and dense, and we compute sᶜ ⊇ ⋂ U_iᶜ, done.
-  sorry
-
+  constructor
+  · intro hs -- suppose s is meagre
+    rcases hs with ⟨s', ⟨hnowhereDense, hcountable, hss'⟩⟩
+    -- Passing to closure, assume all U_i are closed nowhere dense.
+    -- there's another such set, namely the closures of all subsets
+    -- TODO: how to write this nicely? set builder notation??
+    have hclosure : ∀ (t : Set α), t ∈ s' → IsClosed t := by sorry
+    -- Then each U_i^c is open and dense, and we compute sᶜ ⊇ ⋂ U_iᶜ, done.
+    sorry
+  · intro hs -- suppose s is comeagre
+    rw [mem_residual_iff] at hs
+    rcases hs with ⟨s', ⟨hopen, hdense, hcountable, hss'⟩⟩
+    rw [← compl_compl s]
+    -- Then have s ⊇ ⋂ U i for open dense sets U_i. Thus, sᶜ ⊆ (⋂ U_i)ᶜ = ⋃ u_iᶜ.
+    -- Each u_iᶜ is closed and nowhere dense, hence nowhere dense itself, thus sᶜ is meagre.
+    sorry
 
 -- TODO: prove the following properties, by using `meagre_iff_complement_comeagre`, taking complements
 -- and applying the dual properties of residual sets
