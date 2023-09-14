@@ -60,11 +60,15 @@ lemma meagre_iff_complement_comeagre (s : Set α) : IsMeagre s ↔ sᶜ ∈ resi
     rw [mem_residual_iff]
     -- use ... -- set consisting of the closures of all t ∈ s' -> how to write this in Lean?
     sorry
-  · intro hs -- suppose s''=sᶜ is comeagre
+  · intro hs -- suppose sᶜ is comeagre, then sᶜ ⊇ ⋂ U i for open dense sets U_i
     rw [mem_residual_iff] at hs
     rcases hs with ⟨s', ⟨hopen, hdense, hcountable, hss'⟩⟩
-    rw [← compl_compl s]
-    -- Then have s'' ⊇ ⋂ U i for open dense sets U_i. Thus, s'' ⊆ (⋂ U_i)ᶜ = ⋃ u_iᶜ.
+    have h : s ⊆ sUnion (s')ᶜ :=
+    calc
+      s = sᶜᶜ := by rw [compl_compl s]
+      _ ⊆ (⋂₀ s')ᶜ := Iff.mpr compl_subset_compl hss'
+      _ = ⋃₀ ((s')ᶜ) := by sorry
+    have : ∀ t : Set α, t ∈ s' → IsClosed tᶜ ∧ IsNowhereDense tᶜ := by sorry
     -- Each u_iᶜ is closed and nowhere dense, hence nowhere dense itself, thus (s'')ᶜ =s is meagre.
     sorry
 
