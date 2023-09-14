@@ -63,7 +63,7 @@ lemma meagre_iff_complement_comeagre (s : Set α) : IsMeagre s ↔ sᶜ ∈ resi
     have hcountable' : Set.Countable s'' := Countable.image hcountable _
     have hss'' : s ⊆ ⋃₀ s'' := calc
       s ⊆ ⋃₀ s' := hss'
-      _ ⊆ ⋃₀ s'' := by sorry -- this should be a lemma in mathlib!!
+      _ ⊆ ⋃₀ s'' := by sorry -- TODO: this should be a mathlib lemma!
     -- Then each U_i^c is open and dense.
     have h : ∀ (t : Set α), t ∈ s'' → IsOpen tᶜ ∧ Dense tᶜ  :=
       fun t ht ↦ Iff.mp closed_nowhere_dense_iff_complement (hnowhereDense' t ht)
@@ -73,7 +73,10 @@ lemma meagre_iff_complement_comeagre (s : Set α) : IsMeagre s ↔ sᶜ ∈ resi
       rw [← hcompl]
       exact h x hx
     -- and we compute ⋂ U_iᶜ ⊆ sᶜ, completing the proof.
-    have h2: ⋂₀ complement ⊆ sᶜ := by sorry
+    have h2: ⋂₀ complement ⊆ sᶜ := calc ⋂₀ complement
+        _ = ⋂₀ (s'' ᶜ) := by sorry -- TODO: this should be a mathlib lemma!
+        _ = (⋃₀ s'')ᶜ := by sorry -- TODO: this should be a mathlib lemma!
+        _ ⊆ sᶜ := Iff.mpr compl_subset_compl hss''
     rw [mem_residual_iff]
     use complement
     constructor
@@ -82,9 +85,7 @@ lemma meagre_iff_complement_comeagre (s : Set α) : IsMeagre s ↔ sᶜ ∈ resi
     · constructor
       · intro t ht
         exact (h' t ht).2
-      · constructor
-        · exact Countable.image hcountable' fun x => xᶜ
-        · exact h2
+      · exact ⟨Countable.image hcountable' fun x => xᶜ, h2⟩
   · intro hs -- suppose sᶜ is comeagre, then sᶜ ⊇ ⋂ U i for open dense sets U_i
     rw [mem_residual_iff] at hs
     rcases hs with ⟨s', ⟨hopen, hdense, hcountable, hss'⟩⟩
