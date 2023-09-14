@@ -110,10 +110,13 @@ lemma C1_image_null_set_null {f : E → F} {U : Set E} (hU : IsOpen U) (hf : Con
   -- The m-dimensional Hausdorff measure on E resp. F agrees with the Lebesgue measure.
   have h₁ : μ = μH[m] := by
     -- The m-dimensional Hausdorff measure is the Lebesgue measure on R^m.
-    have aux : μH[m] = (volume : Measure (Fin m → ℝ)) := by sorry -- apply hausdorffMeasure_pi_real
+    have aux : μH[m] = volume := by
+      rw [← Fintype.card_fin m]
+      exact hausdorffMeasure_pi_real (ι := Fin m)
     -- The Lebesgue measure is the Haar measure on R^m.
     -- xxx: doesn't typecheck yet, need a measurable equivalence between E and R^m
     -- have : μ = (volume : Measure (Fin m → ℝ)) := by sorry -- MeasureTheory.addHaarMeasure_eq_volume_pi
+    -- perhaps https://github.com/leanprover-community/mathlib4/pull/7037 can help
     -- TODO: combining these doesn't work yet
     sorry
   have h₂ : ν = μH[n] := by sorry -- same argument like for μ
