@@ -56,17 +56,16 @@ lemma meagre_iff_complement_comeagre (s : Set α) : IsMeagre s ↔ sᶜ ∈ resi
   · intro hs -- suppose s is meagre
     rcases hs with ⟨s', ⟨hnowhereDense, hcountable, hss'⟩⟩
     -- Passing to closure, assume all U_i are closed nowhere dense.
-    -- there's another such set, namely the closures of all subsets
-    -- TODO: how to write this nicely? set builder notation??
-    have hclosure : ∀ (t : Set α), t ∈ s' → IsClosed t := by sorry
     -- Then each U_i^c is open and dense, and we compute sᶜ ⊇ ⋂ U_iᶜ, done.
+    rw [mem_residual_iff]
+    -- use ... -- set consisting of the closures of all t ∈ s' -> how to write this in Lean?
     sorry
-  · intro hs -- suppose s is comeagre
+  · intro hs -- suppose s''=sᶜ is comeagre
     rw [mem_residual_iff] at hs
     rcases hs with ⟨s', ⟨hopen, hdense, hcountable, hss'⟩⟩
     rw [← compl_compl s]
-    -- Then have s ⊇ ⋂ U i for open dense sets U_i. Thus, sᶜ ⊆ (⋂ U_i)ᶜ = ⋃ u_iᶜ.
-    -- Each u_iᶜ is closed and nowhere dense, hence nowhere dense itself, thus sᶜ is meagre.
+    -- Then have s'' ⊇ ⋂ U i for open dense sets U_i. Thus, s'' ⊆ (⋂ U_i)ᶜ = ⋃ u_iᶜ.
+    -- Each u_iᶜ is closed and nowhere dense, hence nowhere dense itself, thus (s'')ᶜ =s is meagre.
     sorry
 
 /-- The empty set is meagre. -/
