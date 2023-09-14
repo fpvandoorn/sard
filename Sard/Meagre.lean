@@ -58,8 +58,8 @@ lemma meagre_iff_complement_comeagre (s : Set α) : IsMeagre s ↔ sᶜ ∈ resi
     -- Passing to closure, assume all U_i are closed nowhere dense.
     -- Then each U_i^c is open and dense, and we compute sᶜ ⊇ ⋂ U_iᶜ, done.
     rw [mem_residual_iff]
-    -- use ... -- set consisting of the closures of all t ∈ s' -> how to write this in Lean?
-    sorry
+    let closure := (fun u ↦ closure u) '' s'
+    use closure
   · intro hs -- suppose sᶜ is comeagre, then sᶜ ⊇ ⋂ U i for open dense sets U_i
     rw [mem_residual_iff] at hs
     rcases hs with ⟨s', ⟨hopen, hdense, hcountable, hss'⟩⟩
