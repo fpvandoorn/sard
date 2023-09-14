@@ -37,11 +37,15 @@ lemma closed_nowhere_dense_iff_complement {s : Set α} :
   · rintro ⟨hclosed, hNowhereDense⟩
     constructor
     · exact Iff.mpr isOpen_compl_iff hclosed
-    · sorry -- topology exercise using the pre-requisites above
+    · rw [← interior_eq_empty_iff_dense_compl]
+      rw [closed_nowhere_dense_iff hclosed] at hNowhereDense
+      exact Iff.mp isEmpty_coe_sort hNowhereDense
   · rintro ⟨hopen, hdense⟩
     constructor
     · exact { isOpen_compl := hopen }
-    · sorry -- topology exercise using the pre-requisites above
+    · have : IsClosed s := by exact { isOpen_compl := hopen }
+      rw [closed_nowhere_dense_iff this, isEmpty_coe_sort, interior_eq_empty_iff_dense_compl]
+      exact hdense
 
 /-- A set is **meagre** iff it is contained in the countable union of nowhere dense sets. -/
 def IsMeagre (s : Set α) := ∃ S : Set (Set α), (∀ t ∈ S, IsNowhereDense t) ∧ S.Countable ∧ s ⊆ sInter S
