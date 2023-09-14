@@ -55,11 +55,24 @@ lemma meagre_iff_complement_comeagre (s : Set α) : IsMeagre s ↔ sᶜ ∈ resi
   constructor
   · intro hs -- suppose s is meagre
     rcases hs with ⟨s', ⟨hnowhereDense, hcountable, hss'⟩⟩
-    -- Passing to closure, assume all U_i are closed nowhere dense.
-    -- Then each U_i^c is open and dense, and we compute sᶜ ⊇ ⋂ U_iᶜ, done.
+    -- Passing to the closure, assume all U_i are closed nowhere dense.
+    let s'' := (fun u ↦ closure u) '' s'
+    have hnowhereDense' : ∀ (t : Set α), t ∈ s'' → IsClosed t ∧ IsNowhereDense t := by
+      rintro t ⟨x, hx, hclosed⟩
+      rw [← hclosed]
+      exact ⟨isClosed_closure, closure_nowhere_dense (hnowhereDense x hx)⟩
+    have hcountable' : Set.Countable s'' := Countable.image hcountable _
+    have hss'' : s ⊆ ⋂₀ s'' := calc
+      s ⊆ ⋂₀ s' := hss'
+      _ ⊆ ⋂₀ s'' := by sorry -- this should be a lemma in mathlib!!
+    -- Then each U_i^c is open and dense
+    have h : ∀ (t : Set α), t ∈ s'' → (IsOpen tᶜ ∧ Dense tᶜ) :=
+      fun t ht ↦ Iff.mp closed_nowhere_dense_iff_complement (hnowhereDense' t ht)
+
+    -- and we compute sᶜ ⊇ ⋂ U_iᶜ, completing the proof.
     rw [mem_residual_iff]
-    let closure := (fun u ↦ closure u) '' s'
-    use closure
+    use s''
+    sorry
   · intro hs -- suppose sᶜ is comeagre, then sᶜ ⊇ ⋂ U i for open dense sets U_i
     rw [mem_residual_iff] at hs
     rcases hs with ⟨s', ⟨hopen, hdense, hcountable, hss'⟩⟩
