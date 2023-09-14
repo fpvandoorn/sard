@@ -89,14 +89,29 @@ lemma meagre_iff_complement_comeagre (s : Set α) : IsMeagre s ↔ sᶜ ∈ resi
   · intro hs -- suppose sᶜ is comeagre, then sᶜ ⊇ ⋂ U i for open dense sets U_i
     rw [mem_residual_iff] at hs
     rcases hs with ⟨s', ⟨hopen, hdense, hcountable, hss'⟩⟩
-    have h : s ⊆ sUnion (s')ᶜ :=
-    calc
+    have h : s ⊆ ⋃₀ (s')ᶜ := calc
       s = sᶜᶜ := by rw [compl_compl s]
       _ ⊆ (⋂₀ s')ᶜ := Iff.mpr compl_subset_compl hss'
-      _ = ⋃₀ ((s')ᶜ) := by sorry
-    have : ∀ t : Set α, t ∈ s' → IsClosed tᶜ ∧ IsNowhereDense tᶜ := by sorry
-    -- Each u_iᶜ is closed and nowhere dense, hence nowhere dense itself, thus (s'')ᶜ =s is meagre.
-    sorry
+      _ = ⋃₀ ((s')ᶜ) := by sorry -- TODO: this should be a lemma in mathlib!
+    -- Each u_iᶜ is closed and nowhere dense, hence nowhere dense.
+    have : ∀ t : Set α, t ∈ s' → IsClosed tᶜ ∧ IsNowhereDense tᶜ := by
+      intro t ht
+      have : IsOpen tᶜᶜ ∧ Dense tᶜᶜ := by
+        rw [compl_compl]
+        exact ⟨hopen t ht, hdense t ht⟩
+      exact Iff.mpr closed_nowhere_dense_iff_complement this
+    have : ∀ t : Set α, t ∈ s' → IsNowhereDense tᶜ := fun t ht ↦ (this t ht).2
+    -- Thus (s'')ᶜ =s is meagre.
+    rw [IsMeagre]
+    use (fun t ↦ tᶜ) '' s'
+    constructor
+    · rintro t ⟨x, hx, hcompl⟩
+      rw [← hcompl]
+      exact this x hx
+    · constructor
+      · exact Countable.image hcountable _
+      · sorry -- FIXME: should just be `apply h`
+
 
 /-- The empty set is meagre. -/
 lemma meagre_empty : IsMeagre (∅ : Set α) := by
