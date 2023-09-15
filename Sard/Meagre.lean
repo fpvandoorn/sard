@@ -1,14 +1,26 @@
--- Nowhere dense and meagre sets. Probably should belong elsewhere in mathlib.
+/-
+Copyright (c) 2023 Michael Rothgang. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Michael Rothgang
+-/
+
 import Mathlib.Topology.MetricSpace.Baire -- xxx can be minimised?
+/-!
+## Nowhere dense and meagre sets
+Define nowhere dense and meagre sets (`IsNowhereDense` and `IsMeagre`, respectively)
+and prove their basic properties.
+
+Main properties:
+- `closure_nowhere_dense`: the closure of a nowhere dense set is nowhere dense
+- `closed_nowhere_dense_iff_complement`: a closed set is nowhere dense iff
+its complement is open and dense
+- `meagre_iff_complement_comeagre`: a set is nowhere dense iff its complement is `residual`.
+- `empty_mono`: subsets of meagre sets are meagre
+- `meagre_iUnion`: countable unions of meagre sets are meagre
+-/
 
 open Function TopologicalSpace Set
 set_option autoImplicit false
-
--- prerequisites, probably all in mathlib
--- interior commutes with finite intersection
--- interior commutes with arbitrary unions
--- closure commutes with finite unions
--- closure commutes with arbitrary intersections
 
 variable {α : Type*} [TopologicalSpace α]
 
