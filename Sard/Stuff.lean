@@ -243,6 +243,14 @@ theorem sard_local {s w : Set E} {f : E → F} (hf : ContDiffOn ℝ r f w)
   · sorry -- show f(W) has measure zero; use `image_C1_dimension_increase_null_local`
   · sorry
 
+/-- Local version of Sard's theorem. If $W ⊆ ℝ^m$ is open and $f: W → ℝ^n$ is $C^r$,
+the set of critical values is a meagre set. -/
+theorem sard_local' {s w : Set E} {f : E → F} (hf : ContDiffOn ℝ r f w)
+    {f' : E → E →L[ℝ] F} (hf' : ∀ x ∈ s, HasFDerivWithinAt f (f' x) s x)
+    (h'f' : ∀ x ∈ s, ¬ Surjective (f' x)) : IsMeagre (f '' s) := by sorry
+-- this proof uses: critical set is σ-compact (ℝ^m is σ-compact, s is closed)
+-- image of σ-compact set is σ-compact; σ-compact measure zero set is meagre
+
 /-- **Sard's theorem**. Let $M$ and $N$ be real $C^r$ manifolds of dimensions
 $m$ and $n$, and $f:M→N$ a $C^r$ map. If $r>\max{0, m-n}$,
 the set of regular values of $f$ has full measure.
@@ -263,5 +271,11 @@ theorem sard {f : M → N} (hf : ContMDiff I J r f)
   -- reduce to images of chart domains, then apply `sard_local`
   sorry
 
+/-- **Sard's theorem**: let $M$ and $N$ be real $C^r$ manifolds of dimensions $m$ and $n$,
+and $f:M→N$ a $C^r$ map. If $r>\max{0, m-n}$, the critical set is meagre. -/
+theorem sard' {f : M → N} (hf : ContMDiff I J r f)
+    {f' : ∀x, TangentSpace I x →L[ℝ] TangentSpace J (f x)} {s : Set M}
+    (hf' : ∀ x ∈ s, HasMFDerivWithinAt I J f s x (f' x))
+    (h'f' : ∀ x ∈ s, ¬ Surjective (f' x)) : IsMeagre (f '' s) := by sorry
+
 -- Corollary. The set of regular values is residual and therefore dense.
--- note: `ContDiffOn.dense_compl_image_of_dimH_lt_finrank` looks related, I want a version on manifolds

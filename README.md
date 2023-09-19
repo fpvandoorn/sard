@@ -1,9 +1,7 @@
 # Towards the Sard-Smale theorem
 In this repository, we work towards the proof of the Morse-Sard and Sard-Smale theorems.
 
-**Morse-Sard theorem.** Let $M$ and $N$ be $C^r$-manifolds of dimensions $m$ and $n$, respectively and $f\colon M\to N$ a $C^r$ map.
-  If $r > \max {O,m - n}$, the set $f(\Sigma_f)$ of critical values of $f$ has measure zero in $N$.
-  Moreover, the set of regular values of f is residual and therefore dense.
+**Morse-Sard theorem.** Let $M$ and $N$ be $C^r$-manifolds of dimensions $m$ and $n$, respectively and $f\colon M\to N$ a $C^r$ map. If $r > \max {O,m - n}$, the set $f(\Sigma_f)$ of critical values of $f$ has measure zero in $N$. Moreover, the set of regular values of f is residual and therefore dense.
 
 The **Sard-Smale** theorem is a generalisation to infinite-dimensional Banach manifolds. Stating it requires a theory of Fredholm operators. See a [separate file](Roadmap towards Sard-Smale.md) for detail and a roadmap towards that.
 
@@ -38,8 +36,7 @@ The **Sard-Smale** theorem is a generalisation to infinite-dimensional Banach ma
 - Corollary. If $m < n$, then $f(M)$ has measure zero. Hence, Sard's theorem holds.
 
 - reduce Sard's theorem to a local statement                    mostly done, a few sorries remain
-- "hard" case "m\geq n" not started yet
-- update statement of Sard's theorems to mention meagre sets: TODO, should be easy
+- "hard" case $m\geq n$ not started yet
 
 - formalise the main argument of the proof: hard work
   - show Sigma_1 has measure zero, separate lemma
