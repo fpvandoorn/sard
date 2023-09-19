@@ -25,7 +25,7 @@ The **Sard-Smale** theorem is a generalisation to infinite-dimensional Banach ma
 
 - define: locally Lipschitz maps; show C¹ maps are locally Lipschitz
 (complete: not PRed yet; could add much more API for locally Lipschitz functions)
-- show: locally Lipschitz maps preserve null sets (mostly done: section `ImageMeasureZeroSet`; one sorry should be easy, the others are due to one Lean-related error)
+- show: locally Lipschitz maps preserve null sets (mostly done; one sorry should be easy, the others are due to one Lean-related error)
 
 - meager sets and relation to measure zero
   - define nowhere dense and meagre sets: complete, [PRed](https://github.com/leanprover-community/mathlib4/pull/7180)
@@ -56,6 +56,7 @@ That said, help is very welcome! Feel free to make a PR filling in some sorry, o
 - `MeasureZero.lean` contains the definition of measure zero subsets of a manifold: not reworked yet
 - `Meagre.lean` holds results about nowhere dense and meagre sets. (PRed to mathlib.)
 - `LocallyLipschitz.lean` defines locally Lipschitz functions. Not PRed yet.
+- `LocallyLipschitzMeasureZero.lean` shows that locally Lipschitz functions preserve measure zero sets. Not PRed yet; a few sorries remain.
 - `Stuff.lean` contains all other results: statement of Sard and intermediate steps.
 - `ObsoleteHelpers.lean` contains results I didn't need; perhaps one or two lemmas are useful for mathlib.
 
