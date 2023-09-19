@@ -155,21 +155,31 @@ lemma image_null_of_C1_of_dimension_increase {f : M → N} (hf : ContMDiff I J r
 
 /-- Local version of Sard's theorem. If $W ⊆ ℝ^m$ is open and $f: W → ℝ^n$ is $C^r$,
 the set of critical values has measure zero. -/
-theorem sard_local {s w : Set E} {f : E → F} (hf : ContDiffOn ℝ r f w)
-    {f' : E → E →L[ℝ] F} (hf' : ∀ x ∈ s, HasFDerivWithinAt f (f' x) s x)
+theorem sard_local {s w : Set E} {f : E → F} (hw : IsOpen w) (hsw : s ⊆ w)
+    (hf : ContDiffOn ℝ r f w) {f' : E → E →L[ℝ] F} (hf' : ∀ x ∈ s, HasFDerivWithinAt f (f' x) s x)
     (h'f' : ∀ x ∈ s, ¬ Surjective (f' x)) (μ : Measure F) [IsAddHaarMeasure μ] :
     μ (f '' s) = 0 := by
   by_cases hyp: m < n
-  · sorry -- show f(W) has measure zero; use `image_measure_zero_of_C1_dimension_increase`
+  · have hr : 1 ≤ (r : ℕ∞) := Iff.mpr Nat.one_le_cast (Nat.one_le_of_lt hr)
+    have : ContDiffOn ℝ 1 f w := by apply ContDiffOn.of_le hf hr
+    have hless: μ (f '' s) ≤ 0 := by calc
+      μ (f '' s) ≤ μ (f '' w) := measure_mono (image_subset f hsw)
+      _ = 0 := image_measure_zero_of_C1_dimension_increase hw μ this hyp
+    simp only [nonpos_iff_eq_zero, zero_le] at hless ⊢
+    exact hless
   · sorry
 
 /-- Local version of Sard's theorem. If $W ⊆ ℝ^m$ is open and $f: W → ℝ^n$ is $C^r$,
 the set of critical values is a meagre set. -/
-theorem sard_local' {s w : Set E} {f : E → F} (hf : ContDiffOn ℝ r f w)
-    {f' : E → E →L[ℝ] F} (hf' : ∀ x ∈ s, HasFDerivWithinAt f (f' x) s x)
-    (h'f' : ∀ x ∈ s, ¬ Surjective (f' x)) : IsMeagre (f '' s) := by sorry
--- this proof uses: critical set is σ-compact (ℝ^m is σ-compact, s is closed)
--- image of σ-compact set is σ-compact; σ-compact measure zero set is meagre
+theorem sard_local' {s w : Set E} {f : E → F} (hw : IsOpen w) (hsw : s ⊆ w)
+    (hf : ContDiffOn ℝ r f w) {f' : E → E →L[ℝ] F} (hf' : ∀ x ∈ s, HasFDerivWithinAt f (f' x) s x)
+    (h'f' : ∀ x ∈ s, ¬ Surjective (f' x)) : IsMeagre (f '' s) := by
+  have : ∀ (μ : Measure F) [IsAddHaarMeasure μ], μ (f '' s) = 0 := by
+    intro μ hμ
+    sorry -- this fails: refine sard_local ?_ hw hsw hf hf' h'f' μ hμ
+  -- use: critical set is σ-compact (ℝ^m is σ-compact, s is closed)
+  -- image of σ-compact set is σ-compact; σ-compact measure zero set is meagre
+  sorry
 
 /-- **Sard's theorem**. Let $M$ and $N$ be real $C^r$ manifolds of dimensions
 $m$ and $n$, and $f:M→N$ a $C^r$ map. If $r>\max{0, m-n}$,
@@ -196,6 +206,8 @@ and $f:M→N$ a $C^r$ map. If $r>\max{0, m-n}$, the critical set is meagre. -/
 theorem sard' {f : M → N} (hf : ContMDiff I J r f)
     {f' : ∀x, TangentSpace I x →L[ℝ] TangentSpace J (f x)} {s : Set M}
     (hf' : ∀ x ∈ s, HasMFDerivWithinAt I J f s x (f' x))
-    (h'f' : ∀ x ∈ s, ¬ Surjective (f' x)) : IsMeagre (f '' s) := by sorry
+    (h'f' : ∀ x ∈ s, ¬ Surjective (f' x)) : IsMeagre (f '' s) := by
+  -- reduce to images of chart domains, then apply `sard_local'` (or `sard`)
+  sorry
 
 -- Corollary. The set of regular values is residual and therefore dense.
