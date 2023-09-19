@@ -9,7 +9,7 @@ import Mathlib.Topology.Bases
 import Mathlib.Topology.Basic
 import Mathlib.Topology.MetricSpace.Lipschitz
 
-open ENNReal NNReal FiniteDimensional Function LocallyLipschitz Manifold MeasureTheory Measure Set TopologicalSpace Topology
+open ENNReal NNReal FiniteDimensional Function Manifold MeasureTheory Measure Set TopologicalSpace Topology LocallyLipschitz
 set_option autoImplicit false
 
 variable
@@ -26,6 +26,19 @@ variable
   [SmoothManifoldWithCorners J N] [FiniteDimensional ℝ F]
   [MeasurableSpace F] [BorelSpace F]
 variable {m n r : ℕ} (hm : finrank ℝ E = m) (hn : finrank ℝ F = n) (hr : r > m-n)
+
+-- version specialized to an open set
+-- TODO: move back to LocallyLipschitzMeasureZero (hack to keep things building)
+lemma locally_lipschitz_image_of_null_set_is_null_set_open {X Y : Type*}
+    [MetricSpace X] [MeasurableSpace X] [BorelSpace X] [SigmaCompactSpace X]
+    [MetricSpace Y] [MeasurableSpace Y] [BorelSpace Y] {d : ℕ} {f : X → Y} {U : Set X}
+    (hf : LocallyLipschitz (U.restrict f)) {s : Set X} (hsu : s ⊆ U) (hs : μH[d] s = 0) :
+    μH[d] (f '' s) = 0 := by sorry
+
+-- TODO: move back to LocallyLipschitz (hack to keep things building)
+lemma of_C1_on_open {E F: Type*} {f : E → F} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    [NormedAddCommGroup F] [NormedSpace ℝ F] {U : Set E} (hU: IsOpen U) (hf : ContDiffOn ℝ 1 f U) :
+  LocallyLipschitz (U.restrict f) := by sorry
 
 /-- Let $U ⊆ ℝ^n$ be an open set and f : U → ℝ^n be a C^1 map.
   If $X\subset U$ has measure zero, so has $f(X)$.
@@ -51,11 +64,16 @@ lemma image_null_of_C1_of_null {f : E → F} {U : Set E} (hU : IsOpen U) (hf : C
   -- Since f is C¹, it's locally Lipschitz on U and we can apply the previous lemma.
   rw [h₁] at h₂s
   have : μH[m] (f '' s) = 0 := by
-    -- TODO: need a version of of_C1 that is more local!
-    have : LocallyLipschitz f := by sorry -- apply LocallyLipschitz.of_C1 hf
-    refine locally_lipschitz_image_of_null_set_is_null_set this h₂s
+    apply locally_lipschitz_image_of_null_set_is_null_set_open (of_C1_on_open hU hf) h₁s h₂s
   rw [h₂, ← hd]
   exact this
+
+/-- If `f : ℝ^n → ℝ^n` is `C^1` and $X\subset ℝ^n$ has measure zero, so does $f(X)$. -/
+lemma image_null_of_C1_of_null' {f : E → F} (hf : ContDiff ℝ 1 f)
+    (μ : Measure E) [IsAddHaarMeasure μ] (ν : Measure F) [IsAddHaarMeasure ν]
+    (hd : m = n) {s : Set E} (hs: μ s = 0) : ν (f '' s) = 0 := by
+  let hdiff := Iff.mpr contDiffOn_univ hf
+  apply image_null_of_C1_of_null isOpen_univ hdiff μ ν hd (subset_univ s) hs
 
 /-- If $U ⊆ ℝ^m$ is open and $f : U → ℝ^n$ is a $C^1$ map with `m < n`, $f(U)$ has measure zero. -/
 lemma image_measure_zero_of_C1_dimension_increase {g : E → F} {U : Set E} (hU : IsOpen U)
