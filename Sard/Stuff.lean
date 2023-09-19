@@ -1,3 +1,4 @@
+import Sard.LocallyLipschitz
 import Sard.MeasureZero
 import Mathlib.Analysis.Calculus.ContDiff
 import Mathlib.Geometry.Manifold.ChartedSpace
@@ -7,7 +8,7 @@ import Mathlib.Topology.Bases
 import Mathlib.Topology.Basic
 import Mathlib.Topology.MetricSpace.Lipschitz
 
-open FiniteDimensional Function Manifold MeasureTheory Measure Set TopologicalSpace Topology
+open FiniteDimensional Function LocallyLipschitz Manifold MeasureTheory Measure Set TopologicalSpace Topology
 set_option autoImplicit false
 
 variable
@@ -44,7 +45,7 @@ maps null sets in `X` to null sets in `Y`. -/
 lemma locally_lipschitz_image_of_null_set_is_null_set {X Y : Type*}
     [MetricSpace X] [MeasurableSpace X] [BorelSpace X] [SigmaCompactSpace X]
     [MetricSpace Y] [MeasurableSpace Y] [BorelSpace Y] {d : ℕ} {f : X → Y}
-    (hf : ∀ x : X, ∃ K : NNReal, ∃ U : Set X, IsOpen U ∧ x ∈ U ∧ LipschitzOnWith K f U)
+    (hf : LocallyLipschitz.LocallyLipschitz f)
     {s : Set X} (hs : μH[d] s = 0) : μH[d] (f '' s) = 0 := by
   -- Choose a countable cover of X by compact sets K_n.
   let K : ℕ → Set X := compactCovering X
@@ -77,10 +78,8 @@ lemma locally_lipschitz_image_of_null_set_is_null_set {X Y : Type*}
   -- on which f is Lipschitz, say with constant K_x.
   let U : K n → Set X := by
     intro x
-    have hyp := hf x
-    -- FIXME: make this work, complains with root cause
     -- tactic 'induction' failed, recursor 'Exists.casesOn' can only eliminate into Prop
-    sorry -- rcases hyp with ⟨K, ⟨U, ⟨hK, hU, hKU⟩⟩⟩
+    sorry -- rcases hf x with ⟨Kf, t, ht, hfL⟩
   -- These properties hold by construction.
   have hcovering : K n ⊆ ⋃ (x : (K n)), U x := sorry -- use kU above
   have hopen : ∀ x : (K n), IsOpen (U x) := sorry -- use kU above
@@ -120,22 +119,12 @@ lemma C1_image_null_set_null {f : E → F} {U : Set E} (hU : IsOpen U) (hf : Con
     -- TODO: combining these doesn't work yet
     sorry
   have h₂ : ν = μH[n] := by sorry -- same argument like for μ
-  -- Since f is C¹, it's locally Lipschitz and we can apply the previous lemma.
+  -- Since f is C¹, it's locally Lipschitz on U and we can apply the previous lemma.
+  rw [h₁] at h₂s
   have : μH[m] (f '' s) = 0 := by
-    -- f is locally Lipschitz (xxx: introduce a predicate for this?)
-    have hf' : ∀ x : E, ∃ K : NNReal, ∃ U : Set E, IsOpen U ∧ LipschitzOnWith K f U := by
-      intro x
-      have : ∃ K, ∃ t ∈ 𝓝 x, LipschitzOnWith K f t := by
-        sorry -- somehow, apply ContDiffAt.exists_lipschitzOnWith
-      rcases this with ⟨K, ⟨t, ⟨ht, hfloc⟩⟩⟩
-      rw [mem_nhds_iff] at ht
-      rcases ht with ⟨U, ⟨hUt, hU, hxU⟩⟩
-      have : LipschitzOnWith K f U := LipschitzOnWith.mono hfloc hUt
-      use K
-      use U
-    -- TODO: doesn't work, for reasons I don't understand
-    -- apply locally_lipschitz_image_of_null_set_is_null_set hf' (X := E) (d := m) hs
-    sorry
+    -- TODO: need a version of of_C1 that is more local!
+    have : LocallyLipschitz f := by sorry -- apply LocallyLipschitz.of_C1 hf
+    refine locally_lipschitz_image_of_null_set_is_null_set this h₂s
   rw [h₂, ← hd]
   exact this
 
