@@ -25,9 +25,9 @@ variable
   [MeasurableSpace F] [BorelSpace F]
 
 section ImageMeasureZeroSet
-/-- If $$f : X → Y$$ is a Lipschitz map between metric spaces, then `f` maps null sets
+/-- If `f : X → Y` is a Lipschitz map between metric spaces, then `f` maps null sets
 to null sets, w.r.t. the `d`-dimensional Hausdorff measure on `X` resp. `Y`. -/
--- xxx. inline this into `locally_lipschitz_image_of_null_set_is_null_set`?
+-- xxx. state this with Lipschitz or LipschitzOn?
 lemma lipschitz_image_null_set_is_null_set
     {X Y : Type*} [MetricSpace X] [MeasurableSpace X] [BorelSpace X]
     [MetricSpace Y] [MeasurableSpace Y] [BorelSpace Y]
@@ -39,9 +39,15 @@ lemma lipschitz_image_null_set_is_null_set
   rw [hs] at aux
   simp_all only [ge_iff_le, mul_zero, nonpos_iff_eq_zero, le_refl, hs]
 
+-- TODO: prove this version, or refactor the proof below to not need it
+lemma lipschitz_image_null_set_is_null_set'
+    {X Y : Type*} [MetricSpace X] [MeasurableSpace X] [BorelSpace X]
+    [MetricSpace Y] [MeasurableSpace Y] [BorelSpace Y]
+    {d : ℝ} (hd : d ≥ 0) {s : Set X} (hs : μH[d] s = 0)
+    {f : X → Y} (hf : ∃ K : NNReal, LipschitzOnWith K f s) : μH[d] (f '' s) = 0 := by sorry
+
 /-- Consider two metric spaces `X` and `Y` with the `d`-dimensional Hausdorff measure.
-If `X` is $σ$-compact, a locally Lipschitz map $f : X → Y$
-maps null sets in `X` to null sets in `Y`. -/
+If `X` is `σ`-compact, a locally Lipschitz map $f : X → Y$ maps null sets in `X` to null sets in `Y`. -/
 lemma locally_lipschitz_image_of_null_set_is_null_set {X Y : Type*}
     [MetricSpace X] [MeasurableSpace X] [BorelSpace X] [SigmaCompactSpace X]
     [MetricSpace Y] [MeasurableSpace Y] [BorelSpace Y] {d : ℕ} {f : X → Y}
@@ -88,9 +94,13 @@ lemma locally_lipschitz_image_of_null_set_is_null_set {X Y : Type*}
   -- Since K_n is compact, (U_x) has a finite subcover U_1, ..., U_l.
   let subcover := IsCompact.elim_finite_subcover (hcompact n) U hopen hcovering
   rcases subcover with ⟨t, ht⟩
-  -- On each U_j, f is Lipschitz by hypothesis.
-  have : ∀ i : t, ∃ K : NNReal, LipschitzOnWith K f (U i) := by sorry
-  -- Hence, the previous lemma `lipschitz_image_null_set_is_null_set` applies.
+  -- On each U_j, f is Lipschitz by hypothesis, hence the previous lemma applies.
+  have h: ∀ i : t, ∃ K : NNReal, LipschitzOnWith K f (s ∩ U i) := by sorry
+  have : ∀ i : t, μH[d] (f '' (s ∩ U i)) = 0 := by
+    intro i
+    have h1 : μH[d] (s ∩ U i) = 0 := measure_mono_null (inter_subset_left s (U ↑i)) hs
+    apply lipschitz_image_null_set_is_null_set' (Nat.cast_nonneg d) h1 (h i)
+  -- Now apply finite subaddivitiy.
   sorry
 end ImageMeasureZeroSet
 
