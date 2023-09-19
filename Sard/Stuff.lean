@@ -18,6 +18,7 @@ variable
   [NormedAddCommGroup E] [NormedSpace ℝ E] {H : Type*} [TopologicalSpace H]
   (I : ModelWithCorners ℝ E H) {M : Type*} [TopologicalSpace M] [ChartedSpace H M]
   [SmoothManifoldWithCorners I M] [FiniteDimensional ℝ E] [SecondCountableTopology M]
+  [MeasurableSpace E] [BorelSpace E]
   -- declare a smooth manifold `N` over the pair `(F, G)`.
   {F : Type*}
   [NormedAddCommGroup F] [NormedSpace ℝ F] {G : Type*} [TopologicalSpace G]
@@ -33,9 +34,8 @@ variable {J}
   Note: this is false for merely C⁰ maps, the Cantor function $f$ provides a counterexample:
   the standard Cantor set has measure zero, but its image has measure one
   (as the complement $$[0,1]\setminus C$$ has countable image by definition of $f$). -/
-lemma C1_image_null_set_null {f : E → F} {U : Set E} (hU : IsOpen U) (hf : ContDiffOn ℝ 1 f U)
-    [MeasurableSpace E] [BorelSpace E] (μ : Measure E) [IsAddHaarMeasure μ]
-    [MeasurableSpace F] [BorelSpace F] (ν : Measure F) [IsAddHaarMeasure ν]
+lemma image_null_of_C1_of_null {f : E → F} {U : Set E} (hU : IsOpen U) (hf : ContDiffOn ℝ 1 f U)
+    (μ : Measure E) [IsAddHaarMeasure μ] (ν : Measure F) [IsAddHaarMeasure ν]
     (hd : m = n) {s : Set E} (h₁s: s ⊆ U) (h₂s: μ s = 0) : ν (f '' s) = 0 := by
   -- The m-dimensional Hausdorff measure on E resp. F agrees with the Lebesgue measure.
   have h₁ : μ = μH[m] := by
@@ -59,9 +59,8 @@ lemma C1_image_null_set_null {f : E → F} {U : Set E} (hU : IsOpen U) (hf : Con
   rw [h₂, ← hd]
   exact this
 
-/-- If $U ⊆ ℝ^m$ is open and f : U → ℝ^n is a C^1 map with `m < n`, then $f(U)$ has measure zero. -/
-lemma image_C1_dimension_increase_null_local {g : E → F} {U : Set E} (hU : IsOpen U)
-    [MeasurableSpace E] [BorelSpace E] (μ : Measure E) [IsAddHaarMeasure μ]
+/-- If $U ⊆ ℝ^m$ is open and $f : U → ℝ^n$ is a $C^1$ map with `m < n`, $f(U)$ has measure zero. -/
+lemma image_measure_zero_of_C1_dimension_increase {g : E → F} {U : Set E} (hU : IsOpen U)
     [MeasurableSpace F] [BorelSpace F] (ν : Measure F) [IsAddHaarMeasure ν]
     (hg : ContDiffOn ℝ 1 g U) (hmn : m < n) : ν (g '' U) = 0 := by
   -- Since n > m, g factors through the projection R^n → R^m.
@@ -86,8 +85,9 @@ lemma image_C1_dimension_increase_null_local {g : E → F} {U : Set E} (hU : IsO
   have aux : μ' (incl '' U) = 0 := by sorry
   -- Hence so does its image pi ∘ g' ∘ incl (U) = g '' U.
   have : ν ((pi ∘ g' ∘ incl) '' U) = 0 := by
-    -- XXX: statement doesn't typecheck yet. have : ContDiffOn ℝ 1 (pi ∘ g') (U × (Fin (n-m) → ℝ)) := sorry
-    -- apply C1_image_null_set_null, XXX doesn't apply yet
+    -- XXX: statement doesn't typecheck yet, need some currying.
+    -- have : ContDiffOn ℝ 1 (pi ∘ g') (U × (univ: Fin (n-m) → ℝ)) := sorry
+    -- refine image_null_of_C1_of_null ?_ ?_ aux ?_ doesn't apply yet
     sorry
   rw [← commutes]
   exact this
@@ -133,7 +133,7 @@ lemma measure_zero_image_iff_chart_domains {f : M → N} {s : Set M}
 
 /-- If M, N are C¹ manifolds with dim M < dim N and f:M → N is C¹, then f(M) has measure zero. -/
 -- XXX: do I actually use this result?
-lemma image_C1_dimension_increase_image_measure_zero {f : M → N} (hf : ContMDiff I J r f)
+lemma image_null_of_C1_of_dimension_increase {f : M → N} (hf : ContMDiff I J r f)
     (hdim : m < n) : MeasureZero J (Set.range f) := by
   rw [← image_univ]
   suffices hyp : ∀ e ∈ atlas H M, MeasureZero J (f '' (e.source ∩ univ)) by
@@ -148,11 +148,10 @@ lemma image_C1_dimension_increase_image_measure_zero {f : M → N} (hf : ContMDi
   let g : E → F := J ∘ e' ∘ f ∘ e.invFun ∘ I.invFun
   have : (J ∘ ↑e' ∘ f '' e.source) = g '' (I '' e.target) := by sorry
   -- g is C¹: suffices on chart domains; there it's by definition.
+  have hopen : IsOpen (I '' e.target) := by sorry
   have gdiff : ContDiffOn ℝ 1 g (I '' e.target) := by sorry
   rw [this]
-  -- this is basically image_C1_dimension_increase_null_local applied to g,
-  -- with hypotheses gdiff hdim, measure μ... except that this doesn't typecheck yet...
-  sorry
+  apply image_measure_zero_of_C1_dimension_increase hopen μ gdiff hdim
 
 /-- Local version of Sard's theorem. If $W ⊆ ℝ^m$ is open and $f: W → ℝ^n$ is $C^r$,
 the set of critical values has measure zero. -/
@@ -161,7 +160,7 @@ theorem sard_local {s w : Set E} {f : E → F} (hf : ContDiffOn ℝ r f w)
     (h'f' : ∀ x ∈ s, ¬ Surjective (f' x)) (μ : Measure F) [IsAddHaarMeasure μ] :
     μ (f '' s) = 0 := by
   by_cases hyp: m < n
-  · sorry -- show f(W) has measure zero; use `image_C1_dimension_increase_null_local`
+  · sorry -- show f(W) has measure zero; use `image_measure_zero_of_C1_dimension_increase`
   · sorry
 
 /-- Local version of Sard's theorem. If $W ⊆ ℝ^m$ is open and $f: W → ℝ^n$ is $C^r$,
