@@ -1,3 +1,4 @@
+import Sard.ToSubset
 import Mathlib.Analysis.Calculus.ContDiff
 import Mathlib.Topology.MetricSpace.Lipschitz
 
@@ -38,27 +39,12 @@ protected lemma const (b : Y) : LocallyLipschitz (fun _ : X ↦ b) := by
   use 0
   exact LipschitzWith.const b
 
-section ToSubset
--- FIXME. this belongs to a file lower in the import hierarchy,
--- Data.Set.Functor or Data.Set.Image (suggested by #find_home)?
-
--- from zulip https://leanprover.zulipchat.com/#narrow/stream/113489-new-members/topic/Cast.20to.20a.20subset.2C.20given.20proof.20of.20inclusion/near/391997059
-
-/-- If two subsets `s` and `t` satisfy `s ⊆ t` and `h` is a proof of this inclusion,
-`toSubset s t h` is the set `s` as a subset of `t`. -/
-def toSubset {X : Type*} (s t : Set X) (h : s ≤ t) : Set t := Set.range (Set.inclusion h)
-
-lemma mem_toSubset {X : Type*} (s t : Set X) (h : s ≤ t)
-    (x : t) : x ∈ toSubset s t h ↔ ↑x ∈ s := by
-  rw [toSubset, Set.range_inclusion, Set.mem_setOf_eq]
-end ToSubset
-
 protected lemma restrict_aux1 (s t : Set X) {x : s} (ht : t ∈ 𝓝 ↑x) :
-    (toSubset (t∩s) s (inter_subset_right t s)) ∈ 𝓝 x := by sorry
+    (toSubset' (t∩s) s (inter_subset_right t s)) ∈ 𝓝 x := by sorry
 
 -- FIXME: how different is this from `restrict_aux1` - can I merge these?
 protected lemma restrict_aux1b (t U: Set X) {x : U} (hU : IsOpen U) (ht : t ∈ 𝓝[U] ↑x) :
-    (toSubset (t∩U) U (inter_subset_right t U)) ∈ 𝓝 x := by
+    (toSubset' (t∩U) U (inter_subset_right t U)) ∈ 𝓝 x := by
   -- FIXME: is openness of U required? can I weaken this to just the nbhd filter?
   -- t ∩ U is a nbhd of x: as x and U are
   have : t ∩ U ∈ 𝓝 ↑x := by
@@ -70,11 +56,11 @@ protected lemma restrict_aux1b (t U: Set X) {x : U} (hU : IsOpen U) (ht : t ∈ 
   sorry -- should be just unfolding toSubset
 
 protected lemma restrict_aux2 {f : X → Y} {K : ℝ≥0} (s t : Set X) (hf : LipschitzOnWith K f t) :
-    LipschitzOnWith K (restrict s f) (toSubset (t∩s) s (inter_subset_right t s)) := by
+    LipschitzOnWith K (restrict s f) (toSubset' (t∩s) s (inter_subset_right t s)) := by
   let h := inter_subset_right t s
   intro x hx y hy
-  have h₁: ↑x ∈ t := mem_of_mem_inter_left (Iff.mp (mem_toSubset (t ∩ s) s h x) hx)
-  have h₂: ↑y ∈ t := mem_of_mem_inter_left (Iff.mp (mem_toSubset (t ∩ s) s h y) hy)
+  have h₁: ↑x ∈ t := mem_of_mem_inter_left (Iff.mp (mem_toSubset' (t ∩ s) s h x) hx)
+  have h₂: ↑y ∈ t := mem_of_mem_inter_left (Iff.mp (mem_toSubset' (t ∩ s) s h y) hy)
   calc edist (restrict s f x) (restrict s f y)
     _ = edist (f x) (f y) := rfl
     _ ≤ K * edist x y := by apply hf h₁ h₂
@@ -85,7 +71,7 @@ protected lemma restrict {f : X → Y} (hf : LocallyLipschitz f) (s : Set X) :
   intro x
   rcases hf x with ⟨K, t, ht, hfL⟩
   -- Consider t' := t ∩ s as a neighbourhood of x *in s*.
-  let t' := toSubset (t∩s) s (inter_subset_right t s)
+  let t' := toSubset' (t∩s) s (inter_subset_right t s)
   use K, t'
   exact ⟨LocallyLipschitz.restrict_aux1 s t ht, LocallyLipschitz.restrict_aux2 s t hfL⟩
 
@@ -109,7 +95,7 @@ lemma of_C1_on_open {E F: Type*} {f : E → F} [NormedAddCommGroup E] [NormedSpa
   rcases (h this) with ⟨K, t, ht, hf⟩
   -- t is a neighbourhood of x "within U", i.e. contains the intersection of U with some nbhd a of x
   -- intersect with U to obtain a neighbourhood contained in U
-  let t' := toSubset (t ∩ U) U (inter_subset_right t U)
+  let t' := toSubset' (t ∩ U) U (inter_subset_right t U)
   use K, t'
   exact ⟨LocallyLipschitz.restrict_aux1b t U hU ht, LocallyLipschitz.restrict_aux2 U t hf⟩
 
