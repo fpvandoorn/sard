@@ -38,12 +38,20 @@ protected lemma const (b : Y) : LocallyLipschitz (fun _ : X ↦ b) := by
   use 0
   exact LipschitzWith.const b
 
--- TODO: move to proper place, Set.Basic?
-/-- If two subsets `s` and `t` satisfy `s ⊆ t` and `h` is a proof of this,
+section ToSubset
+-- FIXME. this belongs to a file lower in the import hierarchy,
+-- Data.Set.Functor or Data.Set.Image (suggested by #find_home)?
+
+-- from zulip https://leanprover.zulipchat.com/#narrow/stream/113489-new-members/topic/Cast.20to.20a.20subset.2C.20given.20proof.20of.20inclusion/near/391997059
+
+/-- If two subsets `s` and `t` satisfy `s ⊆ t` and `h` is a proof of this inclusion,
 `toSubset s t h` is the set `s` as a subset of `t`. -/
-def toSubset {X : Type*} (s t : Set X) (h : s ≤ t) : Set t := sorry
+def toSubset {X : Type*} (s t : Set X) (h : s ≤ t) : Set t := Set.range (Set.inclusion h)
+
 lemma mem_toSubset {X : Type*} (s t : Set X) (h : s ≤ t)
-    (x : t) : x ∈ toSubset s t h ↔ ↑x ∈ s := sorry
+    (x : t) : x ∈ toSubset s t h ↔ ↑x ∈ s := by
+  rw [toSubset, Set.range_inclusion, Set.mem_setOf_eq]
+end ToSubset
 
 protected lemma restrict_aux1 (s t : Set X) {x : s} (ht : t ∈ 𝓝 ↑x) :
     (toSubset (t∩s) s (inter_subset_right t s)) ∈ 𝓝 x := by sorry
