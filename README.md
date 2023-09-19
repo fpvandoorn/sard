@@ -5,7 +5,7 @@ In this repository, we work towards the proof of the Morse-Sard and Sard-Smale t
   If $r > \max {O,m - n}$, the set $f(\Sigma_f)$ of critical values of $f$ has measure zero in $N$.
   Moreover, the set of regular values of f is residual and therefore dense.
 
-The Sard-Smale theorem is an analogous version for Banach manifolds.
+The **Sard-Smale** theorem is a generalisation to infinite-dimensional Banach manifolds. Stating it requires a theory of Fredholm operators. See a [separate file](Roadmap towards Sard-Smale.md) for detail and a roadmap towards that.
 
 **Applications** of Sard's theorem.
 - stronger version of Whitney's approximation theorem
@@ -16,7 +16,7 @@ The Sard-Smale theorem is an analogous version for Banach manifolds.
   - global part of the proof uses new ideas
 
 ## Necessary steps
-- define measure zero subsets of a manifold: first version complete [and PRed](https://github.com/leanprover-community/mathlib4/pull/7076), rework to a more conceptual approach
+- define measure zero subsets of a manifold: first version complete [and PRed](https://github.com/leanprover-community/mathlib4/pull/7076). Needs rework to a more conceptual approach
    - define Lebesgue measure on a C¹ manifold (pull back Lebesgue measure on each chart, use a partition of unity)
    - re-define: a measure zero subset of a manifold is a null set w.r.t. one (or any) Lebesgue measure
    - show well-definedness: null sets are preserved by coordinate changes (see below)
@@ -34,12 +34,18 @@ The Sard-Smale theorem is an analogous version for Banach manifolds.
   - $\sigma$-compact measure zero sets are meagre
   - mention counterexamples (nowhere dense but not measure zero, measure zero but not nowhere dense) in docstring
 
-- Corollary. if $A\subset M$ is a measure zero subset and $f$ is $C^1$, then $f(A)\subset N$ has measure zero
-- If $m < n$, then $f(M)$ has measure zero.
-- deduce the "easy" case of Sard's theorem, for $m < n$
+- **Corollary.** if $A\subset M$ is a measure zero subset and `f` is $C^1$, then $f(A)\subset N$ has measure zero
+- Corollary. If $m < n$, then $f(M)$ has measure zero. Hence, Sard's theorem holds.
 
 - reduce Sard's theorem to a local statement                    mostly done, a few sorries remain
 - "hard" case "m\geq n" not started yet
+- update statement of Sard's theorems to mention meagre sets: TODO, should be easy
+
+- formalise the main argument of the proof: hard work
+  - show Sigma_1 has measure zero, separate lemma
+  - inductive proof: base case is that lemma
+  - Sigma_2\setminus Sigma_3 also works, measure zero
+  - remaining argument: induction proof, using a coord change and Fubini -> need to work out the details
 
 ## Status
 This project was initiated during Lean for the Curious Mathematician 2023, mentored by @fpvandoorn and continued thereafter.
