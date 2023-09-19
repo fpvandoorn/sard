@@ -40,7 +40,7 @@ protected lemma const (b : Y) : LocallyLipschitz (fun _ : X ↦ b) := by
 
 /-- C¹ functions are locally Lipschitz. -/
 -- TODO: move to ContDiff.lean!
-protected lemma of_C1 {E F: Type*} {f : E → E} [NormedAddCommGroup E] [NormedSpace ℝ E]
+protected lemma of_C1 {E F: Type*} {f : E → F} [NormedAddCommGroup E] [NormedSpace ℝ E]
     [NormedAddCommGroup F] [NormedSpace ℝ F] (hf : ContDiff ℝ 1 f) : LocallyLipschitz f := by
   intro x
   rcases (ContDiffAt.exists_lipschitzOnWith (ContDiff.contDiffAt hf)) with ⟨K, t, ht, hf⟩
@@ -81,6 +81,16 @@ protected lemma prod {f : X → Y} (hf : LocallyLipschitz f) {g : X → Z} (hg :
       exact LipschitzOnWith.mono hgL (inter_subset_right t₁ t₂) hy hz
     rw [ENNReal.coe_mono.map_max, Prod.edist_eq, ENNReal.max_mul]
     exact max_le_max h₁ h₂
+
+protected theorem prod_mk_left (a : X) : LocallyLipschitz (Prod.mk a : Y → X × Y) := by
+  apply LocallyLipschitz.of_Lipschitz
+  use 1
+  apply LipschitzWith.prod_mk_left
+
+protected theorem prod_mk_right (b : Y) : LocallyLipschitz (fun a : X => (a, b)) := by
+  apply LocallyLipschitz.of_Lipschitz
+  use 1
+  apply LipschitzWith.prod_mk_right
 
 /-- The sum of locally Lipschitz functions is locally Lipschitz. -/
 protected lemma sum {f g : X → Y} [NormedAddCommGroup Y] [NormedSpace ℝ Y]
