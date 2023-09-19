@@ -46,8 +46,20 @@ lemma mem_toSubset {X : Type*} (s t : Set X) (h : s ≤ t)
     (x : t) : x ∈ toSubset s t h ↔ ↑x ∈ s := sorry
 
 protected lemma restrict_aux1 (s t : Set X) {x : s} (ht : t ∈ 𝓝 ↑x) :
-    (toSubset (t∩s) s (inter_subset_right t s)) ∈ 𝓝 x := by
-  sorry -- by definition of the subspace topology, or so
+    (toSubset (t∩s) s (inter_subset_right t s)) ∈ 𝓝 x := by sorry
+
+-- FIXME: how different is this from restrict_aux1 - can I merge these?
+protected lemma restrict_aux1b (t U: Set X) {x : U} (hU : IsOpen U) (ht : t ∈ 𝓝[U] ↑x) :
+    (toSubset (t∩U) U (inter_subset_right t U)) ∈ 𝓝 x := by
+  -- FIXME: is openness of U required? can I weaken this to just the nbhd filter?
+  -- t ∩ U is a nbhd of x: as x and U are
+  have : t ∩ U ∈ 𝓝 ↑x := by
+    -- ht means t ∈ 𝓝[U] ↑x, i.e. t ⊇ U ∩ a for some nbhd a of x
+    -- then `a` contains an open subset a', so t ⊇ U ∩ a' shows t is a nbhd
+    have h₁: t ∈ 𝓝 ↑x := by sorry
+    have : U ∈ 𝓝 ↑x := by sorry -- U is open and contains x
+    exact Filter.inter_mem h₁ this
+  sorry -- should be just unfolding toSubset
 
 protected lemma restrict_aux2 {f : X → Y} {K : ℝ≥0} (s t : Set X) (hf : LipschitzOnWith K f t) :
     LipschitzOnWith K (restrict s f) (toSubset (t∩s) s (inter_subset_right t s)) := by
@@ -91,16 +103,7 @@ lemma of_C1_on_open {E F: Type*} {f : E → F} [NormedAddCommGroup E] [NormedSpa
   -- intersect with U to obtain a neighbourhood contained in U
   let t' := toSubset (t ∩ U) U (inter_subset_right t U)
   use K, t'
-  constructor
-  · -- t ∩ U is a nbhd of x: as x and U are
-    have : t ∩ U ∈ 𝓝 ↑x := by
-      -- ht means t ∈ 𝓝[U] ↑x, i.e. t ⊇ U ∩ a for some nbhd a of x
-      -- then `a` contains an open subset a', so t ⊇ U ∩ a' shows t is a nbhd
-      have h₁: t ∈ 𝓝 ↑x := by sorry
-      have : U ∈ 𝓝 ↑x := by sorry -- U is open and contains x
-      exact Filter.inter_mem h₁ this
-    sorry -- should be just unfolding toSubset
-  · exact LocallyLipschitz.restrict_aux2 U t hf
+  exact ⟨LocallyLipschitz.restrict_aux1b t U hU ht, LocallyLipschitz.restrict_aux2 U t hf⟩
 
 -- tweaked version of the result in mathlib, weaker hypotheses -- not just restricting the domain,
 -- but also weakening the assumption on the codomain
