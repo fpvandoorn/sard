@@ -25,7 +25,6 @@ variable
   [MeasurableSpace F] [BorelSpace F]
 
 section ImageMeasureZeroSet
-
 /-- If `f : X → Y` is a Lipschitz map between metric spaces, then `f` maps null sets
 to null sets, w.r.t. the `d`-dimensional Hausdorff measure on `X` resp. `Y`. -/
 lemma lipschitz_image_null_set_is_null_set
@@ -36,7 +35,8 @@ lemma lipschitz_image_null_set_is_null_set
   have aux : μH[d] (f '' s) ≤ (K : ENNReal) ^ d * μH[d] s :=
     LipschitzOnWith.hausdorffMeasure_image_le hf hd
   rw [hs] at aux
-  simp_all only [ge_iff_le, mul_zero, nonpos_iff_eq_zero, le_refl, hs]
+  simp only [mul_zero, nonpos_iff_eq_zero, hs] at aux ⊢
+  exact aux
 
 /-- Consider two metric spaces `X` and `Y` with the `d`-dimensional Hausdorff measure.
 If `X` is `σ`-compact, a locally Lipschitz map $f : X → Y$ maps null sets in `X` to null sets in `Y`. -/
@@ -54,7 +54,7 @@ lemma locally_lipschitz_image_of_null_set_is_null_set {X Y : Type*}
   suffices ass : ∀ n : ℕ, μH[d] (f '' (s ∩ K n)) = 0 by
     have : s = ⋃ (n : ℕ), s ∩ K n := by
       calc s
-        _ = s ∩ univ := by exact Eq.symm (inter_univ s)
+        _ = s ∩ univ := Eq.symm (inter_univ s)
         _ = s ∩ ⋃ (n : ℕ), K n := by rw [hcov]
         _ = ⋃ (n : ℕ), s ∩ K n := by apply inter_iUnion s
     have hless : μH[d] (f '' s) ≤ 0 := by
@@ -64,12 +64,8 @@ lemma locally_lipschitz_image_of_null_set_is_null_set {X Y : Type*}
         _ ≤ ∑' (n : ℕ), μH[d] (f '' (s ∩ K n)) := by apply OuterMeasure.iUnion_nat
         _ = ∑' (n : ℕ), 0 := by simp_rw [ass]
         _ = 0 := by rw [tsum_zero]
-    have : 0 ≤ μH[d] (f '' s) ∧ μH[d] (f '' s) ≤ 0 → μH[d] (f '' s) = 0 := by
-      simp only [zero_le, nonpos_iff_eq_zero, true_and]
-      rw [← hs]
-      simp only [imp_self]
-    apply this
-    exact ⟨(by simp only [ge_iff_le, zero_le]), hless⟩
+    simp only [nonpos_iff_eq_zero, zero_le] at hless ⊢
+    exact hless
 
   intro n
   -- Consider the open cover (U_x) of K_n induced by hf: each U_x is an open subset containing x
@@ -94,7 +90,21 @@ lemma locally_lipschitz_image_of_null_set_is_null_set {X Y : Type*}
     rcases (h i) with ⟨K, hK⟩
     apply lipschitz_image_null_set_is_null_set (Nat.cast_nonneg d) hK h1
   -- Now apply finite subaddivitiy.
-  sorry
+  have ht' : K n ⊆ ⋃ (i : t), U i := by sorry -- "should" be easy
+  have : f '' (s ∩ (K n)) ⊆ ⋃ (i : t), f '' (s ∩ (U i)) := by calc f '' (s ∩ (K n))
+    _ ⊆ f '' (s ∩ (⋃ (i : t), U i)) := by
+      apply Set.image_subset
+      apply Set.inter_subset_inter_right s (ht')
+    _ = f '' ((⋃ (i : t), s ∩ (U i))) := by rw [inter_iUnion]
+    _ = ⋃ (i : t), f '' ( s ∩ (U i)) := image_iUnion
+  have hless : μH[d] (f '' (s ∩ (K n))) ≤ 0 := by
+    calc μH[d] (f '' (s ∩ (K n)))
+      _ ≤ μH[d] (⋃ (i : t), f '' (s ∩ (U i))) := measure_mono this
+      _ ≤ ∑' (i : t), (μH[d] (f '' (s ∩ (U i))) : ENNReal) := by apply measure_iUnion_le
+      _ = ∑' (i : t), (0 : ENNReal) := tsum_congr hnull
+      _ = 0 := by simp
+  simp only [nonpos_iff_eq_zero, zero_le] at hless ⊢
+  exact hless
 end ImageMeasureZeroSet
 
 variable {m n r : ℕ} (hm : finrank ℝ E = m) (hn : finrank ℝ F = n) (hr : r > m-n)
