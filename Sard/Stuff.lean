@@ -35,6 +35,10 @@ lemma locally_lipschitz_image_of_null_set_is_null_set_open {X Y : Type*}
     (hf : LocallyLipschitz (U.restrict f)) {s : Set X} (hsu : s ⊆ U) (hs : μH[d] s = 0) :
     μH[d] (f '' s) = 0 := by sorry
 
+--- XXX. copied from LocallyLipschitz, TODO remove when I can!
+lemma restrict_aux2_copied {X Y : Type*} [MetricSpace X] [MetricSpace Y] {f : X → Y} {K : ℝ≥0} (s t : Set X)
+    (hf : LipschitzOnWith K f t) : LipschitzOnWith K (restrict s f) (toSubset (t∩s) s (inter_subset_right t s)) := by sorry
+
 -- TODO: move back to LocallyLipschitz, long-term to ContDiffOn.lean!
 -- keeping it here is a HACK to keep Stuff.lean building!
 /-- A C¹ function on an open set is locally Lipschitz. -/
@@ -49,7 +53,6 @@ lemma of_C1_on_open {E F: Type*} {f : E → F} [NormedAddCommGroup E] [NormedSpa
   -- t is a neighbourhood of x "within U", i.e. contains the intersection of U with some nbhd a of x
   -- intersect with U to obtain a neighbourhood contained in U
   let t' := toSubset (t ∩ U) U (inter_subset_right t U)
-  let h := inter_subset_right t U
   use K, t'
   constructor
   · -- t ∩ U is a nbhd of x: as x and U are
@@ -60,12 +63,7 @@ lemma of_C1_on_open {E F: Type*} {f : E → F} [NormedAddCommGroup E] [NormedSpa
       have : U ∈ 𝓝 ↑x := by sorry -- U is open and contains x
       exact Filter.inter_mem h₁ this
     sorry -- should be just unfolding toSubset
-  · intro x hx y hy
-    have h₁: ↑x ∈ t := mem_of_mem_inter_left (Iff.mp (mem_toSubset (t ∩ U) U h x) hx)
-    have h₂: ↑y ∈ t := mem_of_mem_inter_left (Iff.mp (mem_toSubset (t ∩ U) U h y) hy)
-    calc edist (restrict U f x) (restrict U f y)
-      _ = edist (f x) (f y) := rfl
-      _ ≤ K * edist x y := by apply hf h₁ h₂
+  · exact restrict_aux2_copied U t hf
 
 /-- Let $U ⊆ ℝ^n$ be an open set and f : U → ℝ^n be a C^1 map.
   If $X\subset U$ has measure zero, so has $f(X)$.
