@@ -77,7 +77,30 @@ protected lemma of_C1 {E F: Type*} {f : E → F} [NormedAddCommGroup E] [NormedS
   rcases (ContDiffAt.exists_lipschitzOnWith (ContDiff.contDiffAt hf)) with ⟨K, t, ht, hf⟩
   use K, t
 
--- lemma of_C1_on_open moved to Stuff.lean; TODO move back when I can!
+/-- A C¹ function on an open set is locally Lipschitz. -/
+-- TODO: move to ContDiffOn.lean!
+lemma of_C1_on_open {E F: Type*} {f : E → F} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    [NormedAddCommGroup F] [NormedSpace ℝ F] {U : Set E} (hU: IsOpen U) (hf : ContDiffOn ℝ 1 f U) :
+  LocallyLipschitz (U.restrict f) := by
+  intro x
+  have : ContDiffWithinAt ℝ 1 f U x := ContDiffOn.contDiffWithinAt hf (Subtype.mem x)
+  let h := ContDiffWithinAt.exists_lipschitzOnWith this
+  have : Convex ℝ U := sorry -- pretend U is convex, say by restriction
+  rcases (h this) with ⟨K, t, ht, hf⟩
+  -- t is a neighbourhood of x "within U", i.e. contains the intersection of U with some nbhd a of x
+  -- intersect with U to obtain a neighbourhood contained in U
+  let t' := toSubset (t ∩ U) U (inter_subset_right t U)
+  use K, t'
+  constructor
+  · -- t ∩ U is a nbhd of x: as x and U are
+    have : t ∩ U ∈ 𝓝 ↑x := by
+      -- ht means t ∈ 𝓝[U] ↑x, i.e. t ⊇ U ∩ a for some nbhd a of x
+      -- then `a` contains an open subset a', so t ⊇ U ∩ a' shows t is a nbhd
+      have h₁: t ∈ 𝓝 ↑x := by sorry
+      have : U ∈ 𝓝 ↑x := by sorry -- U is open and contains x
+      exact Filter.inter_mem h₁ this
+    sorry -- should be just unfolding toSubset
+  · exact LocallyLipschitz.restrict_aux2 U t hf
 
 -- tweaked version of the result in mathlib, weaker hypotheses -- not just restricting the domain,
 -- but also weakening the assumption on the codomain

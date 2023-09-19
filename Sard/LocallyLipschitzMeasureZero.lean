@@ -85,4 +85,11 @@ lemma locally_lipschitz_image_of_null_set_is_null_set {X Y : Type*}
       _ = 0 := by simp
   simp only [nonpos_iff_eq_zero, zero_le] at hless ⊢
   exact hless
+
+-- version specialized to an open set
+lemma locally_lipschitz_image_of_null_set_is_null_set_open {X Y : Type*}
+    [MetricSpace X] [MeasurableSpace X] [BorelSpace X] [SigmaCompactSpace X]
+    [MetricSpace Y] [MeasurableSpace Y] [BorelSpace Y] {d : ℕ} {f : X → Y} {U : Set X}
+    (hf : LocallyLipschitz (U.restrict f)) {s : Set X} (hsu : s ⊆ U) (hs : μH[d] s = 0) :
+    μH[d] (f '' s) = 0 := by sorry
 end ImageMeasureZeroSet

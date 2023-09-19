@@ -27,43 +27,17 @@ variable
   [MeasurableSpace F] [BorelSpace F]
 variable {m n r : ℕ} (hm : finrank ℝ E = m) (hn : finrank ℝ F = n) (hr : r > m-n)
 
--- version specialized to an open set
--- TODO: move back to LocallyLipschitzMeasureZero (hack to keep things building)
-lemma locally_lipschitz_image_of_null_set_is_null_set_open {X Y : Type*}
+-- copied verbatim from `LocallyLipschitzMeasureZero.lean`; TODO name resolution fails otherwise
+lemma locally_lipschitz_image_of_null_set_is_null_set_open_copied {X Y : Type*}
     [MetricSpace X] [MeasurableSpace X] [BorelSpace X] [SigmaCompactSpace X]
     [MetricSpace Y] [MeasurableSpace Y] [BorelSpace Y] {d : ℕ} {f : X → Y} {U : Set X}
     (hf : LocallyLipschitz (U.restrict f)) {s : Set X} (hsu : s ⊆ U) (hs : μH[d] s = 0) :
     μH[d] (f '' s) = 0 := by sorry
 
---- XXX. copied from LocallyLipschitz, TODO remove when I can!
-lemma restrict_aux2_copied {X Y : Type*} [MetricSpace X] [MetricSpace Y] {f : X → Y} {K : ℝ≥0} (s t : Set X)
-    (hf : LipschitzOnWith K f t) : LipschitzOnWith K (restrict s f) (toSubset (t∩s) s (inter_subset_right t s)) := by sorry
-
--- TODO: move back to LocallyLipschitz, long-term to ContDiffOn.lean!
--- keeping it here is a HACK to keep Stuff.lean building!
-/-- A C¹ function on an open set is locally Lipschitz. -/
-lemma of_C1_on_open {E F: Type*} {f : E → F} [NormedAddCommGroup E] [NormedSpace ℝ E]
+-- copied verbatim from `LocallyLipschitz.lean`; TODO name resolution fails otherwise
+lemma of_C1_on_open_copied {E F: Type*} {f : E → F} [NormedAddCommGroup E] [NormedSpace ℝ E]
     [NormedAddCommGroup F] [NormedSpace ℝ F] {U : Set E} (hU: IsOpen U) (hf : ContDiffOn ℝ 1 f U) :
-  LocallyLipschitz (U.restrict f) := by
-  intro x
-  have : ContDiffWithinAt ℝ 1 f U x := ContDiffOn.contDiffWithinAt hf (Subtype.mem x)
-  let h := ContDiffWithinAt.exists_lipschitzOnWith this
-  have : Convex ℝ U := sorry -- pretend U is convex, say by restriction
-  rcases (h this) with ⟨K, t, ht, hf⟩
-  -- t is a neighbourhood of x "within U", i.e. contains the intersection of U with some nbhd a of x
-  -- intersect with U to obtain a neighbourhood contained in U
-  let t' := toSubset (t ∩ U) U (inter_subset_right t U)
-  use K, t'
-  constructor
-  · -- t ∩ U is a nbhd of x: as x and U are
-    have : t ∩ U ∈ 𝓝 ↑x := by
-      -- ht means t ∈ 𝓝[U] ↑x, i.e. t ⊇ U ∩ a for some nbhd a of x
-      -- then `a` contains an open subset a', so t ⊇ U ∩ a' shows t is a nbhd
-      have h₁: t ∈ 𝓝 ↑x := by sorry
-      have : U ∈ 𝓝 ↑x := by sorry -- U is open and contains x
-      exact Filter.inter_mem h₁ this
-    sorry -- should be just unfolding toSubset
-  · exact restrict_aux2_copied U t hf
+  LocallyLipschitz (U.restrict f) := by sorry
 
 /-- Let $U ⊆ ℝ^n$ be an open set and f : U → ℝ^n be a C^1 map.
   If $X\subset U$ has measure zero, so has $f(X)$.
@@ -89,7 +63,7 @@ lemma image_null_of_C1_of_null {f : E → F} {U : Set E} (hU : IsOpen U) (hf : C
   -- Since f is C¹, it's locally Lipschitz on U and we can apply the previous lemma.
   rw [h₁] at h₂s
   have : μH[m] (f '' s) = 0 := by
-    apply locally_lipschitz_image_of_null_set_is_null_set_open (of_C1_on_open hU hf) h₁s h₂s
+    apply locally_lipschitz_image_of_null_set_is_null_set_open_copied (of_C1_on_open_copied hU hf) h₁s h₂s
   rw [h₂, ← hd]
   exact this
 
