@@ -23,8 +23,9 @@ The **Sard-Smale** theorem is a generalisation to infinite-dimensional Banach ma
    - show the ae filter is induced from the charts
    - perhaps not all of these are truly required
 
-- define: locally Lipschitz maps; show C¹ maps are locally Lipschitz      in progress
-- show: locally Lipschitz maps preserve null sets                       in progress; many sorries; not refactored as above yet
+- define: locally Lipschitz maps; show C¹ maps are locally Lipschitz
+(complete: not PRed yet; could add much more API for locally Lipschitz functions)
+- show: locally Lipschitz maps preserve null sets (mostly done: section `ImageMeasureZeroSet`; one sorry should be easy, the others are due to one Lean-related error)
 
 - meager sets and relation to measure zero
   - define nowhere dense and meagre sets: complete, [PRed](https://github.com/leanprover-community/mathlib4/pull/7180)

@@ -83,12 +83,12 @@ lemma locally_lipschitz_image_of_null_set_is_null_set {X Y : Type*}
   let subcover := IsCompact.elim_finite_subcover (hcompact n) U hopen hcovering
   rcases subcover with ⟨t, ht⟩
   -- On each U_j, f is Lipschitz by hypothesis, hence the previous lemma applies.
-  have h: ∀ i : t, ∃ K : ℝ≥0, LipschitzOnWith K f (s ∩ U i) := by sorry
   have hnull: ∀ i : t, μH[d] (f '' (s ∩ U i)) = 0 := by
     intro i
-    have h1 : μH[d] (s ∩ U i) = 0 := measure_mono_null (inter_subset_left s (U ↑i)) hs
-    rcases (h i) with ⟨K, hK⟩
-    apply lipschitz_image_null_set_is_null_set (Nat.cast_nonneg d) hK h1
+    rcases hLipschitz i with ⟨K, hK⟩
+    have h₂ : μH[d] (s ∩ U i) = 0 := measure_mono_null (inter_subset_left s (U ↑i)) hs
+    have h₁ := LipschitzOnWith.mono hK (inter_subset_right s (U i))
+    apply lipschitz_image_null_set_is_null_set (Nat.cast_nonneg d) h₁ h₂
   -- Now apply finite subaddivitiy.
   have ht' : K n ⊆ ⋃ (i : t), U i := by sorry -- "should" be easy
   have : f '' (s ∩ (K n)) ⊆ ⋃ (i : t), f '' (s ∩ (U i)) := by calc f '' (s ∩ (K n))
