@@ -27,18 +27,6 @@ variable
   [MeasurableSpace F] [BorelSpace F]
 variable {m n r : ℕ} (hm : finrank ℝ E = m) (hn : finrank ℝ F = n) (hr : r > m-n)
 
--- copied verbatim from `LocallyLipschitzMeasureZero.lean`; TODO name resolution fails otherwise
-lemma locally_lipschitz_image_of_null_set_is_null_set_open_copied {X Y : Type*}
-    [MetricSpace X] [MeasurableSpace X] [BorelSpace X] [SigmaCompactSpace X]
-    [MetricSpace Y] [MeasurableSpace Y] [BorelSpace Y] {d : ℕ} {f : X → Y} {U : Set X}
-    (hf : LocallyLipschitz (U.restrict f)) {s : Set X} (hsu : s ⊆ U) (hs : μH[d] s = 0) :
-    μH[d] (f '' s) = 0 := by sorry
-
--- copied verbatim from `LocallyLipschitz.lean`; TODO name resolution fails otherwise
-lemma of_C1_on_open_copied {E F: Type*} {f : E → F} [NormedAddCommGroup E] [NormedSpace ℝ E]
-    [NormedAddCommGroup F] [NormedSpace ℝ F] {U : Set E} (hU: IsOpen U) (hf : ContDiffOn ℝ 1 f U) :
-  LocallyLipschitz (U.restrict f) := by sorry
-
 /-- Let $U ⊆ ℝ^n$ be an open set and f : U → ℝ^n be a C^1 map.
   If $X\subset U$ has measure zero, so has $f(X)$.
   Note: this is false for merely C⁰ maps, the Cantor function $f$ provides a counterexample:
@@ -63,7 +51,7 @@ lemma image_null_of_C1_of_null {f : E → F} {U : Set E} (hU : IsOpen U) (hf : C
   -- Since f is C¹, it's locally Lipschitz on U and we can apply the previous lemma.
   rw [h₁] at h₂s
   have : μH[m] (f '' s) = 0 := by
-    apply locally_lipschitz_image_of_null_set_is_null_set_open_copied (of_C1_on_open_copied hU hf) h₁s h₂s
+    apply locally_lipschitz_image_of_null_set_is_null_set_open (of_C1_on_open hU hf) h₁s h₂s
   rw [h₂, ← hd]
   exact this
 

@@ -48,7 +48,7 @@ lemma mem_toSubset {X : Type*} (s t : Set X) (h : s ≤ t)
 protected lemma restrict_aux1 (s t : Set X) {x : s} (ht : t ∈ 𝓝 ↑x) :
     (toSubset (t∩s) s (inter_subset_right t s)) ∈ 𝓝 x := by sorry
 
--- FIXME: how different is this from restrict_aux1 - can I merge these?
+-- FIXME: how different is this from `restrict_aux1` - can I merge these?
 protected lemma restrict_aux1b (t U: Set X) {x : U} (hU : IsOpen U) (ht : t ∈ 𝓝[U] ↑x) :
     (toSubset (t∩U) U (inter_subset_right t U)) ∈ 𝓝 x := by
   -- FIXME: is openness of U required? can I weaken this to just the nbhd filter?
