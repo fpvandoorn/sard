@@ -38,6 +38,32 @@ protected lemma const (b : Y) : LocallyLipschitz (fun _ : X ↦ b) := by
   use 0
   exact LipschitzWith.const b
 
+-- TODO: move to proper place, Set.Basic?
+/-- If two subsets `s` and `t` satisfy `s ⊆ t` and `h` is a proof of this,
+`toSubset s t h` is the set `s` as a subset of `t`. -/
+def toSubset {X : Type*} (s t : Set X) (h : s ≤ t) : Set t := sorry
+lemma mem_toSubset {X : Type*} (s t : Set X) (h : s ≤ t)
+    (x : t) : x ∈ toSubset s t h ↔ ↑x ∈ s := sorry
+
+/-- Restrictions of locally Lipschitz functions are locally Lipschitz. -/
+protected lemma restrict {f : X → Y} (hf : LocallyLipschitz f) (s : Set X) :
+    LocallyLipschitz (s.restrict f) := by
+  intro x
+  simp [LocallyLipschitz] at *
+  rcases hf x with ⟨K, t, ht, hfL⟩
+  -- Consider t' := t ∩ s as a neighbourhood of x *in s*.
+  let t' := toSubset (t∩s) s (inter_subset_right t s)
+  let h := inter_subset_right t s
+  use K, t'
+  constructor
+  · sorry -- by definition of the subspace topology
+  · intro x hx y hy
+    have h₁: ↑x ∈ t := mem_of_mem_inter_left (Iff.mp (mem_toSubset (t ∩ s) s h x) hx)
+    have h₂: ↑y ∈ t := mem_of_mem_inter_left (Iff.mp (mem_toSubset (t ∩ s) s h y) hy)
+    calc edist (restrict s f x) (restrict s f y)
+      _ = edist (f x) (f y) := rfl
+      _ ≤ K * edist x y := by apply hfL h₁ h₂
+
 /-- C¹ functions are locally Lipschitz. -/
 -- TODO: move to ContDiff.lean!
 protected lemma of_C1 {E F: Type*} {f : E → F} [NormedAddCommGroup E] [NormedSpace ℝ E]
