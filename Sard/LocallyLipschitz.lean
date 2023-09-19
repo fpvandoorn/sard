@@ -72,20 +72,7 @@ protected lemma of_C1 {E F: Type*} {f : E → F} [NormedAddCommGroup E] [NormedS
   rcases (ContDiffAt.exists_lipschitzOnWith (ContDiff.contDiffAt hf)) with ⟨K, t, ht, hf⟩
   use K, t
 
--- /-- A C¹ function on an open set is locally Lipschitz. -/
--- TODO: move to ContDiffOn.lean!
--- lemma of_C1_on_open {E F: Type*} {f : E → F} [NormedAddCommGroup E] [NormedSpace ℝ E]
---     [NormedAddCommGroup F] [NormedSpace ℝ F] {U : Set E} (hU: IsOpen U) (hf : ContDiffOn ℝ 1 f U) :
---   LocallyLipschitz (U.restrict f) := by
---   intro x
---   have : ContDiffWithinAt ℝ 1 f U x := ContDiffOn.contDiffWithinAt hf (Subtype.mem x)
---   let h := ContDiffWithinAt.exists_lipschitzOnWith this
---   have : Convex ℝ U := sorry -- pretend U is convex, say by restriction
---   rcases (h this) with ⟨K, t, ht, hf⟩
---   use K
---   -- TODO: upgrade t to a nbhd of U, using ht. right now it's a subset of E...
---   --use t
---   sorry
+-- lemma of_C1_on_open moved to Stuff.lean; TODO move back when I can!
 
 -- tweaked version of the result in mathlib, weaker hypotheses -- not just restricting the domain,
 -- but also weakening the assumption on the codomain

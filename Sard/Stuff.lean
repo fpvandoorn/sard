@@ -35,10 +35,37 @@ lemma locally_lipschitz_image_of_null_set_is_null_set_open {X Y : Type*}
     (hf : LocallyLipschitz (U.restrict f)) {s : Set X} (hsu : s ⊆ U) (hs : μH[d] s = 0) :
     μH[d] (f '' s) = 0 := by sorry
 
--- TODO: move back to LocallyLipschitz (hack to keep things building)
+-- TODO: move back to LocallyLipschitz, long-term to ContDiffOn.lean!
+-- keeping it here is a HACK to keep Stuff.lean building!
+/-- A C¹ function on an open set is locally Lipschitz. -/
 lemma of_C1_on_open {E F: Type*} {f : E → F} [NormedAddCommGroup E] [NormedSpace ℝ E]
     [NormedAddCommGroup F] [NormedSpace ℝ F] {U : Set E} (hU: IsOpen U) (hf : ContDiffOn ℝ 1 f U) :
-  LocallyLipschitz (U.restrict f) := by sorry
+  LocallyLipschitz (U.restrict f) := by
+  intro x
+  have : ContDiffWithinAt ℝ 1 f U x := ContDiffOn.contDiffWithinAt hf (Subtype.mem x)
+  let h := ContDiffWithinAt.exists_lipschitzOnWith this
+  have : Convex ℝ U := sorry -- pretend U is convex, say by restriction
+  rcases (h this) with ⟨K, t, ht, hf⟩
+  -- t is a neighbourhood of x "within U", i.e. contains the intersection of U with some nbhd a of x
+  -- intersect with U to obtain a neighbourhood contained in U
+  let t' := toSubset (t ∩ U) U (inter_subset_right t U)
+  let h := inter_subset_right t U
+  use K, t'
+  constructor
+  · -- t ∩ U is a nbhd of x: as x and U are
+    have : t ∩ U ∈ 𝓝 ↑x := by
+      -- ht means t ∈ 𝓝[U] ↑x, i.e. t ⊇ U ∩ a for some nbhd a of x
+      -- then `a` contains an open subset a', so t ⊇ U ∩ a' shows t is a nbhd
+      have h₁: t ∈ 𝓝 ↑x := by sorry
+      have : U ∈ 𝓝 ↑x := by sorry -- U is open and contains x
+      exact Filter.inter_mem h₁ this
+    sorry -- should be just unfolding toSubset
+  · intro x hx y hy
+    have h₁: ↑x ∈ t := mem_of_mem_inter_left (Iff.mp (mem_toSubset (t ∩ U) U h x) hx)
+    have h₂: ↑y ∈ t := mem_of_mem_inter_left (Iff.mp (mem_toSubset (t ∩ U) U h y) hy)
+    calc edist (restrict U f x) (restrict U f y)
+      _ = edist (f x) (f y) := rfl
+      _ ≤ K * edist x y := by apply hf h₁ h₂
 
 /-- Let $U ⊆ ℝ^n$ be an open set and f : U → ℝ^n be a C^1 map.
   If $X\subset U$ has measure zero, so has $f(X)$.
