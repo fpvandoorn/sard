@@ -2,7 +2,7 @@ import Sard.LocallyLipschitz
 import Mathlib.MeasureTheory.Measure.Hausdorff
 
 -- Locally Lipschitz maps preserve measure zero sets.
-open ENNReal NNReal FiniteDimensional Function LocallyLipschitz MeasureTheory Measure Set TopologicalSpace Topology
+open NNReal LocallyLipschitz MeasureTheory Set
 set_option autoImplicit false
 
 section ImageMeasureZeroSet
@@ -24,8 +24,7 @@ If `X` is `σ`-compact, a locally Lipschitz map $f : X → Y$ maps null sets in 
 lemma locally_lipschitz_image_of_null_set_is_null_set {X Y : Type*}
     [MetricSpace X] [MeasurableSpace X] [BorelSpace X] [SigmaCompactSpace X]
     [MetricSpace Y] [MeasurableSpace Y] [BorelSpace Y] {d : ℕ} {f : X → Y}
-    (hf : LocallyLipschitz.LocallyLipschitz f)
-    {s : Set X} (hs : μH[d] s = 0) : μH[d] (f '' s) = 0 := by
+    (hf : LocallyLipschitz f) {s : Set X} (hs : μH[d] s = 0) : μH[d] (f '' s) = 0 := by
   -- Choose a countable cover of X by compact sets K_n.
   let K : ℕ → Set X := compactCovering X
   have hcov : ⋃ (n : ℕ), K n = univ := iUnion_compactCovering X
@@ -70,7 +69,7 @@ lemma locally_lipschitz_image_of_null_set_is_null_set {X Y : Type*}
     have h₂ : μH[d] (s ∩ U i) = 0 := measure_mono_null (inter_subset_left s (U ↑i)) hs
     have h₁ := LipschitzOnWith.mono hK (inter_subset_right s (U i))
     apply lipschitz_image_null_set_is_null_set (Nat.cast_nonneg d) h₁ h₂
-  -- Now apply finite subaddivitiy.
+  -- Finite subadditivity implies the claim.
   have ht' : K n ⊆ ⋃ (i : t), U i := by sorry -- "should" be easy
   have : f '' (s ∩ (K n)) ⊆ ⋃ (i : t), f '' (s ∩ (U i)) := by calc f '' (s ∩ (K n))
     _ ⊆ f '' (s ∩ (⋃ (i : t), U i)) := by

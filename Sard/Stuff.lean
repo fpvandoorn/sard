@@ -22,12 +22,10 @@ variable
   -- declare a smooth manifold `N` over the pair `(F, G)`.
   {F : Type*}
   [NormedAddCommGroup F] [NormedSpace ℝ F] {G : Type*} [TopologicalSpace G]
-  (J : ModelWithCorners ℝ F G) {N : Type*} [TopologicalSpace N] [ChartedSpace G N] [J.Boundaryless]
+  {J : ModelWithCorners ℝ F G} {N : Type*} [TopologicalSpace N] [ChartedSpace G N] [J.Boundaryless]
   [SmoothManifoldWithCorners J N] [FiniteDimensional ℝ F]
   [MeasurableSpace F] [BorelSpace F]
-
 variable {m n r : ℕ} (hm : finrank ℝ E = m) (hn : finrank ℝ F = n) (hr : r > m-n)
-variable {J}
 
 /-- Let $U ⊆ ℝ^n$ be an open set and f : U → ℝ^n be a C^1 map.
   If $X\subset U$ has measure zero, so has $f(X)$.
