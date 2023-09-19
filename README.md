@@ -3,7 +3,7 @@ In this repository, we work towards the proof of the Morse-Sard and Sard-Smale t
 
 **Morse-Sard theorem.** Let $M$ and $N$ be $C^r$-manifolds of dimensions $m$ and $n$, respectively and $f\colon M\to N$ a $C^r$ map. If $r > \max {O,m - n}$, the set $f(\Sigma_f)$ of critical values of $f$ has measure zero in $N$. Moreover, the set of regular values of f is residual and therefore dense.
 
-The **Sard-Smale** theorem is a generalisation to infinite-dimensional Banach manifolds. Stating it requires a theory of Fredholm operators. See a [separate file](Roadmap towards Sard-Smale.md) for detail and a roadmap towards that.
+The **Sard-Smale** theorem is a generalisation to infinite-dimensional Banach manifolds. Stating it requires a theory of Fredholm operators. See a [separate file](Roadmap_towards_Sard-Smale.md) for detail and a roadmap towards that.
 
 **Applications** of Sard's theorem.
 - stronger version of Whitney's approximation theorem
@@ -29,21 +29,22 @@ The **Sard-Smale** theorem is a generalisation to infinite-dimensional Banach ma
 
 - meager sets and relation to measure zero
   - define nowhere dense and meagre sets: complete, [PRed](https://github.com/leanprover-community/mathlib4/pull/7180)
-  - define $\sigma$-compact subsets (similar to $\sigma$-compact spaces) and show basic properties
+  - define $\sigma$-compact subsets, relate to $\sigma$-compact spaces, show basic properties
   - $\sigma$-compact measure zero sets are meagre
-  - mention counterexamples (nowhere dense but not measure zero, measure zero but not nowhere dense) in docstring
+  - mention counterexamples (nowhere dense but not measure zero, measure zero but not nowhere dense) in the docs, at least
 
-- **Corollary.** if $A\subset M$ is a measure zero subset and `f` is $C^1$, then $f(A)\subset N$ has measure zero
-- Corollary. If $m < n$, then $f(M)$ has measure zero. Hence, Sard's theorem holds.
+- **Corollary.** If $A\subset M$ is a measure zero subset and `f` is $C^1$, then $f(A)\subset N$ has measure zero
+- **Corollary.** If $m < n$, then $f(M)$ has measure zero. Hence, Sard's theorem holds.
+(Both proven, except for a few remaining sorries.)
 
 - reduce Sard's theorem to a local statement                    mostly done, a few sorries remain
 - "hard" case $m\geq n$ not started yet
 
 - formalise the main argument of the proof: hard work
-  - show Sigma_1 has measure zero, separate lemma
-  - inductive proof: base case is that lemma
-  - Sigma_2\setminus Sigma_3 also works, measure zero
-  - remaining argument: induction proof, using a coord change and Fubini -> need to work out the details
+  - show $\Sigma_1$ (in Hirsch's proof) has measure zero
+  - inductive proof: base case is the previous bullet point
+  - show $\Sigma_2\setminus\Sigma_3$ has measure zero (similar argument)
+  - remaining argument: induction proof, using a coordinate change and Fubini -> need to work out the details
 
 ## Status
 This project was initiated during Lean for the Curious Mathematician 2023, mentored by @fpvandoorn and continued thereafter.
@@ -60,6 +61,6 @@ That said, help is very welcome! Feel free to make a PR filling in some sorry, o
 - `Stuff.lean` contains all other results: statement of Sard and intermediate steps.
 - `ObsoleteHelpers.lean` contains results I didn't need; perhaps one or two lemmas are useful for mathlib.
 
-## follow-up questions
+## Follow-up questions
 - does this hold over other fields? I don't think so (but haven't really checked)
 - can we include boundary or corners?
