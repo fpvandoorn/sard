@@ -60,10 +60,10 @@ lemma locally_lipschitz_image_of_null_set_is_null_set {X Y : Type*}
     have hless : μH[d] (f '' s) ≤ 0 := by
       calc μH[d] (f '' s)
         _ = μH[d] (f '' (⋃ (n : ℕ), s ∩ K n)) := by rw [← this]
-        _ = μH[d] (⋃ (n : ℕ), f '' (s ∩ K n)) := by rw [@image_iUnion]
+        _ = μH[d] (⋃ (n : ℕ), f '' (s ∩ K n)) := by rw [image_iUnion]
         _ ≤ ∑' (n : ℕ), μH[d] (f '' (s ∩ K n)) := by apply OuterMeasure.iUnion_nat
         _ = ∑' (n : ℕ), 0 := by simp_rw [ass]
-        _ = 0 := by rw [@tsum_zero]
+        _ = 0 := by rw [tsum_zero]
     have : 0 ≤ μH[d] (f '' s) ∧ μH[d] (f '' s) ≤ 0 → μH[d] (f '' s) = 0 := by
       simp only [zero_le, nonpos_iff_eq_zero, true_and]
       rw [← hs]
@@ -88,7 +88,7 @@ lemma locally_lipschitz_image_of_null_set_is_null_set {X Y : Type*}
   rcases subcover with ⟨t, ht⟩
   -- On each U_j, f is Lipschitz by hypothesis, hence the previous lemma applies.
   have h: ∀ i : t, ∃ K : ℝ≥0, LipschitzOnWith K f (s ∩ U i) := by sorry
-  have : ∀ i : t, μH[d] (f '' (s ∩ U i)) = 0 := by
+  have hnull: ∀ i : t, μH[d] (f '' (s ∩ U i)) = 0 := by
     intro i
     have h1 : μH[d] (s ∩ U i) = 0 := measure_mono_null (inter_subset_left s (U ↑i)) hs
     rcases (h i) with ⟨K, hK⟩
@@ -174,7 +174,7 @@ lemma measure_zero_image_iff_chart_domains {f : M → N} {s : Set M}
   have hcovering : univ ⊆ ⋃ (x : M), U x := by
     intro x
     have : x ∈ U x := mem_chart_source H x
-    rw [@mem_iUnion]
+    rw [mem_iUnion]
     intro _
     use x
   have hopen : ∀ x : M, IsOpen (U x) := fun x => (ChartedSpace.chartAt x).open_source
@@ -192,8 +192,8 @@ lemma measure_zero_image_iff_chart_domains {f : M → N} {s : Set M}
   -- The countable union of measure zero sets has measure zero.
   have decomp : ⋃ (i : T), f '' ((U i) ∩ s) = f '' s :=
     calc ⋃ (i : T), f '' ((U i) ∩ s)
-      _ = f '' (⋃ (i : T), (U i) ∩ s) := by rw [@image_iUnion]
-      _ = f '' ((⋃ (i : T), (U i)) ∩ s) := by rw [@iUnion_inter]
+      _ = f '' (⋃ (i : T), (U i) ∩ s) := by rw [image_iUnion]
+      _ = f '' ((⋃ (i : T), (U i)) ∩ s) := by rw [iUnion_inter]
       _ = f '' ((⋃ (i : M) (_ : i ∈ T), U i) ∩ s) := by rw [iUnion_coe_set]
       _ = f '' ((⋃ (i : M), U i) ∩ s) := by rw [hTcover]
       _ = f '' (univ ∩ s) := by rw [subset_antisymm (by simp) (hcovering)]
@@ -214,7 +214,7 @@ lemma image_C1_dimension_increase_image_measure_zero {f : M → N} (hf : ContMDi
   intro e he μ hμ e' he'
   -- FIXME. This looks a bit sketchy... adapt proof if necessary!
   have aux : J ∘ e' '' (e'.source ∩ f '' e.source) = (J ∘ e' ∘ f) '' e.source := by sorry
-  rw [@inter_univ, aux]
+  rw [inter_univ, aux]
   -- Consider the local coordinate expression g : U → ℝ^m of f.
   -- We define g on all of E, taking junk values outside of U.
   let g : E → F := J ∘ e' ∘ f ∘ e.invFun ∘ I.invFun

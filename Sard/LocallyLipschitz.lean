@@ -54,7 +54,7 @@ theorem comp_lipschitzOnWith' {Kf Kg : ℝ≥0} {f : Y → Z} {g : X → Y} {s :
   calc edist ((f ∘ g) x) ((f ∘ g) y)
     _ ≤ Kf * edist (g x) (g y) := hf (mem_image_of_mem g hx) (mem_image_of_mem g hy)
     _ ≤ Kf * (Kg * edist x y) := by exact mul_le_mul_left' (hg hx hy) Kf
-    _ = ↑(Kf * Kg) * edist x y := by rw [← mul_assoc, @ENNReal.coe_mul]
+    _ = ↑(Kf * Kg) * edist x y := by rw [← mul_assoc, ENNReal.coe_mul]
 
 /-- The composition of locally Lipschitz functions is locally Lipschitz. --/
 protected lemma comp  {f : Y → Z} {g : X → Y} (hf : LocallyLipschitz f) (hg : LocallyLipschitz g) :

@@ -97,7 +97,7 @@ def ModelWithCorners.ae
     {M : Type*} [TopologicalSpace M] [ChartedSpace F M] [MeasurableSpace E] : Filter M where
   sets := { s | MeasureZero I sᶜ }
   univ_sets := by
-    rw [@mem_setOf, compl_univ]
+    rw [mem_setOf, compl_univ]
     apply MeasureZero.empty
   inter_sets hx hy:= by
     simp only [mem_setOf_eq] at *
@@ -179,7 +179,7 @@ lemma measure_zero_image_iff_chart_domains {f : M → N} {s : Set M}
   have hcovering : univ ⊆ ⋃ (x : M), U x := by
     intro x
     have : x ∈ U x := mem_chart_source H x
-    rw [@mem_iUnion]
+    rw [mem_iUnion]
     intro _
     use x
   have hopen : ∀ x : M, IsOpen (U x) := fun x => (ChartedSpace.chartAt x).open_source
@@ -197,8 +197,8 @@ lemma measure_zero_image_iff_chart_domains {f : M → N} {s : Set M}
   -- The countable union of measure zero sets has measure zero.
   have decomp : ⋃ (i : T), f '' ((U i) ∩ s) = f '' s :=
     calc ⋃ (i : T), f '' ((U i) ∩ s)
-      _ = f '' (⋃ (i : T), (U i) ∩ s) := by rw [@image_iUnion]
-      _ = f '' ((⋃ (i : T), (U i)) ∩ s) := by rw [@iUnion_inter]
+      _ = f '' (⋃ (i : T), (U i) ∩ s) := by rw [image_iUnion]
+      _ = f '' ((⋃ (i : T), (U i)) ∩ s) := by rw [iUnion_inter]
       _ = f '' ((⋃ (i : M) (_ : i ∈ T), U i) ∩ s) := by rw [iUnion_coe_set]
       _ = f '' ((⋃ (i : M), U i) ∩ s) := by rw [hTcover]
       _ = f '' (univ ∩ s) := by rw [subset_antisymm (by simp) (hcovering)]
