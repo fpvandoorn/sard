@@ -11,6 +11,13 @@ open Set
 set_option autoImplicit false
 variable {X Y : Type*} [TopologicalSpace X] [TopologicalSpace Y]
 
+/-- The preimage of a compact set under an inducing map is a compact set. -/
+-- Direct PR to mathlib; this removes the injectivity hypothesis from ClosedEmbedding.isCompact_preimage.
+theorem Inducing.isCompact_preimage {f : X → Y} (hf : Inducing f) (hf' : IsClosed (range f)) {K : Set Y}
+    (hK : IsCompact K) : IsCompact (f ⁻¹' K) := by
+  replace hK := hK.inter_right hf'
+  rwa [← hf.isCompact_iff, image_preimage_eq_inter_range]
+
 /-- A subset `A ⊆ X` is called **σ-compact** iff it is the union of countably many compact sets. --/
 def IsSigmaCompact (A : Set X) : Prop :=
   ∃ K : ℕ → Set X, (∀ n, IsCompact (K n)) ∧ ⋃ n, K n = A
@@ -21,13 +28,6 @@ lemma isSigmaCompact_univ_iff : IsSigmaCompact (univ : Set X) ↔ SigmaCompactSp
 
 lemma isSigmaCompact_univ [h : SigmaCompactSpace X] : IsSigmaCompact (univ : Set X) :=
   Iff.mpr isSigmaCompact_univ_iff h
-
-/-- The preimage of a compact set under an inducing map is a compact set. -/
--- mathlib only has ClosedEmbedding.isCompact_preimage -> can probably generalise!
-theorem Inducing.isCompact_preimage {f : X → Y} (hf : Inducing f) (hf' : IsClosed (range f)) {K : Set Y}
-    (hK : IsCompact K) : IsCompact (f ⁻¹' K) := by
-  replace hK := hK.inter_right hf'
-  rwa [← hf.isCompact_iff, image_preimage_eq_inter_range]
 
 /-- If `f : X → Y` is an `Embedding`, the image `f '' s` of a set `s` is σ-compact
 if and only `s`` is σ-compact. -/
