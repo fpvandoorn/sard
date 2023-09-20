@@ -29,20 +29,27 @@ lemma isSigmaCompact_univ_iff : IsSigmaCompact (univ : Set X) ↔ SigmaCompactSp
 lemma isSigmaCompact_univ [h : SigmaCompactSpace X] : IsSigmaCompact (univ : Set X) :=
   Iff.mpr isSigmaCompact_univ_iff h
 
+/-- If `s` is σ-compact and `f` continuous, `f(A)` is σ-compact. -/
+lemma SigmaCompact_image {f : X → Y} (hf : Continuous f) {s : Set X} (hs : IsSigmaCompact s) :
+    IsSigmaCompact (f '' s) := by
+  rcases hs with ⟨K, hcompact, hcov⟩
+  use (fun n ↦ f '' (K n))
+  exact ⟨fun n ↦ IsCompact.image (hcompact n) hf, by rw [← hcov, image_iUnion]⟩
+
+/-- If `X` is σ-compact, `im f` is σ-compact. -/
+lemma SigmaCompact_image' {f : X → Y} (hf : Continuous f) [i : SigmaCompactSpace X] :
+    IsSigmaCompact (range f) := by
+  rw [← image_univ]
+  apply SigmaCompact_image hf (Iff.mpr isSigmaCompact_univ_iff i)
+
 /-- If `f : X → Y` is an `Embedding`, the image `f '' s` of a set `s` is σ-compact
 if and only `s`` is σ-compact. -/
--- direction => holds for any continuous map,
 -- this proof of <= requires injectivity to conclude s = f ⁻¹' (f '' s)
 lemma Embedding.isSigmaCompact_iff_isSigmaCompact_image {f : X → Y} {s : Set X} (hf : Embedding f) :
     IsSigmaCompact s ↔ IsSigmaCompact (f '' s) := by
-  -- exact hf.toInducing.isSigmaCompact_iff, if that generality holds
   constructor
-  · rintro ⟨K, hcompact, hcov⟩
-    use (fun n ↦ f '' (K n))
-    constructor
-    · intro n
-      exact Iff.mp (isCompact_iff_isCompact_image hf) (hcompact n)
-    · rw [← hcov, image_iUnion]
+  · intro h
+    apply SigmaCompact_image (continuous hf) h
   · rintro ⟨K, hcompact, hcov⟩
     use (fun n ↦ f ⁻¹' (K n))
     constructor
@@ -108,16 +115,3 @@ lemma SigmaCompact_of_isClosed_subset {s t : Set X} (ht : IsSigmaCompact t)
     exact IsCompact.inter_left (hcompact n) hs
   · rw [← inter_iUnion, hcov]
     exact Iff.mpr inter_eq_left_iff_subset h
-
-/-- If `s` is σ-compact and `f` continuous, `f(A)` is σ-compact. -/
-lemma SigmaCompact_image {f : X → Y} (hf : Continuous f) {s : Set X} (hs : IsSigmaCompact s) :
-    IsSigmaCompact (f '' s) := by
-  rcases hs with ⟨K, hcompact, hcov⟩
-  use (fun n ↦ f '' (K n))
-  exact ⟨fun n ↦ IsCompact.image (hcompact n) hf, by rw [← hcov, image_iUnion]⟩
-
-/-- If `X` is σ-compact, `im f` is σ-compact. -/
-lemma SigmaCompact_image' {f : X → Y} (hf : Continuous f) [i : SigmaCompactSpace X] :
-    IsSigmaCompact (range f) := by
-  rw [← image_univ]
-  apply SigmaCompact_image hf (Iff.mpr isSigmaCompact_univ_iff i)
