@@ -25,13 +25,6 @@ For each map, get a neighbourhood of linear isomorphisms around it.
 ### 2.3 Definition: comeagre subsets (exists)
 mathlib has comeagre sets (called [*residual* set](https://leanprover-community.github.io/mathlib4_docs/Mathlib/Topology/GDelta.html#residual)) and [Baire spaces](https://leanprover-community.github.io/mathlib4_docs/Mathlib/Topology/MetricSpace/Baire.html#BaireSpace).
 
-**Recall.** Comeagre subsets of ℝ need not have Lebesgue measure zero; the converse is also false.
-- recall that a set is comeagre iff its complement is meagre
-- nowhere dense sets are meagre (Rudin '91)
-- fat Cantor sets are closed nowhere dense, but can have measure approaching $1$
-  taking the union of countably many of these, with measures approaching $1$, yields a meagre subsets of $[0,1]$ of measure 1
-- conversely: if $S\subset [0,1]$ is meagre of measure $1$, its complement has measure $0$ and is comeagre (by definition). In particular, it's not meagre, as $[0,1]$ is a Baire space. (A Baire space is nonmeager (as a subset in itself); in a nonmeagre space, no set is both meagre and comeagre at the same time.)
-
 ## Part 3: proving Sard-Smale's theorem
 **Sard-Smale theorem.** Let `M` and `N` be infinite-dimensional second countable $C^r$ Banach manifolds.
   Let $F\colon M\to N$ be a $C^r$ map such that each differential $dF_x\colon T_pM\to T_{f(p)}N$ is a Fredholm operator.   Suppose $r>\max{0,\text{ind}(dF_x)}$ for all $x\in M$. Then the set of regular values of $dF$ is a comeagre subset.

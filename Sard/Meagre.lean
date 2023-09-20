@@ -165,3 +165,15 @@ lemma meagre_iUnion {s : ℕ → Set α} (hs : ∀ n : ℕ, IsMeagre (s n)) :
     IsMeagre (⋃ (n : ℕ), (s n)) := by
   simp only [meagre_iff_complement_comeagre, compl_iUnion] at *
   exact Iff.mpr countable_iInter_mem hs
+
+section MeasureZero
+/-! ## Meagre sets and measure zero
+In general, neither of meagre and measure zero implies the other.
+- for all $α ∈ (0,1)$, there is a generalised Cantor set $C ⊆ [0,1]$ of measure `α`.
+Cantor sets are nowhere dense. (Taking a countable union of fat Cantor sets whose measure approaches 1,
+we obtain a meagre set of measure 1.)
+- ℚ ⊆ ℝ has measure zero, but is dense (in particular, not meagre).
+
+However, a **closed** measure zero set is nowhere dense.
+-/
+end MeasureZero
