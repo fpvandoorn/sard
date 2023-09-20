@@ -13,12 +13,8 @@ def IsSigmaCompact (A : Set X) : Prop :=
   ∃ K : ℕ → Set X, (∀ n, IsCompact (K n)) ∧ ⋃ n, K n = A
 
 /-- A topological space is σ-compact iff `univ` is σ-compact. --/
-lemma isSigmaCompact_univ_iff : IsSigmaCompact (univ : Set X) ↔ SigmaCompactSpace X := by
-  constructor
-  · intro h
-    exact { exists_compact_covering := h }
-  · intro h
-    exact SigmaCompactSpace.exists_compact_covering
+lemma isSigmaCompact_univ_iff : IsSigmaCompact (univ : Set X) ↔ SigmaCompactSpace X :=
+  ⟨fun h ↦ { exists_compact_covering := h }, fun _ ↦ SigmaCompactSpace.exists_compact_covering⟩
 
 lemma isSigmaCompact_univ [h : SigmaCompactSpace X] : IsSigmaCompact (univ : Set X) :=
   Iff.mpr isSigmaCompact_univ_iff h
