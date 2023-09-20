@@ -216,25 +216,29 @@ lemma MeasureZero.closed_implies_nowhere_dense {s : Set N} (h₁ : MeasureZero J
 /-- A σ-compact measure zero set is meagre (the countable union of nowhere dense sets). -/
 -- XXX. this will follow from the analogous result for meagre sets once measure zero sets
 -- have been reworked according to review suggestions.
-lemma meagre_if_sigma_compact {s : Set N} (h₁ : MeasureZero J s)
-    (h₂ : ∃ K : ℕ → Set N, (∀ n, IsCompact (K n)) ∧ ⋃ n, K n = s) : IsMeagre s := by
-  -- decompose into countably many pieces, using h₂
-  obtain ⟨K, ⟨hcompact, hcover⟩⟩ := h₂
-  -- countable union of nowhere dense sets is meagre
+lemma meagre_if_sigma_compact [T2Space N] {s : Set N} (h₁s : MeasureZero J s) (h₂s : IsSigmaCompact s) : IsMeagre s := by
+  -- Decompose into countably many pieces, using h₂s.
+  obtain ⟨K, ⟨hcompact, hcover⟩⟩ := h₂s
+  -- The countable union of nowhere dense sets is meagre.
   suffices ∀ n : ℕ, IsNowhereDense (K n) by
     rw [← hcover]
-    sorry
+    simp [IsMeagre] at *
+    use range K
+    constructor
+    · rintro t ⟨n, hn⟩
+      rw [← hn]
+      exact this n
+    · exact ⟨countable_range K, fun i ↦ subset_iUnion K i⟩
   intro n
   have h : K n ⊆ s := by
     rw [← hcover]
     exact subset_iUnion K n
   -- each K_n has measure zero (by monotonicity), hence has empty interior
-  have ha1: MeasureZero J (K n) := MeasureZero.mono h h₁
+  have ha1: MeasureZero J (K n) := MeasureZero.mono h h₁s
   have : interior (K n) = ∅ := MeasureZero.MeasureZero_implies_empty_interior ha1
-  have : IsClosed (K n) := sorry -- since K n is compact
+  have : IsClosed (K n) := IsCompact.isClosed (hcompact n)
   have : IsNowhereDense (K n) := by
-    sorry -- apply MeasureZero.closed_implies_nowhere_dense--refine closed_nowhere_dense_iff ?_
-  --have IsClosed (K n) := by exact E
+    sorry -- apply MeasureZero.closed_implies_nowhere_dense
   -- each piece is closed and has measure zero (follows from h₂)
   -- by `...`, it has empty interior, i.e. it's nowhere dense. done.
   sorry
