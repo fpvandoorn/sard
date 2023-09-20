@@ -173,20 +173,30 @@ theorem sard_local {s w : Set E} {f : E → F} (hw : IsOpen w) (hsw : s ⊆ w)
   · sorry
 
 /-- Local version of Sard's theorem. If $W ⊆ ℝ^m$ is open and $f: W → ℝ^n$ is $C^r$,
-the set of critical values is a meagre set. -/
+the set of critical values of `f` is a meagre set. -/
 theorem sard_local' {s w : Set E} {f : E → F} (hw : IsOpen w) (hsw : s ⊆ w)
     (hf : ContDiffOn ℝ r f w) {f' : E → E →L[ℝ] F} (hf' : ∀ x ∈ s, HasFDerivWithinAt f (f' x) s x)
     (h'f' : ∀ x ∈ s, ¬ Surjective (f' x)) : IsMeagre (f '' s) := by
-  have : ∀ (μ : Measure F) [IsAddHaarMeasure μ], μ (f '' s) = 0 := by
-    intro μ hμ
-    sorry -- this fails: refine sard_local ?_ hw hsw hf hf' h'f' μ hμ
-  -- use: critical set is σ-compact (ℝ^m is σ-compact, s is closed)
-  -- image of σ-compact set is σ-compact; σ-compact measure zero set is meagre
-  sorry
+  -- The critical set of `f` is closed: enlarge `s` if needed.
+  have : IsClosed s := sorry -- TODO: update statement!
+  -- Hence, it's σ-compact, and thus is the set of critical values.
+  have : IsSigmaCompact s :=
+    SigmaCompact_of_isClosed_subset isSigmaCompact_univ this (subset_univ s)
+  have : IsSigmaCompact (f '' s) := by
+    -- TODO: not true, f is continuous on w ---> must argue that suffices
+    have hf : Continuous f := by sorry
+    exact SigmaCompact_image hf this
+
+  -- Choose any Haar measure on F.
+  obtain ⟨K''⟩ : Nonempty (PositiveCompacts F) := PositiveCompacts.nonempty'
+  let μ : Measure F := addHaarMeasure K''
+  have ass : μ (f '' s) = 0 := sard_local hr hw hsw hf hf' h'f' μ
+  exact meagre_of_sigma_compact_null this ass
+
 
 /-- **Sard's theorem**. Let $M$ and $N$ be real $C^r$ manifolds of dimensions
-$m$ and $n$, and $f:M→N$ a $C^r$ map. If $r>\max{0, m-n}$,
-the set of regular values of $f$ has full measure.
+$m$ and $n$, and $f : M → N$ a $C^r$ map. If $r>\max{0, m-n}$,
+the set of regular values of `f` has full measure.
 
 Note that mathlib already contains a weaker version of Sard's theorem,
 as `addHaar_image_eq_zero_of_det_fderivWithin_eq_zero` in the file `Mathlib.MeasureTheory.Function.Jacobian.Manifold`.
@@ -214,3 +224,5 @@ theorem sard' {f : M → N} (hf : ContMDiff I J r f)
   sorry
 
 -- Corollary. The set of regular values is residual and therefore dense.
+
+-- most general version: phrased using the Hausdorff dimension
