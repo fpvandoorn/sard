@@ -3,9 +3,12 @@ import Mathlib.Topology.SubsetProperties
 /-!
 σ-compact subsets of a topological space, elementary properties and relation to σ-compact spaces
 -/
--- merge into SubsetProperties, probably
--- proofs are mostly copied/adapted from SigmaCompactSpace; not sure if this can be avoided
--- it's only short proofs though, so perhaps that's ok :-)
+-- probably, this also should go into `Mathlib.Topology.SubsetPropertes`
+-- TODO: finish proving that σ-compact sets are spaces are related
+-- TODO: finish proving that σ-compact spaces are closed under countable unions
+--   (and transfer this to σ-compact spaces)
+-- FIXME: are these proofs easier in terms of that reduction? didn't feel like it,
+--   at least there was missing API in terms of relating properties to the subspace
 
 open Set
 set_option autoImplicit false
