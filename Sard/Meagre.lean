@@ -3,7 +3,8 @@ Copyright (c) 2023 Michael Rothgang. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Michael Rothgang
 -/
-import Mathlib.Topology.GDelta
+import Sard.SigmaCompact
+import Mathlib.MeasureTheory.Measure.OpenPos
 
 /-!
 ## Nowhere dense and meagre sets
@@ -178,4 +179,36 @@ we obtain a meagre set of measure 1.)
 
 However, a **closed** measure zero set is nowhere dense.
 -/
+open MeasureTheory Measure
+
+variable {X : Type*} [TopologicalSpace X] [MeasurableSpace X] [BorelSpace X]
+  {μ : Measure X} [IsOpenPosMeasure μ]
+
+lemma open_measure_zero_implies_empty {s : Set X}
+  (hs : IsOpen s) (hs' : μ s = 0) : s = ∅ := Iff.mp (IsOpen.measure_eq_zero_iff μ hs) hs'
+
+/-- A measure zero subset has empty interior. -/
+lemma empty_interior_of_null {s : Set X} (hs : μ s = 0) : interior s = ∅ :=
+  open_measure_zero_implies_empty isOpen_interior (measure_mono_null interior_subset hs)
+
+/-- A *closed* measure zero subset is nowhere dense.
+(Closedness is required: there are generalised Cantor sets of positive Lebesgue measure.) -/
+lemma nowhere_dense_of_closed_null {s : Set X} (h₁s : IsClosed s) (h₂s : μ s = 0) : IsNowhereDense s :=
+  Iff.mpr (closed_nowhere_dense_iff h₁s) (empty_interior_of_null h₂s)
+
+/-- A σ-compact measure zero subset is meagre. -/
+lemma meagre_of_sigma_compact_null [T2Space X] {s : Set X} (h₁s : IsSigmaCompact s) (h₂s : μ s = 0) : IsMeagre s := by
+  rcases h₁s with ⟨K, hcompact, hcover⟩
+  suffices hyp : ∀ (n : ℕ), IsNowhereDense (K n) by
+    use range K
+    constructor
+    · rintro t ⟨n, hn⟩
+      rw [← hn]
+      exact hyp n
+    · exact ⟨countable_range K, Eq.subset (id (Eq.symm hcover))⟩
+
+  intro n
+  have : K n ⊆ s := by rw [← hcover] ; exact subset_iUnion K n
+  have : μ (K n) = 0 := measure_mono_null this h₂s
+  exact nowhere_dense_of_closed_null (IsCompact.isClosed (hcompact n)) this
 end MeasureZero
