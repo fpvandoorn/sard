@@ -80,14 +80,17 @@ lemma isSigmaCompact_iff_isSigmaCompact_univ {s : Set X} :
 lemma isSigmaCompact_iff_sigmaCompactSpace {s : Set X} : IsSigmaCompact s ↔ SigmaCompactSpace s :=
   isSigmaCompact_iff_isSigmaCompact_univ.trans isSigmaCompact_univ_iff
 
-
 /-- Compact sets are σ-compact. -/
--- or: reduce to spaces; not sure if that's more pleasant, though :-)
 lemma SigmaCompact_of_compact {s : Set X} (hs : IsCompact s) : IsSigmaCompact s := by
-  use fun _ => s
-  exact ⟨fun _ => hs, iUnion_const _⟩
+  -- proof 1: show by hand
+  -- use fun _ => s
+  -- exact ⟨fun _ => hs, iUnion_const _⟩
+  -- proof 2: reduce to subspaces. not sure if that's nicer
+  rw [isSigmaCompact_iff_sigmaCompactSpace]
+  have : CompactSpace ↑s := by exact Iff.mp isCompact_iff_compactSpace hs
+  exact CompactSpace.sigma_compact
 
--- countable unions of compact sets are compact
+/-- Countable unions of compact sets are σ-compact. -/
 lemma SigmaCompact_of_countable_compact (S : Set (Set X)) (hc : Set.Countable S) (hcomp : ∀ (s : Set X), s ∈ S → IsCompact s) :
   IsSigmaCompact (⋃₀ S) := by
   -- easy "in principle": S is countable, so get a bijection, that yields the covering
@@ -102,7 +105,7 @@ lemma SigmaCompact_of_countable_compact (S : Set (Set X)) (hc : Set.Countable S)
   simp [IsSigmaCompact] at *
   sorry
 
-/-- Countable unions of σ-compact sets are compact. -/
+/-- Countable unions of σ-compact sets are σ-compact. -/
 lemma SigmaCompact_of_countable_sigma_compact (S : Set (Set X)) (hc : Countable S) (hcomp : ∀ (s : Set X), s ∈ S → IsSigmaCompact s) :
   IsSigmaCompact (⋃₀ S) := by sorry -- TODO: renumbering the sequences, how?
 
