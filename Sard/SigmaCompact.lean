@@ -29,22 +29,10 @@ theorem Inducing.isCompact_preimage {f : X → Y} (hf : Inducing f) (hf' : IsClo
   replace hK := hK.inter_right hf'
   rwa [← hf.isCompact_iff, image_preimage_eq_inter_range]
 
-/-- If `f` is an `Inducing` map, the image `f '' s` of a set `s` is σ-compact if and only if `s` is. -/
-lemma Inducing.isSigmaCompact_iff {f : X → Y} (hf : Inducing f) {s : Set X} :
-    IsSigmaCompact s ↔ IsSigmaCompact (f '' s) := by
-  -- Proof is a relative easy reduction to the compact case.
-  simp [IsSigmaCompact] at *
-  constructor
-  · rintro ⟨K, hcompact, hcov⟩
-    use (fun n ↦ f '' (K n))
-    constructor
-    · intro n
-      exact Iff.mpr (isCompact_iff hf) (hcompact n)
-    · rw [← hcov, image_iUnion]
-  · sorry -- TODO: solve this for embeddings first; then see if this generalizes.
-
 /-- If `f : X → Y` is an `Embedding`, the image `f '' s` of a set `s` is σ-compact
 if and only `s`` is σ-compact. -/
+-- direction => holds for any continuous map,
+-- this proof of <= requires injectivity to conclude s = f ⁻¹' (f '' s)
 lemma Embedding.isSigmaCompact_iff_isSigmaCompact_image {f : X → Y} {s : Set X} (hf : Embedding f) :
     IsSigmaCompact s ↔ IsSigmaCompact (f '' s) := by
   -- exact hf.toInducing.isSigmaCompact_iff, if that generality holds
@@ -64,12 +52,11 @@ lemma Embedding.isSigmaCompact_iff_isSigmaCompact_image {f : X → Y} {s : Set X
       have : ClosedEmbedding f' := sorry
       have : IsCompact (f' ⁻¹' K n) := ClosedEmbedding.isCompact_preimage this (K := K n) (hcompact n)
       have h : (f' ⁻¹' K n) = toSubset (f ⁻¹' K n) S := sorry
-      have : IsClosed S := sorry -- uses Hausdorff or so?
+      have : IsClosed S := sorry
       sorry
     · have : f ⁻¹' (f '' s) = s := by apply preimage_image_eq s hf.inj
       rw [← preimage_iUnion, hcov, this]
 
--- basically: the inclusion is inducing; being sigma-compact is preserved under such maps
 lemma isSigmaCompact_iff_isSigmaCompact_in_subtype {p : X → Prop} {s : Set { a // p a }} :
     IsSigmaCompact s ↔ IsSigmaCompact (((↑) : _ → X) '' s) :=
   embedding_subtype_val.isSigmaCompact_iff_isSigmaCompact_image
