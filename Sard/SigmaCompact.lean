@@ -1,7 +1,8 @@
 import Sard.ToSubset
 import Mathlib.Topology.SubsetProperties
 /-!
-σ-compact subsets of a topological space, elementary properties and relation to σ-compact spaces
+We define σ-compact subsets of a topological space, show their elementary properties
+and relate them to σ-compact spaces.
 -/
 -- probably, this also should go into `Mathlib.Topology.SubsetPropertes`
 -- TODO: finish proving that σ-compact sets are spaces are related

@@ -29,11 +29,10 @@ The **Sard-Smale** theorem is a generalisation to infinite-dimensional Banach ma
 
 - meager sets and relation to measure zero
   - define nowhere dense and meagre sets: complete, [PRed](https://github.com/leanprover-community/mathlib4/pull/7180)
-  - define $\sigma$-compact subsets, relate to $\sigma$-compact spaces, show basic properties (mostly done)
-  - $\sigma$-compact measure zero sets are meagre
-  - mention counterexamples (nowhere dense but not measure zero, measure zero but not nowhere dense) in the docs, at least
+  - define $\sigma$-compact subsets, relate to $\sigma$-compact spaces, show basic properties (everything I need is done; some sorries remain)
+  - $\sigma$-compact measure zero sets are meagre (done)
 
-- **Corollary.** If $A\subset M$ is a measure zero subset and `f` is $C^1$, then $f(A)\subset N$ has measure zero
+- **Corollary.** If $A\subset M$ is a measure zero subset and `f` is $C^1$, then $f(A)\subset N$ has measure zero.
 - **Corollary.** If $m < n$, then $f(M)$ has measure zero. Hence, Sard's theorem holds.
 (Both proven, except for a few remaining sorries.)
 
@@ -54,10 +53,11 @@ I'm pausing this project for now (except possibly upstreaming the parts which ar
 That said, help is very welcome! Feel free to make a PR filling in some sorry, or working towards the proof of the "hard" case.
 
 **File organisation**
-- `MeasureZero.lean` contains the definition of measure zero subsets of a manifold: not reworked yet
+- `MeasureZero.lean` contains the definition of measure zero subsets of a manifold (not reworked yet) and shows a $\sigma$-compact measure zero set is meagre.
 - `Meagre.lean` holds results about nowhere dense and meagre sets. (PRed to mathlib.)
 - `LocallyLipschitz.lean` defines locally Lipschitz functions. Not PRed yet.
 - `LocallyLipschitzMeasureZero.lean` shows that locally Lipschitz functions preserve measure zero sets. Not PRed yet; a few sorries remain.
+- `SigmaCompact.lean` contains $\sigma$-compact sets and their basic properties
 - `Stuff.lean` contains all other results: statement of Sard and intermediate steps.
 - `ObsoleteHelpers.lean` contains results I didn't need; perhaps one or two lemmas are useful for mathlib.
 

@@ -214,12 +214,16 @@ lemma MeasureZero.closed_implies_nowhere_dense {s : Set N} (h₁ : MeasureZero J
   Iff.mpr (closed_nowhere_dense_iff h₂) (MeasureZero.MeasureZero_implies_empty_interior h₁)
 
 /-- A σ-compact measure zero set is meagre (the countable union of nowhere dense sets). -/
+-- XXX. this will follow from the analogous result for meagre sets once measure zero sets
+-- have been reworked according to review suggestions.
 lemma meagre_if_sigma_compact {s : Set N} (h₁ : MeasureZero J s)
     (h₂ : ∃ K : ℕ → Set N, (∀ n, IsCompact (K n)) ∧ ⋃ n, K n = s) : IsMeagre s := by
   -- decompose into countably many pieces, using h₂
   obtain ⟨K, ⟨hcompact, hcover⟩⟩ := h₂
-  -- countable union of meagre sets is meagre
-  suffices ∀ n : ℕ, IsMeagre (K n) by sorry
+  -- countable union of nowhere dense sets is meagre
+  suffices ∀ n : ℕ, IsNowhereDense (K n) by
+    rw [← hcover]
+    sorry
   intro n
   have h : K n ⊆ s := by
     rw [← hcover]
