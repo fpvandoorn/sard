@@ -22,6 +22,13 @@ lemma isSigmaCompact_univ_iff : IsSigmaCompact (univ : Set X) ↔ SigmaCompactSp
 lemma isSigmaCompact_univ [h : SigmaCompactSpace X] : IsSigmaCompact (univ : Set X) :=
   Iff.mpr isSigmaCompact_univ_iff h
 
+/-- The preimage of a compact set under an inducing map is a compact set. -/
+-- mathlib only has ClosedEmbedding.isCompact_preimage -> can probably generalise!
+theorem Inducing.isCompact_preimage {f : X → Y} (hf : Inducing f) (hf' : IsClosed (range f)) {K : Set Y}
+    (hK : IsCompact K) : IsCompact (f ⁻¹' K) := by
+  replace hK := hK.inter_right hf'
+  rwa [← hf.isCompact_iff, image_preimage_eq_inter_range]
+
 /-- If `f` is an `Inducing` map, the image `f '' s` of a set `s` is σ-compact if and only if `s` is. -/
 lemma Inducing.isSigmaCompact_iff {f : X → Y} (hf : Inducing f) {s : Set X} :
     IsSigmaCompact s ↔ IsSigmaCompact (f '' s) := by
@@ -34,15 +41,10 @@ lemma Inducing.isSigmaCompact_iff {f : X → Y} (hf : Inducing f) {s : Set X} :
     · intro n
       exact Iff.mpr (isCompact_iff hf) (hcompact n)
     · rw [← hcov, image_iUnion]
-  · sorry -- solve this for embeddings first; not sure if true for inducing maps.
+  · sorry -- TODO: solve this for embeddings first; then see if this generalizes.
 
-/-- If `f` is a closed embedding, the preimage of a compact set is compact. -/
--- xxx. does this hold for inducing maps as well?
-lemma ClosedEmbedding.is_proper {f : X → Y} (hf : ClosedEmbedding f)
-    {K : Set Y} (hK : IsCompact K) : IsCompact (f ⁻¹' K) := by sorry
-
-/-- If `f : X → Y` is an `Embedding` (or, more generally, an inducing map),
-the image `f '' s` of a set `s` is σ-compact if and only `s`` is σ-compact. -/
+/-- If `f : X → Y` is an `Embedding`, the image `f '' s` of a set `s` is σ-compact
+if and only `s`` is σ-compact. -/
 lemma Embedding.isSigmaCompact_iff_isSigmaCompact_image {f : X → Y} {s : Set X} (hf : Embedding f) :
     IsSigmaCompact s ↔ IsSigmaCompact (f '' s) := by
   -- exact hf.toInducing.isSigmaCompact_iff, if that generality holds
@@ -60,7 +62,7 @@ lemma Embedding.isSigmaCompact_iff_isSigmaCompact_image {f : X → Y} {s : Set X
       let S := f ⁻¹' K n
       let f' := S.restrict f
       have : ClosedEmbedding f' := sorry
-      have : IsCompact (f' ⁻¹' K n) := ClosedEmbedding.is_proper this (K := K n) (hcompact n)
+      have : IsCompact (f' ⁻¹' K n) := ClosedEmbedding.isCompact_preimage this (K := K n) (hcompact n)
       have h : (f' ⁻¹' K n) = toSubset (f ⁻¹' K n) S := sorry
       have : IsClosed S := sorry -- uses Hausdorff or so?
       sorry
