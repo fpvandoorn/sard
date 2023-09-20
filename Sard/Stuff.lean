@@ -231,11 +231,18 @@ theorem sard {f : M → N} (hf : ContMDiff I J r f)
 /-- **Sard's theorem**: let $M$ and $N$ be real $C^r$ manifolds of dimensions $m$ and $n$,
 and $f:M→N$ a $C^r$ map. If $r>\max{0, m-n}$, the critical set is meagre. -/
 theorem sard' {f : M → N} (hf : ContMDiff I J r f)
-    {f' : ∀x, TangentSpace I x →L[ℝ] TangentSpace J (f x)} {s : Set M}
+    {f' : ∀x, TangentSpace I x →L[ℝ] TangentSpace J (f x)} {s : Set M} (hs : IsClosed s)
     (hf' : ∀ x ∈ s, HasMFDerivWithinAt I J f s x (f' x))
     (h'f' : ∀ x ∈ s, ¬ Surjective (f' x)) : IsMeagre (f '' s) := by
-  -- reduce to images of chart domains, then apply `sard_local'` (or `sard`)
-  sorry
+
+  -- M is second countable and locally compact (as finite-dimensional), hence σ-compact.
+  have : SigmaCompactSpace M := by
+    have : LocallyCompactSpace M := by sorry -- infer_instance
+    exact sigmaCompactSpace_of_locally_compact_second_countable
+  have : IsSigmaCompact s :=
+    SigmaCompact_of_isClosed_subset isSigmaCompact_univ hs (subset_univ s)
+  have : IsSigmaCompact (f '' s) := SigmaCompact_image (ContMDiff.continuous hf) this
+  exact MeasureZero.meagre_if_sigma_compact J (sard _ hf hf' h'f') this
 
 -- Corollary. The set of regular values is residual and therefore dense.
 
