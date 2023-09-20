@@ -31,6 +31,7 @@ The **Sard-Smale** theorem is a generalisation to infinite-dimensional Banach ma
   - define nowhere dense and meagre sets: complete, [PRed](https://github.com/leanprover-community/mathlib4/pull/7180)
   - define $\sigma$-compact subsets, relate to $\sigma$-compact spaces, show basic properties (everything I need is done; some sorries remain)
   - $\sigma$-compact measure zero sets are meagre (done)
+- finite-dimensional manifolds are locally compact: missing
 
 - **Corollary.** If $A\subset M$ is a measure zero subset and `f` is $C^1$, then $f(A)\subset N$ has measure zero.
 - **Corollary.** If $m < n$, then $f(M)$ has measure zero. Hence, Sard's theorem holds.
