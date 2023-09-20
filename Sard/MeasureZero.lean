@@ -146,7 +146,7 @@ protected lemma open_implies_empty {s : Set M} (h₁s : IsOpen s) (h₂s : Measu
 In particular, a *closed* measure zero subset of M is nowhere dense.
 (Closedness is required: there are generalised Cantor sets of positive Lebesgue measure.) -/
 protected lemma MeasureZero_implies_empty_interior {s : Set M}
-    (h₂s : MeasureZero I s) : (interior s) = ∅ := by
+    (h₂s : MeasureZero I s) : interior s = ∅ := by
   have : MeasureZero I (interior s) := h₂s.mono interior_subset
   apply MeasureZero.open_implies_empty isOpen_interior this
 end MeasureZero
@@ -210,7 +210,8 @@ lemma measure_zero_image_iff_chart_domains {f : M → N} {s : Set M}
 
 /-- A closed measure zero set is nowhere dense. -/
 lemma MeasureZero.closed_implies_nowhere_dense {s : Set N} (h₁ : MeasureZero J s)
-    (h₂ : IsClosed s) : IsNowhereDense s := by sorry
+    (h₂ : IsClosed s) : IsNowhereDense s :=
+  Iff.mpr (closed_nowhere_dense_iff h₂) (MeasureZero.MeasureZero_implies_empty_interior h₁)
 
 /-- A σ-compact measure zero set is meagre (the countable union of nowhere dense sets). -/
 lemma meagre_if_sigma_compact {s : Set N} (h₁ : MeasureZero J s)
@@ -220,14 +221,15 @@ lemma meagre_if_sigma_compact {s : Set N} (h₁ : MeasureZero J s)
   -- countable union of meagre sets is meagre
   suffices ∀ n : ℕ, IsMeagre (K n) by sorry
   intro n
-  have h : K n ⊆ s := by sorry
+  have h : K n ⊆ s := by
+    rw [← hcover]
+    exact subset_iUnion K n
   -- each K_n has measure zero (by monotonicity), hence has empty interior
-  have : MeasureZero J (K n) := MeasureZero.mono h h₁
-  have : interior (K n) = ∅ := MeasureZero.MeasureZero_implies_empty_interior this
-  --have IsClosed (K n) := sorry --is closed (since compact and N is Hausdorff)
+  have ha1: MeasureZero J (K n) := MeasureZero.mono h h₁
+  have : interior (K n) = ∅ := MeasureZero.MeasureZero_implies_empty_interior ha1
+  have : IsClosed (K n) := sorry -- since K n is compact
   have : IsNowhereDense (K n) := by
     sorry -- apply MeasureZero.closed_implies_nowhere_dense--refine closed_nowhere_dense_iff ?_
-
   --have IsClosed (K n) := by exact E
   -- each piece is closed and has measure zero (follows from h₂)
   -- by `...`, it has empty interior, i.e. it's nowhere dense. done.
