@@ -114,10 +114,21 @@ protected lemma comp  {f : Y → Z} {g : X → Y} (hf : LocallyLipschitz f) (hg 
   -- idea: shrink u to g(t), then apply `comp_lipschitzOnWith'`
   -- more precisely: restrict g to t' := t ∩ g⁻¹(u); the preimage of u under g':=g∣t.
   let g' := t.restrict g
-  let t' : Set X := ↑(g' ⁻¹' u) -- t' **as a subset of X**, this is important
-  -- by inspection, observe t' = t ∩ g⁻¹(u)
-  have h₁ : t' = t ∩ g ⁻¹' u := by sorry
-  --have h₂ : t' ⊆ t := coe_subset
+  let t' : Set X := ↑(g' ⁻¹' u)
+  -- The following is mathematically obvious; sorries are merely wrestling with coercions.
+  have h₁ : t' = t ∩ g ⁻¹' u := by
+    apply Iff.mpr (Subset.antisymm_iff)
+    constructor
+    · intro x hx
+      have : x ∈ t := coe_subset hx
+      constructor
+      · exact coe_subset hx
+      · -- have x ∈ t', so can apply g' (and land in u by definition), so g'(x)=g(x) ∈ u
+        sorry
+    · intro x hx
+      rcases hx with ⟨ht, hgu⟩
+      -- as x ∈ t, we can write g(x)=g'(x); the rhs lies in u, so x ∈ g⁻¹(u) also
+      sorry
   have h₂ : t' ∈ 𝓝 x := by -- t' is a neighbourhood of x
     have : Continuous g' := LipschitzWith.continuous (LipschitzOnWith.to_restrict hgL)
     -- have : g' ⁻¹' u ∈ 𝓝 x := sorry
