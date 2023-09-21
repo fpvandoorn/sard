@@ -129,28 +129,27 @@ protected lemma comp  {f : Y → Z} {g : X → Y} (hf : LocallyLipschitz f) (hg 
       rcases hx with ⟨ht, hgu⟩
       -- as x ∈ t, we can write g(x)=g'(x); the rhs lies in u, so x ∈ g⁻¹(u) also
       sorry
-  have h₂ : t' ∈ 𝓝 x := by
-    have : Continuous g' := LipschitzWith.continuous (LipschitzOnWith.to_restrict hgL)
-    -- FIXME: the following is a tour de force; there must be a nicer proof
+  have h₂ : t' ∈ 𝓝 x := by -- FIXME: the following is a tour de force; there must be a nicer proof
     -- by ht, t contains an open subset U
     rcases (Iff.mp (mem_nhds_iff) ht) with ⟨U, hUt, hUopen, hxU⟩
     -- similarly, u contains an open subset V
     rcases (Iff.mp (mem_nhds_iff) hu) with ⟨V, hVt, hVopen, hgxV⟩
     -- by continuity, g⁻¹(u) contains the open subset g⁻¹(V)
-    have h: IsOpen (g ⁻¹' V) := by sorry -- lean unhappy about the mismatch g vs g' :-)
-    have : U ∩ (g ⁻¹' V) ⊆ t' := by sorry
+    have : ContinuousOn g U := LipschitzOnWith.continuousOn (LipschitzOnWith.mono hgL hUt)
+    have h : IsOpen (U ∩ (g ⁻¹' V)) := ContinuousOn.preimage_open_of_open this hUopen hVopen
+    have : U ∩ (g ⁻¹' V) ⊆ t' := by rw [h₁]; apply inter_subset_inter hUt (preimage_mono hVt)
     -- now, U ∩ g⁻¹(V) is an open subset contained in t'
     rw [mem_nhds_iff]
     use U ∩ (g ⁻¹' V)
-    exact ⟨this, ⟨IsOpen.inter hUopen h, ⟨hxU, hgxV⟩⟩⟩
+    exact ⟨this, ⟨h, ⟨hxU, hgxV⟩⟩⟩
   have : g '' t' ⊆ u := by calc g '' t'
     _ = g '' (t ∩ g ⁻¹' u) := by rw [h₁]
     _ ⊆ g '' t ∩ g '' (g ⁻¹' u) := by apply image_inter_subset
     _ ⊆ g '' t ∩ u := by gcongr; apply image_preimage_subset
     _ ⊆ u := by apply inter_subset_right
-  have : LipschitzOnWith Kf f (g '' t') := LipschitzOnWith.mono hfL this
   use Kf * Kg, t'
-  exact ⟨h₂, comp_lipschitzOnWith' this (LipschitzOnWith.mono hgL coe_subset)⟩
+  exact ⟨h₂, comp_lipschitzOnWith'
+    (LipschitzOnWith.mono hfL this) (LipschitzOnWith.mono hgL coe_subset)⟩
 
 /-- If `f` and `g` are locally Lipschitz, so is the induced map `f × g` to the product type. -/
 protected lemma prod {f : X → Y} (hf : LocallyLipschitz f) {g : X → Z} (hg : LocallyLipschitz g) :
