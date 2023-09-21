@@ -232,7 +232,8 @@ theorem sard {f : M → N} (hf : ContMDiff I J r f)
 
 /-- **Sard's theorem**: let $M$ and $N$ be real $C^r$ manifolds of dimensions $m$ and $n$,
 and $f:M→N$ a $C^r$ map. If $r>\max{0, m-n}$, the critical set is meagre. -/
-theorem sard' {f : M → N} (hf : ContMDiff I J r f)
+-- FIXME: do I really need N to be Hausdorff? For the local result, I don't...
+theorem sard' {f : M → N} (hf : ContMDiff I J r f) [T2Space N]
     {f' : ∀x, TangentSpace I x →L[ℝ] TangentSpace J (f x)} {s : Set M} (hs : IsClosed s)
     (hf' : ∀ x ∈ s, HasMFDerivWithinAt I J f s x (f' x))
     (h'f' : ∀ x ∈ s, ¬ Surjective (f' x)) : IsMeagre (f '' s) := by
