@@ -1,6 +1,7 @@
 import Sard.ToSubset
 import Mathlib.Analysis.Calculus.ContDiff
 import Mathlib.Topology.MetricSpace.Lipschitz
+import Mathlib.Topology.Basic
 
 /-!
 ## Locally Lipschitz functions
@@ -110,7 +111,6 @@ protected lemma comp  {f : Y → Z} {g : X → Y} (hf : LocallyLipschitz f) (hg 
   -- g is Lipschitz on t ∋ x, f is Lipschitz on u ∋ g(x)
   rcases hg x with ⟨Kg, t, ht, hgL⟩
   rcases hf (g x) with ⟨Kf, u, hu, hfL⟩
-
   -- idea: shrink u to g(t), then apply `comp_lipschitzOnWith'`
   -- more precisely: restrict g to t' := t ∩ g⁻¹(u); the preimage of u under g':=g∣t.
   let g' := t.restrict g
@@ -129,11 +129,20 @@ protected lemma comp  {f : Y → Z} {g : X → Y} (hf : LocallyLipschitz f) (hg 
       rcases hx with ⟨ht, hgu⟩
       -- as x ∈ t, we can write g(x)=g'(x); the rhs lies in u, so x ∈ g⁻¹(u) also
       sorry
-  have h₂ : t' ∈ 𝓝 x := by -- t' is a neighbourhood of x
+  have h₂ : t' ∈ 𝓝 x := by
     have : Continuous g' := LipschitzWith.continuous (LipschitzOnWith.to_restrict hgL)
-    -- have : g' ⁻¹' u ∈ 𝓝 x := sorry
-    -- t is a nbhd itself, so should work...
-    sorry
+    -- FIXME: the following is a tour de force; there must be a nicer proof
+    -- by ht, t contains an open subset U
+    rcases (Iff.mp (mem_nhds_iff) ht) with ⟨U, hUt, hUopen, hxU⟩
+    -- similarly, u contains an open subset V
+    rcases (Iff.mp (mem_nhds_iff) hu) with ⟨V, hVt, hVopen, hgxV⟩
+    -- by continuity, g⁻¹(u) contains the open subset g⁻¹(V)
+    have h: IsOpen (g ⁻¹' V) := by sorry -- lean unhappy about the mismatch g vs g' :-)
+    have : U ∩ (g ⁻¹' V) ⊆ t' := by sorry
+    -- now, U ∩ g⁻¹(V) is an open subset contained in t'
+    rw [mem_nhds_iff]
+    use U ∩ (g ⁻¹' V)
+    exact ⟨this, ⟨IsOpen.inter hUopen h, ⟨hxU, hgxV⟩⟩⟩
   have : g '' t' ⊆ u := by calc g '' t'
     _ = g '' (t ∩ g ⁻¹' u) := by rw [h₁]
     _ ⊆ g '' t ∩ g '' (g ⁻¹' u) := by apply image_inter_subset
