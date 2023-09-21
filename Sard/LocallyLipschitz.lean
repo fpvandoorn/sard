@@ -39,9 +39,8 @@ protected lemma id : LocallyLipschitz (@id X) := LocallyLipschitz.of_Lipschitz (
 protected lemma const (b : Y) : LocallyLipschitz (fun _ : X ↦ b) :=
   LocallyLipschitz.of_Lipschitz (LipschitzWith.const b)
 
--- XXX: can I adapt `continuousAt_of_locally_lipschitz` to use LocallyLipschitz.continuous?
-
-/-- A locally Lipschitz function is continuous. -/
+/-- A locally Lipschitz function is continuous.
+(The converse is false: for example, $x : ℝ≥0 ↦√x$ is continuous, but not locally Lipschitz at 0.) -/
 protected theorem continuous {f : X → Y} (hf : LocallyLipschitz f) : Continuous f := by
   apply Iff.mpr continuous_iff_continuousAt
   intro x
@@ -128,10 +127,6 @@ protected theorem prod_mk_left (a : X) : LocallyLipschitz (Prod.mk a : Y → X �
 
 protected theorem prod_mk_right (b : Y) : LocallyLipschitz (fun a : X => (a, b)) :=
   LocallyLipschitz.of_Lipschitz (LipschitzWith.prod_mk_right b)
-
--- TODO: investigate if this holds, and prove it if so.
-protected theorem uncurry {f : X → Y → Z} (hα : ∀ b, LocallyLipschitz fun a => f a b)
-    (hβ : ∀ a, LocallyLipschitz (f a)) : LocallyLipschitz (Function.uncurry f) := by sorry
 
 protected theorem iterate {f : X → X} (hf : LocallyLipschitz f) : ∀ n, LocallyLipschitz f^[n]
   | 0 => by simpa only [pow_zero] using LocallyLipschitz.id
