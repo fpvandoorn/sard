@@ -9,7 +9,7 @@ import Mathlib.Order.Filter.Basic
 Define locally Lipschitz functions and show their elementary properties.
 Show that C¹ functions are locally Lipschitz.
 -/
--- FIXME: move to a separate section of Lipschitz
+-- FIXME: move to a suitable section of `Lipschitz.lean`
 
 open Function NNReal Set Topology
 set_option autoImplicit false
@@ -74,10 +74,9 @@ protected lemma comp  {f : Y → Z} {g : X → Y}
     apply Iff.mpr (Subset.antisymm_iff)
     constructor
     · intro x hx
-      -- have : x ∈ t := coe_subset hx
       constructor
       · exact coe_subset hx
-      · -- have x ∈ t', so can apply g' (and land in u by definition), so g'(x)=g(x) ∈ u
+      · -- as x ∈ t', we can apply g' (and land in u by definition), so g'(x)=g(x) ∈ u
         sorry
     · intro x hx
       rcases hx with ⟨ht, hgu⟩
