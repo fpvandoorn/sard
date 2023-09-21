@@ -211,7 +211,7 @@ end Metric
 
 section EMetric
 namespace LocallyLipschitz
-variable [EMetricSpace X] [EMetricSpace Y] [EMetricSpace Z] {f g : X → ℝ}
+variable [MetricSpace X] [MetricSpace Y] [MetricSpace Z] {f g : X → ℝ}
 /-- The minimum of locally Lipschitz functions is locally Lipschitz. -/
 protected lemma min (hf : LocallyLipschitz f) (hg : LocallyLipschitz g) :
     LocallyLipschitz (fun x => min (f x) (g x)) := by
@@ -260,18 +260,26 @@ protected lemma sum {f g : X → Y} [NormedAddCommGroup Y] [NormedSpace ℝ Y]
       _ = (Kf + Kg) * edist y z := by ring
 
 /-- Multiplying a locally Lipschitz function by a constant remains locally Lipschitz. -/
-protected lemma scalarProduct {f : X → Y} [NormedAddCommGroup Y] [NormedSpace ℝ Y]
-    (hf : LocallyLipschitz f) {a : ℝ≥0} : LocallyLipschitz (fun x ↦ a • f x) := by
-  -- FIXME: allow any a, take the absolute value
+protected lemma smul {f : X → Y} [NormedAddCommGroup Y] [NormedSpace ℝ Y]
+    (hf : LocallyLipschitz f) {a : ℝ} : LocallyLipschitz (fun x ↦ a • f x) := by
   intro x
   rcases hf x with ⟨Kf, t, ht, hfL⟩
-  use a * Kf, t
+  let a' : ℝ≥0 := sorry -- want ↑‖a‖
+  use a' * Kf, t
   constructor
   · exact ht
-  · intro x hx y hy
-    calc edist (a • f x) (a • f y)
-      _ = a * edist (f x) (f y) := by sorry -- norm is multiplicative
-      _ ≤ a * Kf * edist x y := by sorry -- use hfL
-      _ ≤ ↑(a * Kf) * edist x y := by sorry --exact?
+  · have : ∀ x ∈ t, ∀ y ∈ t, dist (a • f x) (a • f y) ≤ (a' * Kf) * dist x y := by
+      intro x hx y hy
+      calc dist (a • f x) (a • f y) -- norm requires dist by definition
+        _ = ‖(a • (f x)) - (a • (f y))‖ := by apply dist_eq_norm
+        _ = ‖a • ((f x) - (f y))‖ := by rw [smul_sub]
+        _ = ‖a‖ * ‖(f x) - (f y)‖ := by rw [norm_smul]
+        _ = ‖a‖ * dist (f x) (f y) := by rw [← dist_eq_norm]
+        _ = ‖a‖ * dist (f x) (f y) := by rw [← @dist_smul₀]
+        _ ≤ ‖a‖ * Kf * dist x y := by sorry -- use hfL; that yields edist -> need to cast
+        _ ≤ a' * Kf * dist x y := by sorry -- use definition of a'
+        _ = (a' * Kf) * dist x y := by rfl
+    let asdf := LipschitzOnWith.of_dist_le' (K := (a' * Kf)) this
+    sorry -- *almost* there, except for some issue with casting
 end LocallyLipschitz
 end EMetric
