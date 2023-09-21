@@ -189,20 +189,32 @@ end Metric
 
 section EMetric
 namespace LocallyLipschitz
-variable [EMetricSpace X] [EMetricSpace Y] [EMetricSpace Z]
+variable [EMetricSpace X] [EMetricSpace Y] [EMetricSpace Z] {f g : X → ℝ}
 /-- The minimum of locally Lipschitz functions is locally Lipschitz. -/
-protected lemma min {f g : X → ℝ} (hf : LocallyLipschitz f) (hg : LocallyLipschitz g) :
+protected lemma min (hf : LocallyLipschitz f) (hg : LocallyLipschitz g) :
     LocallyLipschitz (fun x => min (f x) (g x)) := by
   let m : ℝ × ℝ → ℝ := fun p ↦ min p.1 p.2
   have h : LocallyLipschitz m := LocallyLipschitz.of_Lipschitz lipschitzWith_min
   exact LocallyLipschitz.comp h (LocallyLipschitz.prod hf hg)
 
 /-- The maximum of locally Lipschitz functions is locally Lipschitz. -/
-protected lemma max {f g : X → ℝ} (hf : LocallyLipschitz f) (hg : LocallyLipschitz g) :
+protected lemma max (hf : LocallyLipschitz f) (hg : LocallyLipschitz g) :
     LocallyLipschitz (fun x => max (f x) (g x)) := by
   let m : ℝ × ℝ → ℝ := fun p ↦ max p.1 p.2
   have h : LocallyLipschitz m := LocallyLipschitz.of_Lipschitz lipschitzWith_max
   exact LocallyLipschitz.comp h (LocallyLipschitz.prod hf hg)
+
+theorem max_const (hf : LocallyLipschitz f) (a : ℝ) : LocallyLipschitz fun x => max (f x) a :=
+  LocallyLipschitz.max hf (LocallyLipschitz.const a)
+
+theorem const_max (hf : LocallyLipschitz f) (a : ℝ) : LocallyLipschitz fun x => max a (f x) :=
+  LocallyLipschitz.max (LocallyLipschitz.const a) hf
+
+theorem min_const (hf : LocallyLipschitz f) (a : ℝ) : LocallyLipschitz fun x => min (f x) a :=
+  LocallyLipschitz.min hf (LocallyLipschitz.const a)
+
+theorem const_min (hf : LocallyLipschitz f) (a : ℝ) : LocallyLipschitz fun x => min a (f x) :=
+  LocallyLipschitz.min (LocallyLipschitz.const a) hf
 
 /-- The sum of locally Lipschitz functions is locally Lipschitz. -/
 protected lemma sum {f g : X → Y} [NormedAddCommGroup Y] [NormedSpace ℝ Y]
