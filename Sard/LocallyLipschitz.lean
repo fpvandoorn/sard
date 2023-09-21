@@ -107,20 +107,31 @@ theorem comp_lipschitzOnWith' {Kf Kg : ℝ≥0} {f : Y → Z} {g : X → Y} {s :
 protected lemma comp  {f : Y → Z} {g : X → Y} (hf : LocallyLipschitz f) (hg : LocallyLipschitz g) :
     LocallyLipschitz (f ∘ g) := by
   intro x
-  rcases hg x with ⟨Kg, t₁, ht₁, hgL⟩
-  -- g is Lipschitz on t, f is Lipschitz on u ∋ g(x)
+  -- g is Lipschitz on t ∋ x, f is Lipschitz on u ∋ g(x)
+  rcases hg x with ⟨Kg, t, ht, hgL⟩
   rcases hf (g x) with ⟨Kf, u, hu, hfL⟩
-  use Kf * Kg
-  -- Shrink u to g(t), then apply comp_lipschitzOnWith'.
-  let g' := t₁.restrict g
-  have : Continuous g' := LipschitzWith.continuous (LipschitzOnWith.to_restrict hgL)
-  -- Thus, t₂ := g' ⁻¹ (u) is a neighbourhood of x in s and f is Lipschitz on g(t₂).
-  let t₂ := g' ⁻¹' u -- equals t ∩ pg ⁻¹' (u) as a subset of t
-  have : t₂ = toSubset (t₁ ∩ (g ⁻¹' u)) t₁ := sorry
 
-  have h₁ : LipschitzOnWith Kg g t₂ := by sorry
-  have h₂ : LipschitzOnWith Kf f (g '' t₂) := sorry
-  sorry -- apply comp_lipschitzOnWith' h₁ h₂
+  -- idea: shrink u to g(t), then apply `comp_lipschitzOnWith'`
+  -- more precisely: restrict g to t' := t ∩ g⁻¹(u); the preimage of u under g':=g∣t.
+  let g' := t.restrict g
+  --have h : LipschitzWith Kg g' := LipschitzOnWith.to_restrict hgL
+  -- let t' be the preimage of u under g', **as a subset of X**
+  let t' : Set X := ↑(g' ⁻¹' u)
+  -- by inspection, observe t' = t ∩ g⁻¹(u)
+  have h₁ : t' = t ∩ g ⁻¹' u := by sorry
+  --have h₂ : t' ⊆ t := by exact coe_subset
+  -- t' is a neighbourhood of x
+  have h₂ : t' ∈ 𝓝 x := sorry  -- postpone
+  have : g '' t' ⊆ u := by calc g '' t'
+      _ = g '' (t ∩ g ⁻¹' u) := by rw [h₁]
+      _ ⊆ g '' t ∩ g '' (g ⁻¹' u) := by apply image_inter_subset
+      _ ⊆ g '' t ∩ u := by gcongr; apply image_preimage_subset
+      _ ⊆ u := by exact inter_subset_right (g '' t) u
+  -- now, f is Lipschitz on u' := g '' t'
+  have : LipschitzOnWith Kf f (g '' t') := by exact LipschitzOnWith.mono hfL this
+
+  use Kf * Kg, t'
+  exact ⟨h₂, comp_lipschitzOnWith' this (LipschitzOnWith.mono hgL coe_subset)⟩
 
 /-- If `f` and `g` are locally Lipschitz, so is the induced map `f × g` to the product type. -/
 protected lemma prod {f : X → Y} (hf : LocallyLipschitz f) {g : X → Z} (hg : LocallyLipschitz g) :
