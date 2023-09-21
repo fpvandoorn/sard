@@ -144,24 +144,8 @@ end LocallyLipschitz
 end EMetric
 
 section Metric
-variable [MetricSpace X] [MetricSpace Y] [MetricSpace Z] -- xxx: pseudometric spaces also?
+variable [MetricSpace X] [MetricSpace Y] [MetricSpace Z]
 namespace LocallyLipschitz
--- XXX. do these results transfer to locally Lipschitz maps?
--- /-- A Lipschitz continuous map is a locally bounded map. -/
--- def toLocallyBoundedMap (f : α → β) (hf : LipschitzWith K f) : LocallyBoundedMap α β :=
---   LocallyBoundedMap.ofMapBounded f fun _s hs =>
---     let ⟨C, hC⟩ := Metric.isBounded_iff.1 hs
---     Metric.isBounded_iff.2 ⟨K * C, ball_image_iff.2 fun _x hx => ball_image_iff.2 fun _y hy =>
---       hf.dist_le_mul_of_le (hC hx hy)⟩
-
--- @[simp]
--- theorem coe_toLocallyBoundedMap (hf : LipschitzWith K f) : ⇑(hf.toLocallyBoundedMap f) = f :=
---   rfl
-
--- theorem comap_cobounded_le (hf : LipschitzWith K f) :
---     comap f (Bornology.cobounded β) ≤ Bornology.cobounded α :=
---   (hf.toLocallyBoundedMap f).2
-
 /-- `toSubset` is compatible with the neighbourhood filter. -/
 protected lemma ToSubset.compatible_with_nhds (s t : Set X) {x : s} (ht : t ∈ 𝓝 ↑x) : toSubset t s ∈ 𝓝 x := by sorry
 
