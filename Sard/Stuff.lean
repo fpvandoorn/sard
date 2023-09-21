@@ -51,7 +51,9 @@ lemma image_null_of_C1_of_null {f : E → F} {U : Set E} (hU : IsOpen U) (hf : C
   -- Since f is C¹, it's locally Lipschitz on U and we can apply the previous lemma.
   rw [h₁] at h₂s
   have : μH[m] (f '' s) = 0 := by
-    apply locally_lipschitz_image_of_null_set_is_null_set_open (of_C1_on_open hU hf) h₁s h₂s
+    -- TODO: split U into convex subsets, e.g. open balls
+    have scifi : Convex ℝ U := sorry
+    apply locally_lipschitz_image_of_null_set_is_null_set_open (of_C1_on_open hU scifi hf) h₁s h₂s
   rw [h₂, ← hd]
   exact this
 

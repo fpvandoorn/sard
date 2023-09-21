@@ -79,20 +79,19 @@ protected lemma of_C1 {E F: Type*} {f : E → F} [NormedAddCommGroup E] [NormedS
   rcases (ContDiffAt.exists_lipschitzOnWith (ContDiff.contDiffAt hf)) with ⟨K, t, ht, hf⟩
   use K, t
 
-/-- A C¹ function on an open set is locally Lipschitz. -/
+/-- If `f` is C¹ on an open convex set `U`, the restriction of `f` to `U` is locally Lipschitz. -/
 -- TODO: move to ContDiffOn.lean!
 lemma of_C1_on_open {E F: Type*} {f : E → F} [NormedAddCommGroup E] [NormedSpace ℝ E]
-    [NormedAddCommGroup F] [NormedSpace ℝ F] {U : Set E} (hU: IsOpen U) (hf : ContDiffOn ℝ 1 f U) :
-  LocallyLipschitz (U.restrict f) := by
+    [NormedAddCommGroup F] [NormedSpace ℝ F] {U : Set E} (h₁U : IsOpen U) (h₂U : Convex ℝ U)
+    (hf : ContDiffOn ℝ 1 f U) : LocallyLipschitz (U.restrict f) := by
   intro x
   have : ContDiffWithinAt ℝ 1 f U x := ContDiffOn.contDiffWithinAt hf (Subtype.mem x)
   let h := ContDiffWithinAt.exists_lipschitzOnWith this
-  have : Convex ℝ U := sorry -- pretend U is convex, say by restriction
-  rcases (h this) with ⟨K, t, ht, hf⟩
+  rcases (h h₂U) with ⟨K, t, ht, hf⟩
   -- t is a neighbourhood of x "within U", i.e. contains the intersection of U with some nbhd a of x
   -- intersect with U to obtain a neighbourhood contained in U
   use K, toSubset t U
-  exact ⟨LocallyLipschitz.restrict_aux1b t U hU ht, LocallyLipschitz.restrict_aux2 U t hf⟩
+  exact ⟨LocallyLipschitz.restrict_aux1b t U h₁U ht, LocallyLipschitz.restrict_aux2 U t hf⟩
 
 -- tweaked version of the result in mathlib, weaker hypotheses -- not just restricting the domain,
 -- but also weakening the assumption on the codomain
