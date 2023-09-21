@@ -110,7 +110,17 @@ protected lemma comp  {f : Y → Z} {g : X → Y} (hf : LocallyLipschitz f) (hg 
   rcases hg x with ⟨Kg, t₁, ht₁, hgL⟩
   -- g is Lipschitz on t, f is Lipschitz on u ∋ g(x)
   rcases hf (g x) with ⟨Kf, u, hu, hfL⟩
-  sorry -- proof incubated on mathlib branch...
+  use Kf * Kg
+  -- Shrink u to g(t), then apply comp_lipschitzOnWith'.
+  let g' := t₁.restrict g
+  have : Continuous g' := LipschitzWith.continuous (LipschitzOnWith.to_restrict hgL)
+  -- Thus, t₂ := g' ⁻¹ (u) is a neighbourhood of x in s and f is Lipschitz on g(t₂).
+  let t₂ := g' ⁻¹' u -- equals t ∩ pg ⁻¹' (u) as a subset of t
+  have : t₂ = toSubset (t₁ ∩ (g ⁻¹' u)) t₁ := sorry
+
+  have h₁ : LipschitzOnWith Kg g t₂ := by sorry
+  have h₂ : LipschitzOnWith Kf f (g '' t₂) := sorry
+  sorry -- apply comp_lipschitzOnWith' h₁ h₂
 
 /-- If `f` and `g` are locally Lipschitz, so is the induced map `f × g` to the product type. -/
 protected lemma prod {f : X → Y} (hf : LocallyLipschitz f) {g : X → Z} (hg : LocallyLipschitz g) :
@@ -145,16 +155,22 @@ protected lemma sum {f g : X → Y} [NormedAddCommGroup Y] [NormedSpace ℝ Y]
   intro x
   rcases hf x with ⟨Kf, t₁, h₁t, hfL⟩
   rcases hg x with ⟨Kg, t₂, h₂t, hgL⟩
-  use Kf + Kg
-  use t₁ ∩ t₂
+  use Kf + Kg, t₁ ∩ t₂
   have hf' : LipschitzOnWith Kf f (t₁ ∩ t₂) := LipschitzOnWith.mono hfL (Set.inter_subset_left t₁ t₂)
   have hg' : LipschitzOnWith Kg g (t₁ ∩ t₂) := LipschitzOnWith.mono hgL (Set.inter_subset_right t₁ t₂)
   constructor
   · exact Filter.inter_mem h₁t h₂t
   · intro y hy z hz
+    -- FIXME. This can surely be golfed!
     simp only [Pi.add_apply, ENNReal.coe_add]
-    sorry
+    calc edist (f y + g y) (f z + g z)
+      _ ≤ edist (f y + g y) (g y + f z) + edist (g y + f z) (f z + g z) := by apply edist_triangle
+      -- Y is normed, hence the distance is translation-invariant
+      _ ≤ edist (f y) (f z) + edist (g y) (g z) := by sorry
+      _ ≤ Kf * edist y z + Kg * edist y z := add_le_add (hf' hy hz) (hg' hy hz)
+      _ = (Kf + Kg) * edist y z := by ring
 
+lemma lipschitzWith_max'' : LipschitzWith 1 fun p : ℝ × ℝ => max p.1 p.2 := sorry
 
 /-- The minimum of locally Lipschitz functions is locally Lipschitz. -/
 protected lemma min {f g : X → ℝ} (hf : LocallyLipschitz f) (hg : LocallyLipschitz g) :
@@ -162,14 +178,24 @@ protected lemma min {f g : X → ℝ} (hf : LocallyLipschitz f) (hg : LocallyLip
   intro x
   rcases hf x with ⟨Kf, t₁, h₁t, hfL⟩
   rcases hg x with ⟨Kg, t₂, h₂t, hgL⟩
-  use max Kf Kg
-  use t₁ ∩ t₂
-  sorry
+  use max Kf Kg, t₁ ∩ t₂
+  sorry -- waiting for a somewhat elegant proof
 
 /-- The maximum of locally Lipschitz functions is locally Lipschitz. -/
 protected lemma max {f g : X → ℝ} (hf : LocallyLipschitz f) (hg : LocallyLipschitz g) :
-    LocallyLipschitz (fun x => max (f x) (g x)) := by sorry
+    LocallyLipschitz (fun x => max (f x) (g x)) := by sorry -- analogous to min
 
 /-- Multiplying a locally Lipschitz function by a constant remains locally Lipschitz. -/
-protected lemma scalarProduct {f : X → Y} [NormedAddCommGroup Y] [NormedSpace ℝ Y] (hf : LocallyLipschitz f) {a : ℝ} :
-    LocallyLipschitz (fun x ↦ a • f x) := by sorry
+protected lemma scalarProduct {f : X → Y} [NormedAddCommGroup Y] [NormedSpace ℝ Y]
+    (hf : LocallyLipschitz f) {a : NNReal} : LocallyLipschitz (fun x ↦ a • f x) := by
+  -- FIXME: allow any a, take the absolute value
+  intro x
+  rcases hf x with ⟨Kf, t, ht, hfL⟩
+  use a * Kf, t
+  constructor
+  · exact ht
+  · intro x hx y hy
+    calc edist (a • f x) (a • f y)
+      _ = a * edist (f x) (f y) := by sorry -- norm is multiplicative
+      _ ≤ a * Kf * edist x y := by sorry -- use hfL
+      _ ≤ ↑(a * Kf) * edist x y := by sorry --exact?
