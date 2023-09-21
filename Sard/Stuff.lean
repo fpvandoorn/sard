@@ -191,8 +191,7 @@ theorem sard_local' {s w : Set E} {f : E → F} (hw : IsOpen w) (hs : IsClosed s
     (h'f' : ∀ x ∈ s, ¬ Surjective (f' x)) : IsMeagre (f '' s) := by
   -- The critical set of `f` is closed: enlarge `s` if needed.
   -- Hence, it's σ-compact, and thus is the set of critical values.
-  have h₁: IsSigmaCompact s :=
-    SigmaCompact_of_isClosed_subset isSigmaCompact_univ hs (subset_univ s)
+  have h₁: IsSigmaCompact s := isSigmaCompact_univ.of_isClosed_subset hs (subset_univ s)
   have : IsSigmaCompact (f '' s) := by
     let g := w.restrict f
     have : f '' s = g '' (toSubset s w) := by
@@ -202,7 +201,7 @@ theorem sard_local' {s w : Set E} {f : E → F} (hw : IsOpen w) (hs : IsClosed s
         _ = g '' (toSubset s w) := by rw [(toSubset_aux1 f hsw)]
     rw [this]
     have : IsSigmaCompact (toSubset s w) := toSubset_aux2 hsw h₁ (X := E) (Y := F)
-    exact SigmaCompact_image (ContinuousOn.restrict (ContDiffOn.continuousOn hf)) this
+    exact this.image (ContinuousOn.restrict (ContDiffOn.continuousOn hf))
 
   obtain ⟨K''⟩ : Nonempty (PositiveCompacts F) := PositiveCompacts.nonempty'
   let μ : Measure F := addHaarMeasure K''
@@ -242,9 +241,8 @@ theorem sard' {f : M → N} (hf : ContMDiff I J r f) [T2Space N]
   have : SigmaCompactSpace M := by
     have : LocallyCompactSpace M := by sorry -- infer_instance
     exact sigmaCompactSpace_of_locally_compact_second_countable
-  have : IsSigmaCompact s :=
-    SigmaCompact_of_isClosed_subset isSigmaCompact_univ hs (subset_univ s)
-  have : IsSigmaCompact (f '' s) := SigmaCompact_image (ContMDiff.continuous hf) this
+  have : IsSigmaCompact s := isSigmaCompact_univ.of_isClosed_subset hs (subset_univ s)
+  have : IsSigmaCompact (f '' s) := this.image (ContMDiff.continuous hf)
   exact MeasureZero.meagre_if_sigma_compact J (sard _ hf hf' h'f') this
 
 -- Corollary. The set of regular values is residual and therefore dense.

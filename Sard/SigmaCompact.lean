@@ -35,17 +35,17 @@ lemma isSigmaCompact_univ [h : SigmaCompactSpace X] : IsSigmaCompact (univ : Set
   Iff.mpr isSigmaCompact_univ_iff h
 
 /-- If `s` is σ-compact and `f` continuous, `f(A)` is σ-compact. -/
-lemma SigmaCompact_image {f : X → Y} (hf : Continuous f) {s : Set X} (hs : IsSigmaCompact s) :
+lemma IsSigmaCompact.image {f : X → Y} (hf : Continuous f) {s : Set X} (hs : IsSigmaCompact s) :
     IsSigmaCompact (f '' s) := by
   rcases hs with ⟨K, hcompact, hcov⟩
   use (fun n ↦ f '' (K n))
   exact ⟨fun n ↦ IsCompact.image (hcompact n) hf, by rw [← hcov, image_iUnion]⟩
 
 /-- If `X` is σ-compact, `im f` is σ-compact. -/
-lemma SigmaCompact_image' {f : X → Y} (hf : Continuous f) [i : SigmaCompactSpace X] :
+lemma isSigmaCompact_range {f : X → Y} (hf : Continuous f) [i : SigmaCompactSpace X] :
     IsSigmaCompact (range f) := by
   rw [← image_univ]
-  apply SigmaCompact_image hf (Iff.mpr isSigmaCompact_univ_iff i)
+  apply IsSigmaCompact.image hf (Iff.mpr isSigmaCompact_univ_iff i)
 
 /-- If `f : X → Y` is an `Embedding`, the image `f '' s` of a set `s` is σ-compact
 if and only `s`` is σ-compact. -/
@@ -54,7 +54,7 @@ lemma Embedding.isSigmaCompact_iff_isSigmaCompact_image {f : X → Y} {s : Set X
     IsSigmaCompact s ↔ IsSigmaCompact (f '' s) := by
   constructor
   · intro h
-    apply SigmaCompact_image (continuous hf) h
+    apply h.image (continuous hf)
   · rintro ⟨K, hcompact, hcov⟩
     use (fun n ↦ f ⁻¹' (K n))
     constructor
@@ -88,7 +88,7 @@ lemma isSigmaCompact_iff_sigmaCompactSpace {s : Set X} :
   isSigmaCompact_iff_isSigmaCompact_univ.trans isSigmaCompact_univ_iff
 
 /-- Compact sets are σ-compact. -/
-lemma SigmaCompact_of_compact {s : Set X} (hs : IsCompact s) : IsSigmaCompact s := by
+lemma isSigmaCompact_of_compact {s : Set X} (hs : IsCompact s) : IsSigmaCompact s := by
   -- proof 1: show by hand
   -- use fun _ => s
   -- exact ⟨fun _ => hs, iUnion_const _⟩
@@ -98,7 +98,7 @@ lemma SigmaCompact_of_compact {s : Set X} (hs : IsCompact s) : IsSigmaCompact s 
   exact CompactSpace.sigma_compact
 
 /-- Countable unions of compact sets are σ-compact. -/
-lemma SigmaCompact_of_countable_compact (S : Set (Set X)) (hc : Set.Countable S) (hcomp : ∀ (s : Set X), s ∈ S → IsCompact s) :
+lemma isSigmaCompact_of_countable_compact (S : Set (Set X)) (hc : Set.Countable S) (hcomp : ∀ (s : Set X), s ∈ S → IsCompact s) :
   IsSigmaCompact (⋃₀ S) := by
   -- easy "in principle": S is countable, so get a bijection, that yields the covering
   have h : ∃ t : Set X, IsCompact t := by sorry -- pick one element S; if empty, we're good
@@ -113,11 +113,11 @@ lemma SigmaCompact_of_countable_compact (S : Set (Set X)) (hc : Set.Countable S)
   sorry
 
 /-- Countable unions of σ-compact sets are σ-compact. -/
-lemma SigmaCompact_of_countable_sigma_compact (S : Set (Set X)) (hc : Countable S) (hcomp : ∀ (s : Set X), s ∈ S → IsSigmaCompact s) :
+lemma isSigmaCompact_of_countable_sigma_compact (S : Set (Set X)) (hc : Countable S) (hcomp : ∀ (s : Set X), s ∈ S → IsSigmaCompact s) :
   IsSigmaCompact (⋃₀ S) := by sorry -- TODO: renumbering the sequences, how?
 
 -- A closed subset of a σ-compact set is σ-compact.
-lemma SigmaCompact_of_isClosed_subset {s t : Set X} (ht : IsSigmaCompact t)
+lemma IsSigmaCompact.of_isClosed_subset {s t : Set X} (ht : IsSigmaCompact t)
     (hs : IsClosed s) (h : s ⊆ t) : IsSigmaCompact s := by
   rcases ht with ⟨K, hcompact, hcov⟩
   use (fun n ↦ s ∩ (K n))

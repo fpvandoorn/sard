@@ -112,14 +112,12 @@ protected lemma open_implies_empty {s : Set M} (h₁s : IsOpen s) (h₂s : Measu
     obtain ⟨x, hx⟩ : Set.Nonempty s := Iff.mp nmem_singleton_empty h
     specialize this (chartAt H x) (chart_mem_atlas H x)
     have h₂: x ∈ (chartAt H x).toLocalEquiv.source ∩ s := by
-      constructor
       simp
       exact hx
     rw [this] at h₂
     contradiction
 
   intro e he
-  simp [MeasureZero] at h₂s
   -- choose any Haar measure μ
   obtain ⟨K''⟩ : Nonempty (PositiveCompacts E) := PositiveCompacts.nonempty'
   let μ : Measure E := addHaarMeasure K''
@@ -135,20 +133,17 @@ protected lemma open_implies_empty {s : Set M} (h₁s : IsOpen s) (h₂s : Measu
         exact h₁s
     have : IsOpen (I ∘ e '' (e.source ∩ s)) := by
       rw [Set.image_comp]
-      apply I.toHomeomorph.isOpenMap
-      apply this
+      apply I.toHomeomorph.isOpenMap _ this
     rwa [this.interior_eq]
-  apply (measure_pos_of_nonempty_interior (μ := μ) h').ne'
-  exact h₂s
+  apply (measure_pos_of_nonempty_interior (μ := μ) h').ne' h₂s
 
 /-- A subset of a manifold `M` with measure zero has empty interior.
 
 In particular, a *closed* measure zero subset of M is nowhere dense.
 (Closedness is required: there are generalised Cantor sets of positive Lebesgue measure.) -/
 protected lemma MeasureZero_implies_empty_interior {s : Set M}
-    (h₂s : MeasureZero I s) : interior s = ∅ := by
-  have : MeasureZero I (interior s) := h₂s.mono interior_subset
-  apply MeasureZero.open_implies_empty isOpen_interior this
+    (h₂s : MeasureZero I s) : interior s = ∅ :=
+  (h₂s.mono interior_subset).open_implies_empty isOpen_interior
 end MeasureZero
 
 ---------------------------------------------------------
@@ -191,7 +186,7 @@ lemma measure_zero_image_iff_chart_domains {f : M → N} {s : Set M}
     let e : LocalHomeomorph M H := ChartedSpace.chartAt i
     have h : MeasureZero J (f '' (e.source ∩ s)) := hs e (chart_mem_atlas H _)
     have h₃ : U i = e.source := by rw [← Filter.principal_eq_iff_eq]
-    apply MeasureZero.mono _ h
+    apply h.mono _
     apply image_subset
     rw [h₃]
   -- The countable union of measure zero sets has measure zero.
@@ -205,8 +200,7 @@ lemma measure_zero_image_iff_chart_domains {f : M → N} {s : Set M}
       _ = f '' s := by rw [univ_inter]
   rw [← decomp]
   have todo : Encodable T := by sorry --infer_instance
-  apply MeasureZero.iUnion (ι := T)
-  exact this
+  apply MeasureZero.iUnion (ι := T) this
 
 /-- A closed measure zero set is nowhere dense. -/
 lemma MeasureZero.closed_implies_nowhere_dense {s : Set N} (h₁ : MeasureZero J s)
@@ -231,6 +225,6 @@ lemma meagre_if_sigma_compact [T2Space N] {s : Set N} (h₁s : MeasureZero J s) 
   have : K n ⊆ s := by
     rw [← hcover]
     exact subset_iUnion K n
-  have h : MeasureZero J (K n) := MeasureZero.mono this h₁s
+  have h : MeasureZero J (K n) := h₁s.mono this
   exact MeasureZero.closed_implies_nowhere_dense J h (IsCompact.isClosed (hcompact n))
 end MeasureZero
