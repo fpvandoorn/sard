@@ -198,20 +198,27 @@ protected lemma sum {f g : X → Y} [NormedAddCommGroup Y] [NormedSpace ℝ Y]
       _ ≤ Kf * edist y z + Kg * edist y z := add_le_add (hf' hy hz) (hg' hy hz)
       _ = (Kf + Kg) * edist y z := by ring
 
-lemma lipschitzWith_max'' : LipschitzWith 1 fun p : ℝ × ℝ => max p.1 p.2 := sorry
-
 /-- The minimum of locally Lipschitz functions is locally Lipschitz. -/
 protected lemma min {f g : X → ℝ} (hf : LocallyLipschitz f) (hg : LocallyLipschitz g) :
     LocallyLipschitz (fun x => min (f x) (g x)) := by
-  intro x
-  rcases hf x with ⟨Kf, t₁, h₁t, hfL⟩
-  rcases hg x with ⟨Kg, t₂, h₂t, hgL⟩
-  use max Kf Kg, t₁ ∩ t₂
-  sorry -- waiting for a somewhat elegant proof
+  let m : ℝ × ℝ → ℝ := fun p ↦ min p.1 p.2
+  have : (fun x => min (f x) (g x)) = m ∘ (fun x ↦ ⟨f x, g x⟩) := by ext; dsimp
+  have h : LocallyLipschitz m := by
+    apply LocallyLipschitz.of_Lipschitz
+    use 1
+    exact lipschitzWith_min
+  exact LocallyLipschitz.comp h (LocallyLipschitz.prod hf hg)
 
 /-- The maximum of locally Lipschitz functions is locally Lipschitz. -/
 protected lemma max {f g : X → ℝ} (hf : LocallyLipschitz f) (hg : LocallyLipschitz g) :
-    LocallyLipschitz (fun x => max (f x) (g x)) := by sorry -- analogous to min
+    LocallyLipschitz (fun x => max (f x) (g x)) := by
+  let m : ℝ × ℝ → ℝ := fun p ↦ max p.1 p.2
+  have : (fun x => max (f x) (g x)) = m ∘ (fun x ↦ ⟨f x, g x⟩) := by ext; dsimp
+  have h : LocallyLipschitz m := by
+    apply LocallyLipschitz.of_Lipschitz
+    use 1
+    exact lipschitzWith_max
+  exact LocallyLipschitz.comp h (LocallyLipschitz.prod hf hg)
 
 /-- Multiplying a locally Lipschitz function by a constant remains locally Lipschitz. -/
 protected lemma scalarProduct {f : X → Y} [NormedAddCommGroup Y] [NormedSpace ℝ Y]
