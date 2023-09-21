@@ -13,15 +13,15 @@ Show that C¹ functions are locally Lipschitz.
 open NNReal Set Topology
 set_option autoImplicit false
 
-namespace LocallyLipschitz
 variable {X Y Z: Type*} [MetricSpace X] [MetricSpace Y] [MetricSpace Z]
 
 /-- `f : X → Y` is **locally Lipschitz** iff every point `p ∈ X` has a neighourhood
 on which `f` is Lipschitz. -/
 def LocallyLipschitz (f : X → Y) : Prop := ∀ x : X, ∃ K, ∃ t ∈ 𝓝 x, LipschitzOnWith K f t
 
+namespace LocallyLipschitz
 /-- A Lipschitz function is locally Lipschitz. -/
-protected lemma of_Lipschitz {f : X → Y} {K : NNReal} (hf : LipschitzWith K f) : LocallyLipschitz f := by
+protected lemma of_Lipschitz {f : X → Y} {K : ℝ≥0} (hf : LipschitzWith K f) : LocallyLipschitz f := by
   intro x
   use K, univ
   rw [lipschitzOn_univ]
@@ -59,9 +59,10 @@ protected lemma ToSubset.compatible_with_nhds_within (t U: Set X) {x : U} (hU : 
   apply ToSubset.compatible_with_nhds
   exact Filter.mem_of_superset this (inter_subset_left t U)
 
--- XXX. find a better name
-protected lemma LipschitzOnWith.restrict_both {f : X → Y} {K : ℝ≥0} (s t : Set X) (hf : LipschitzOnWith K f t) :
-    LipschitzOnWith K (restrict s f) (toSubset t s) := fun _ hx _ hy ↦ hf hx hy
+/- Restrictions of Lipschitz functions is compatible with taking subtypes. -/
+protected lemma LipschitzOnWith.restrict_subtype {f : X → Y} {K : ℝ≥0} (s t : Set X)
+    (hf : LipschitzOnWith K f t) : LipschitzOnWith K (restrict s f) (toSubset t s) :=
+  fun _ hx _ hy ↦ hf hx hy
 
 /-- Restrictions of locally Lipschitz functions are locally Lipschitz. -/
 protected lemma restrict {f : X → Y} (hf : LocallyLipschitz f) (s : Set X) :
@@ -70,7 +71,7 @@ protected lemma restrict {f : X → Y} (hf : LocallyLipschitz f) (s : Set X) :
   rcases hf x with ⟨K, t, ht, hfL⟩
   -- Consider t' := t ∩ s as a neighbourhood of x *in s*.
   use K, toSubset t s
-  exact ⟨ToSubset.compatible_with_nhds s t ht, LipschitzOnWith.restrict_both s t hfL⟩
+  exact ⟨ToSubset.compatible_with_nhds s t ht, LipschitzOnWith.restrict_subtype s t hfL⟩
 
 /-- C¹ functions are locally Lipschitz. -/
 -- TODO: move to ContDiff.lean!
@@ -92,7 +93,7 @@ lemma of_C1_on_open {E F: Type*} {f : E → F} [NormedAddCommGroup E] [NormedSpa
   -- `t` is a neighbourhood of x "within U", i.e. contains the intersection of U with some nbhd a of x.
   -- Intersect with `U` to obtain a neighbourhood contained in `U`.
   use K, toSubset t U
-  exact ⟨ToSubset.compatible_with_nhds_within t U h₁U ht, LipschitzOnWith.restrict_both U t hf⟩
+  exact ⟨ToSubset.compatible_with_nhds_within t U h₁U ht, LipschitzOnWith.restrict_subtype U t hf⟩
 
 -- tweaked version of the result in mathlib, weaker hypotheses -- not just restricting the domain,
 -- but also weakening the assumption on the codomain
@@ -121,7 +122,7 @@ protected lemma comp  {f : Y → Z} {g : X → Y}
     apply Iff.mpr (Subset.antisymm_iff)
     constructor
     · intro x hx
-      have : x ∈ t := coe_subset hx
+      -- have : x ∈ t := coe_subset hx
       constructor
       · exact coe_subset hx
       · -- have x ∈ t', so can apply g' (and land in u by definition), so g'(x)=g(x) ∈ u
@@ -200,7 +201,6 @@ protected lemma sum {f g : X → Y} [NormedAddCommGroup Y] [NormedSpace ℝ Y]
 protected lemma min {f g : X → ℝ} (hf : LocallyLipschitz f) (hg : LocallyLipschitz g) :
     LocallyLipschitz (fun x => min (f x) (g x)) := by
   let m : ℝ × ℝ → ℝ := fun p ↦ min p.1 p.2
-  have : (fun x => min (f x) (g x)) = m ∘ (fun x ↦ ⟨f x, g x⟩) := by ext; dsimp
   have h : LocallyLipschitz m := LocallyLipschitz.of_Lipschitz lipschitzWith_min
   exact LocallyLipschitz.comp h (LocallyLipschitz.prod hf hg)
 
@@ -208,13 +208,12 @@ protected lemma min {f g : X → ℝ} (hf : LocallyLipschitz f) (hg : LocallyLip
 protected lemma max {f g : X → ℝ} (hf : LocallyLipschitz f) (hg : LocallyLipschitz g) :
     LocallyLipschitz (fun x => max (f x) (g x)) := by
   let m : ℝ × ℝ → ℝ := fun p ↦ max p.1 p.2
-  have : (fun x => max (f x) (g x)) = m ∘ (fun x ↦ ⟨f x, g x⟩) := by ext; dsimp
   have h : LocallyLipschitz m := LocallyLipschitz.of_Lipschitz lipschitzWith_max
   exact LocallyLipschitz.comp h (LocallyLipschitz.prod hf hg)
 
 /-- Multiplying a locally Lipschitz function by a constant remains locally Lipschitz. -/
 protected lemma scalarProduct {f : X → Y} [NormedAddCommGroup Y] [NormedSpace ℝ Y]
-    (hf : LocallyLipschitz f) {a : NNReal} : LocallyLipschitz (fun x ↦ a • f x) := by
+    (hf : LocallyLipschitz f) {a : ℝ≥0} : LocallyLipschitz (fun x ↦ a • f x) := by
   -- FIXME: allow any a, take the absolute value
   intro x
   rcases hf x with ⟨Kf, t, ht, hfL⟩
