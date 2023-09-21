@@ -21,24 +21,18 @@ on which `f` is Lipschitz. -/
 def LocallyLipschitz (f : X → Y) : Prop := ∀ x : X, ∃ K, ∃ t ∈ 𝓝 x, LipschitzOnWith K f t
 
 /-- A Lipschitz function is locally Lipschitz. -/
-protected lemma of_Lipschitz {f : X → Y} (hf : ∃ K, LipschitzWith K f) : LocallyLipschitz f := by
+protected lemma of_Lipschitz {f : X → Y} {K : NNReal} (hf : LipschitzWith K f) : LocallyLipschitz f := by
   intro x
-  obtain ⟨K, hK⟩ := hf
   use K, univ
   rw [lipschitzOn_univ]
-  exact ⟨Filter.univ_mem, hK⟩
+  exact ⟨Filter.univ_mem, hf⟩
 
 /-- The identity function is locally Lipschitz. -/
-protected lemma id : LocallyLipschitz (@id X) := by
-  apply LocallyLipschitz.of_Lipschitz
-  use 1
-  exact LipschitzWith.id
+protected lemma id : LocallyLipschitz (@id X) := LocallyLipschitz.of_Lipschitz (LipschitzWith.id)
 
 /-- Constant functions are locally Lipschitz. -/
-protected lemma const (b : Y) : LocallyLipschitz (fun _ : X ↦ b) := by
-  apply LocallyLipschitz.of_Lipschitz
-  use 0
-  exact LipschitzWith.const b
+protected lemma const (b : Y) : LocallyLipschitz (fun _ : X ↦ b) :=
+  LocallyLipschitz.of_Lipschitz (LipschitzWith.const b)
 
 protected lemma restrict_aux1 (s t : Set X) {x : s} (ht : t ∈ 𝓝 ↑x) : toSubset t s ∈ 𝓝 x := by sorry
 
@@ -96,7 +90,8 @@ lemma of_C1_on_open {E F: Type*} {f : E → F} [NormedAddCommGroup E] [NormedSpa
 -- tweaked version of the result in mathlib, weaker hypotheses -- not just restricting the domain,
 -- but also weakening the assumption on the codomain
 theorem comp_lipschitzOnWith' {Kf Kg : ℝ≥0} {f : Y → Z} {g : X → Y} {s : Set X}
-    (hf : LipschitzOnWith Kf f (g '' s)) (hg : LipschitzOnWith Kg g s) : LipschitzOnWith (Kf * Kg) (f ∘ g) s := by
+    (hf : LipschitzOnWith Kf f (g '' s)) (hg : LipschitzOnWith Kg g s) :
+    LipschitzOnWith (Kf * Kg) (f ∘ g) s := by
   intro x hx y hy
   calc edist ((f ∘ g) x) ((f ∘ g) y)
     _ ≤ Kf * edist (g x) (g y) := hf (mem_image_of_mem g hx) (mem_image_of_mem g hy)
@@ -104,8 +99,8 @@ theorem comp_lipschitzOnWith' {Kf Kg : ℝ≥0} {f : Y → Z} {g : X → Y} {s :
     _ = ↑(Kf * Kg) * edist x y := by rw [← mul_assoc, ENNReal.coe_mul]
 
 /-- The composition of locally Lipschitz functions is locally Lipschitz. --/
-protected lemma comp  {f : Y → Z} {g : X → Y} (hf : LocallyLipschitz f) (hg : LocallyLipschitz g) :
-    LocallyLipschitz (f ∘ g) := by
+protected lemma comp  {f : Y → Z} {g : X → Y}
+    (hf : LocallyLipschitz f) (hg : LocallyLipschitz g) : LocallyLipschitz (f ∘ g) := by
   intro x
   -- g is Lipschitz on t ∋ x, f is Lipschitz on u ∋ g(x)
   rcases hg x with ⟨Kg, t, ht, hgL⟩
@@ -167,15 +162,11 @@ protected lemma prod {f : X → Y} (hf : LocallyLipschitz f) {g : X → Z} (hg :
     rw [ENNReal.coe_mono.map_max, Prod.edist_eq, ENNReal.max_mul]
     exact max_le_max h₁ h₂
 
-protected theorem prod_mk_left (a : X) : LocallyLipschitz (Prod.mk a : Y → X × Y) := by
-  apply LocallyLipschitz.of_Lipschitz
-  use 1
-  apply LipschitzWith.prod_mk_left
+protected theorem prod_mk_left (a : X) : LocallyLipschitz (Prod.mk a : Y → X × Y) :=
+  LocallyLipschitz.of_Lipschitz (LipschitzWith.prod_mk_left a)
 
-protected theorem prod_mk_right (b : Y) : LocallyLipschitz (fun a : X => (a, b)) := by
-  apply LocallyLipschitz.of_Lipschitz
-  use 1
-  apply LipschitzWith.prod_mk_right
+protected theorem prod_mk_right (b : Y) : LocallyLipschitz (fun a : X => (a, b)) :=
+  LocallyLipschitz.of_Lipschitz (LipschitzWith.prod_mk_right b)
 
 /-- The sum of locally Lipschitz functions is locally Lipschitz. -/
 protected lemma sum {f g : X → Y} [NormedAddCommGroup Y] [NormedSpace ℝ Y]
@@ -203,10 +194,7 @@ protected lemma min {f g : X → ℝ} (hf : LocallyLipschitz f) (hg : LocallyLip
     LocallyLipschitz (fun x => min (f x) (g x)) := by
   let m : ℝ × ℝ → ℝ := fun p ↦ min p.1 p.2
   have : (fun x => min (f x) (g x)) = m ∘ (fun x ↦ ⟨f x, g x⟩) := by ext; dsimp
-  have h : LocallyLipschitz m := by
-    apply LocallyLipschitz.of_Lipschitz
-    use 1
-    exact lipschitzWith_min
+  have h : LocallyLipschitz m := LocallyLipschitz.of_Lipschitz lipschitzWith_min
   exact LocallyLipschitz.comp h (LocallyLipschitz.prod hf hg)
 
 /-- The maximum of locally Lipschitz functions is locally Lipschitz. -/
@@ -214,10 +202,7 @@ protected lemma max {f g : X → ℝ} (hf : LocallyLipschitz f) (hg : LocallyLip
     LocallyLipschitz (fun x => max (f x) (g x)) := by
   let m : ℝ × ℝ → ℝ := fun p ↦ max p.1 p.2
   have : (fun x => max (f x) (g x)) = m ∘ (fun x ↦ ⟨f x, g x⟩) := by ext; dsimp
-  have h : LocallyLipschitz m := by
-    apply LocallyLipschitz.of_Lipschitz
-    use 1
-    exact lipschitzWith_max
+  have h : LocallyLipschitz m := LocallyLipschitz.of_Lipschitz lipschitzWith_max
   exact LocallyLipschitz.comp h (LocallyLipschitz.prod hf hg)
 
 /-- Multiplying a locally Lipschitz function by a constant remains locally Lipschitz. -/
