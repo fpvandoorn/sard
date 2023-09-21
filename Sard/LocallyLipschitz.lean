@@ -34,6 +34,7 @@ protected lemma id : LocallyLipschitz (@id X) := LocallyLipschitz.of_Lipschitz (
 protected lemma const (b : Y) : LocallyLipschitz (fun _ : X ↦ b) :=
   LocallyLipschitz.of_Lipschitz (LipschitzWith.const b)
 
+/-- toSubset is compatible with taking neighbourhoods. -/
 protected lemma restrict_aux1 (s t : Set X) {x : s} (ht : t ∈ 𝓝 ↑x) : toSubset t s ∈ 𝓝 x := by sorry
 
 -- FIXME: how different is this from `restrict_aux1` - can I merge these?
@@ -49,12 +50,9 @@ protected lemma restrict_aux1b (t U: Set X) {x : U} (hU : IsOpen U) (ht : t ∈ 
     exact Filter.inter_mem h₁ this
   sorry -- should be just unfolding toSubset
 
-protected lemma restrict_aux2 {f : X → Y} {K : ℝ≥0} (s t : Set X) (hf : LipschitzOnWith K f t) :
-    LipschitzOnWith K (restrict s f) (toSubset t s) := by
-  intro x hx y hy
-  calc edist (restrict s f x) (restrict s f y)
-    _ = edist (f x) (f y) := rfl
-    _ ≤ K * edist x y := by apply hf hx hy
+-- XXX. find a better name
+protected lemma LipschitzOnWith.restrict_both {f : X → Y} {K : ℝ≥0} (s t : Set X) (hf : LipschitzOnWith K f t) :
+    LipschitzOnWith K (restrict s f) (toSubset t s) := fun _ hx _ hy ↦ hf hx hy
 
 /-- Restrictions of locally Lipschitz functions are locally Lipschitz. -/
 protected lemma restrict {f : X → Y} (hf : LocallyLipschitz f) (s : Set X) :
@@ -63,7 +61,7 @@ protected lemma restrict {f : X → Y} (hf : LocallyLipschitz f) (s : Set X) :
   rcases hf x with ⟨K, t, ht, hfL⟩
   -- Consider t' := t ∩ s as a neighbourhood of x *in s*.
   use K, toSubset t s
-  exact ⟨LocallyLipschitz.restrict_aux1 s t ht, LocallyLipschitz.restrict_aux2 s t hfL⟩
+  exact ⟨LocallyLipschitz.restrict_aux1 s t ht, LipschitzOnWith.restrict_both s t hfL⟩
 
 /-- C¹ functions are locally Lipschitz. -/
 -- TODO: move to ContDiff.lean!
@@ -85,7 +83,7 @@ lemma of_C1_on_open {E F: Type*} {f : E → F} [NormedAddCommGroup E] [NormedSpa
   -- t is a neighbourhood of x "within U", i.e. contains the intersection of U with some nbhd a of x
   -- intersect with U to obtain a neighbourhood contained in U
   use K, toSubset t U
-  exact ⟨LocallyLipschitz.restrict_aux1b t U h₁U ht, LocallyLipschitz.restrict_aux2 U t hf⟩
+  exact ⟨LocallyLipschitz.restrict_aux1b t U h₁U ht, LipschitzOnWith.restrict_both U t hf⟩
 
 -- tweaked version of the result in mathlib, weaker hypotheses -- not just restricting the domain,
 -- but also weakening the assumption on the codomain
