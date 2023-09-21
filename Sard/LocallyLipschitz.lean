@@ -11,7 +11,7 @@ Show that C¹ functions are locally Lipschitz.
 -/
 -- FIXME: move to a separate section of Lipschitz
 
-open NNReal Set Topology
+open Function NNReal Set Topology
 set_option autoImplicit false
 
 variable {X Y Z: Type*}
@@ -144,29 +144,23 @@ protected theorem prod_mk_left (a : X) : LocallyLipschitz (Prod.mk a : Y → X �
 protected theorem prod_mk_right (b : Y) : LocallyLipschitz (fun a : X => (a, b)) :=
   LocallyLipschitz.of_Lipschitz (LipschitzWith.prod_mk_right b)
 
--- protected theorem uncurry {f : α → β → γ} {Kα Kβ : ℝ≥0} (hα : ∀ b, LipschitzWith Kα fun a => f a b)
---     (hβ : ∀ a, LipschitzWith Kβ (f a)) : LipschitzWith (Kα + Kβ) (Function.uncurry f) := by
---   rintro ⟨a₁, b₁⟩ ⟨a₂, b₂⟩
---   simp only [Function.uncurry, ENNReal.coe_add, add_mul]
---   apply le_trans (edist_triangle _ (f a₂ b₁) _)
---   exact
---     add_le_add (le_trans (hα _ _ _) <| ENNReal.mul_left_mono <| le_max_left _ _)
---       (le_trans (hβ _ _ _) <| ENNReal.mul_left_mono <| le_max_right _ _)
+-- TODO: investigate if this holds, and prove it if so.
+protected theorem uncurry {f : X → Y → Z} (hα : ∀ b, LocallyLipschitz fun a => f a b)
+    (hβ : ∀ a, LocallyLipschitz (f a)) : LocallyLipschitz (Function.uncurry f) := by sorry
 
--- protected theorem iterate {f : α → α} (hf : LipschitzWith K f) : ∀ n, LipschitzWith (K ^ n) f^[n]
---   | 0 => by simpa only [pow_zero] using LipschitzWith.id
---   | n + 1 => by rw [pow_succ']; exact (LipschitzWith.iterate hf n).comp hf
+protected theorem iterate {f : X → X} (hf : LocallyLipschitz f) : ∀ n, LocallyLipschitz f^[n]
+  | 0 => by simpa only [pow_zero] using LocallyLipschitz.id
+  | n + 1 => by rw [iterate_add, iterate_one]; exact (LocallyLipschitz.iterate hf n).comp hf
 
--- protected theorem mul {f g : Function.End α} {Kf Kg} (hf : LipschitzWith Kf f)
---     (hg : LipschitzWith Kg g) : LipschitzWith (Kf * Kg) (f * g : Function.End α) :=
---   hf.comp hg
+protected theorem mul {f g : Function.End X} (hf : LocallyLipschitz f)
+    (hg : LocallyLipschitz g) : LocallyLipschitz (f * g : Function.End X) := hf.comp hg
 
--- protected theorem pow {f : Function.End α} {K} (h : LipschitzWith K f) :
---     ∀ n : ℕ, LipschitzWith (K ^ n) (f ^ n : Function.End α)
---   | 0 => by simpa only [pow_zero] using LipschitzWith.id
---   | n + 1 => by
---     rw [pow_succ, pow_succ]
---     exact h.mul (LipschitzWith.pow h n)
+protected theorem pow {f : Function.End X} (h : LocallyLipschitz f) :
+    ∀ n : ℕ, LocallyLipschitz (f ^ n : Function.End X)
+  | 0 => by simpa only [pow_zero] using LocallyLipschitz.id
+  | n + 1 => by
+    rw [pow_succ]
+    exact h.mul (LocallyLipschitz.pow h n)
 end LocallyLipschitz
 end EMetric
 
