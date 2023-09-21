@@ -2,6 +2,7 @@ import Sard.ToSubset
 import Mathlib.Analysis.Calculus.ContDiff
 import Mathlib.Topology.MetricSpace.Lipschitz
 import Mathlib.Topology.Basic
+import Mathlib.Order.Filter.Basic
 
 /-!
 ## Locally Lipschitz functions
@@ -37,6 +38,30 @@ protected lemma id : LocallyLipschitz (@id X) := LocallyLipschitz.of_Lipschitz (
 /-- Constant functions are locally Lipschitz. -/
 protected lemma const (b : Y) : LocallyLipschitz (fun _ : X ↦ b) :=
   LocallyLipschitz.of_Lipschitz (LipschitzWith.const b)
+
+/-- If a function is locally Lipschitz around a point, then it is continuous at this point. -/
+-- XXX: adapt this to my setting!
+theorem continuousAt_of_locally_lipschitz_copied [PseudoMetricSpace X] [PseudoMetricSpace Y] {f : X → Y}
+    {x : X} {r : ℝ} (hr : 0 < r) (K : ℝ) (h : ∀ y, dist y x < r → dist (f y) (f x) ≤ K * dist y x) :
+    ContinuousAt f x := by
+  -- We use `h` to squeeze `dist (f y) (f x)` between `0` and `K * dist y x`
+  refine tendsto_iff_dist_tendsto_zero.2 (squeeze_zero' (Filter.eventually_of_forall fun _ => dist_nonneg)
+    (Filter.mem_of_superset (Metric.ball_mem_nhds _ hr) h) ?_)
+  -- Then show that `K * dist y x` tends to zero as `y → x`
+  refine (continuous_const.mul (continuous_id.dist continuous_const)).tendsto' _ _ ?_
+  simp
+
+/-- A locally Lipschitz function is continuous. (It need not be uniformly continuous.) -/
+protected theorem continuous [PseudoMetricSpace X] [PseudoMetricSpace Y] {f : X → Y} (hf : LocallyLipschitz f) : Continuous f := by
+  apply Iff.mpr continuous_iff_continuousAt --this
+  intro x
+  -- show: ContinuousAt f x
+  rcases (hf x) with ⟨K, t, ht, hK⟩
+  -- choose r so the r-ball lies in t
+  let r : ℝ := 42 -- sorry
+  have hr : 0 < r := by norm_num
+  have h : ∀ y, dist y x < r → dist (f y) (f x) ≤ K * dist y x := sorry
+  exact continuousAt_of_locally_lipschitz_copied hr K h
 
 -- tweaked version of the result in mathlib, weaker hypotheses -- not just restricting the domain,
 -- but also weakening the assumption on the codomain
@@ -118,12 +143,52 @@ protected theorem prod_mk_left (a : X) : LocallyLipschitz (Prod.mk a : Y → X �
 
 protected theorem prod_mk_right (b : Y) : LocallyLipschitz (fun a : X => (a, b)) :=
   LocallyLipschitz.of_Lipschitz (LipschitzWith.prod_mk_right b)
+
+-- protected theorem uncurry {f : α → β → γ} {Kα Kβ : ℝ≥0} (hα : ∀ b, LipschitzWith Kα fun a => f a b)
+--     (hβ : ∀ a, LipschitzWith Kβ (f a)) : LipschitzWith (Kα + Kβ) (Function.uncurry f) := by
+--   rintro ⟨a₁, b₁⟩ ⟨a₂, b₂⟩
+--   simp only [Function.uncurry, ENNReal.coe_add, add_mul]
+--   apply le_trans (edist_triangle _ (f a₂ b₁) _)
+--   exact
+--     add_le_add (le_trans (hα _ _ _) <| ENNReal.mul_left_mono <| le_max_left _ _)
+--       (le_trans (hβ _ _ _) <| ENNReal.mul_left_mono <| le_max_right _ _)
+
+-- protected theorem iterate {f : α → α} (hf : LipschitzWith K f) : ∀ n, LipschitzWith (K ^ n) f^[n]
+--   | 0 => by simpa only [pow_zero] using LipschitzWith.id
+--   | n + 1 => by rw [pow_succ']; exact (LipschitzWith.iterate hf n).comp hf
+
+-- protected theorem mul {f g : Function.End α} {Kf Kg} (hf : LipschitzWith Kf f)
+--     (hg : LipschitzWith Kg g) : LipschitzWith (Kf * Kg) (f * g : Function.End α) :=
+--   hf.comp hg
+
+-- protected theorem pow {f : Function.End α} {K} (h : LipschitzWith K f) :
+--     ∀ n : ℕ, LipschitzWith (K ^ n) (f ^ n : Function.End α)
+--   | 0 => by simpa only [pow_zero] using LipschitzWith.id
+--   | n + 1 => by
+--     rw [pow_succ, pow_succ]
+--     exact h.mul (LipschitzWith.pow h n)
 end LocallyLipschitz
 end EMetric
 
 section Metric
-variable [MetricSpace X] [MetricSpace Y] [MetricSpace Z]
+variable [MetricSpace X] [MetricSpace Y] [MetricSpace Z] -- xxx: pseudometric spaces also?
 namespace LocallyLipschitz
+-- XXX. do these results transfer to locally Lipschitz maps?
+-- /-- A Lipschitz continuous map is a locally bounded map. -/
+-- def toLocallyBoundedMap (f : α → β) (hf : LipschitzWith K f) : LocallyBoundedMap α β :=
+--   LocallyBoundedMap.ofMapBounded f fun _s hs =>
+--     let ⟨C, hC⟩ := Metric.isBounded_iff.1 hs
+--     Metric.isBounded_iff.2 ⟨K * C, ball_image_iff.2 fun _x hx => ball_image_iff.2 fun _y hy =>
+--       hf.dist_le_mul_of_le (hC hx hy)⟩
+
+-- @[simp]
+-- theorem coe_toLocallyBoundedMap (hf : LipschitzWith K f) : ⇑(hf.toLocallyBoundedMap f) = f :=
+--   rfl
+
+-- theorem comap_cobounded_le (hf : LipschitzWith K f) :
+--     comap f (Bornology.cobounded β) ≤ Bornology.cobounded α :=
+--   (hf.toLocallyBoundedMap f).2
+
 /-- `toSubset` is compatible with the neighbourhood filter. -/
 protected lemma ToSubset.compatible_with_nhds (s t : Set X) {x : s} (ht : t ∈ 𝓝 ↑x) : toSubset t s ∈ 𝓝 x := by sorry
 
