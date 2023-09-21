@@ -1,4 +1,5 @@
 import Sard.ToSubset
+import Mathlib.Topology.Separation
 import Mathlib.Topology.SubsetProperties
 /-!
 We define σ-compact subsets of a topological space, show their elementary properties
@@ -63,7 +64,12 @@ lemma Embedding.isSigmaCompact_iff_isSigmaCompact_image {f : X → Y} {s : Set X
       have : ClosedEmbedding f' := sorry
       have : IsCompact (f' ⁻¹' K n) := ClosedEmbedding.isCompact_preimage this (K := K n) (hcompact n)
       have h : (f' ⁻¹' K n) = toSubset (f ⁻¹' K n) S := sorry
-      have : IsClosed S := sorry
+      have : IsClosed S := by -- if Y is T2, this holds. most likely, this is not needed!
+        sorry
+        -- have hcont : ContinuousOn f univ := Iff.mp continuous_iff_continuousOn_univ (continuous hf)
+        -- let h := ContinuousOn.preimage_closed_of_closed hcont isClosed_univ (IsCompact.isClosed (hcompact n))
+        -- rw [univ_inter] at h
+        -- exact h
       sorry
     · have : f ⁻¹' (f '' s) = s := by apply preimage_image_eq s hf.inj
       rw [← preimage_iUnion, hcov, this]
@@ -77,7 +83,8 @@ lemma isSigmaCompact_iff_isSigmaCompact_univ {s : Set X} :
     IsSigmaCompact s ↔ IsSigmaCompact (univ : Set s) := by
   rw [isSigmaCompact_iff_isSigmaCompact_in_subtype, image_univ, Subtype.range_coe]
 
-lemma isSigmaCompact_iff_sigmaCompactSpace {s : Set X} : IsSigmaCompact s ↔ SigmaCompactSpace s :=
+lemma isSigmaCompact_iff_sigmaCompactSpace {s : Set X} :
+    IsSigmaCompact s ↔ SigmaCompactSpace s :=
   isSigmaCompact_iff_isSigmaCompact_univ.trans isSigmaCompact_univ_iff
 
 /-- Compact sets are σ-compact. -/

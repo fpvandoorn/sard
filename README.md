@@ -25,7 +25,7 @@ The **Sard-Smale** theorem is a generalisation to infinite-dimensional Banach ma
 
 - define: locally Lipschitz maps; show C¹ maps are locally Lipschitz
 (complete: not PRed yet; could add much more API for locally Lipschitz functions)
-- show: locally Lipschitz maps preserve null sets (mostly done; one sorry should be easy, the others are due to one Lean-related error)
+- show: locally Lipschitz maps preserve null sets (mostly done; remaining sorries are due to one Lean-related error)
 
 - meager sets and relation to measure zero
   - define nowhere dense and meagre sets: complete, [PRed](https://github.com/leanprover-community/mathlib4/pull/7180)

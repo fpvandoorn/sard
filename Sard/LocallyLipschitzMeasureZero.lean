@@ -70,11 +70,13 @@ lemma locally_lipschitz_image_of_null_set_is_null_set {X Y : Type*}
     have h₁ := LipschitzOnWith.mono hK (inter_subset_right s (U i))
     apply lipschitz_image_null_set_is_null_set (Nat.cast_nonneg d) h₁ h₂
   -- Finite subadditivity implies the claim.
-  have ht' : K n ⊆ ⋃ (i : t), U i := by sorry -- "should" be easy
+  -- FIXME. This can surely be golfed more.
+  have coe : ⋃ (i : t), U i = ⋃ (i : K n) (_ : i ∈ t), U i := by apply iUnion_coe_set
+  rw [← coe] at ht
   have : f '' (s ∩ (K n)) ⊆ ⋃ (i : t), f '' (s ∩ (U i)) := by calc f '' (s ∩ (K n))
     _ ⊆ f '' (s ∩ (⋃ (i : t), U i)) := by
       apply Set.image_subset
-      apply Set.inter_subset_inter_right s (ht')
+      apply Set.inter_subset_inter_right s (ht)
     _ = f '' ((⋃ (i : t), s ∩ (U i))) := by rw [inter_iUnion]
     _ = ⋃ (i : t), f '' ( s ∩ (U i)) := image_iUnion
   have hless : μH[d] (f '' (s ∩ (K n))) ≤ 0 := by
