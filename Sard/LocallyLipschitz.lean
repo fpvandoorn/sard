@@ -37,18 +37,27 @@ protected lemma const (b : Y) : LocallyLipschitz (fun _ : X ↦ b) :=
 /-- toSubset is compatible with taking neighbourhoods. -/
 protected lemma restrict_aux1 (s t : Set X) {x : s} (ht : t ∈ 𝓝 ↑x) : toSubset t s ∈ 𝓝 x := by sorry
 
--- FIXME: how different is this from `restrict_aux1` - can I merge these?
+/-- toSubset is compatible with taking neighbourhoods within. -/
 protected lemma restrict_aux1b (t U: Set X) {x : U} (hU : IsOpen U) (ht : t ∈ 𝓝[U] ↑x) :
     toSubset t U ∈ 𝓝 x := by
-  -- FIXME: is openness of U required? can I weaken this to just the nbhd filter?
-  -- t ∩ U is a nbhd of x: as x and U are
   have : t ∩ U ∈ 𝓝 ↑x := by
-    -- ht means t ∈ 𝓝[U] ↑x, i.e. t ⊇ U ∩ a for some nbhd a of x
-    -- then `a` contains an open subset a', so t ⊇ U ∩ a' shows t is a nbhd
-    have h₁: t ∈ 𝓝 ↑x := by sorry
-    have : U ∈ 𝓝 ↑x := by sorry -- U is open and contains x
-    exact Filter.inter_mem h₁ this
-  sorry -- should be just unfolding toSubset
+    -- 𝓝[U] ↑x is the "neighbourhood within" filter, consisting of all sets t ⊇ U ∩ b
+    -- for some neighbourhood b of x. Choose an open subset a ⊆ b,
+    -- then a ∩ U is an open subset contained in t.
+    rcases ht with ⟨b, hb, U', hU', htaU⟩
+    rw [mem_nhds_iff] at hb
+    rcases hb with ⟨a, ha, haopen, hxa⟩
+    rw [mem_nhds_iff]
+    use a ∩ U
+    constructor
+    · calc a ∩ U
+        _ ⊆ b ∩ U := inter_subset_inter_left U ha
+        _ = b ∩ (U' ∩ U) := by congr; rw [(Iff.mpr inter_eq_right_iff_subset hU')]
+        _ ⊆ (b ∩ U') ∩ U := by rw [inter_assoc]
+        _ = t ∩ U := by rw [htaU]
+    · exact ⟨IsOpen.inter haopen hU, ⟨hxa, Subtype.mem x⟩⟩
+  apply LocallyLipschitz.restrict_aux1
+  exact Filter.mem_of_superset this (inter_subset_left t U)
 
 -- XXX. find a better name
 protected lemma LipschitzOnWith.restrict_both {f : X → Y} {K : ℝ≥0} (s t : Set X) (hf : LipschitzOnWith K f t) :
@@ -80,8 +89,8 @@ lemma of_C1_on_open {E F: Type*} {f : E → F} [NormedAddCommGroup E] [NormedSpa
   have : ContDiffWithinAt ℝ 1 f U x := ContDiffOn.contDiffWithinAt hf (Subtype.mem x)
   let h := ContDiffWithinAt.exists_lipschitzOnWith this
   rcases (h h₂U) with ⟨K, t, ht, hf⟩
-  -- t is a neighbourhood of x "within U", i.e. contains the intersection of U with some nbhd a of x
-  -- intersect with U to obtain a neighbourhood contained in U
+  -- `t` is a neighbourhood of x "within U", i.e. contains the intersection of U with some nbhd a of x.
+  -- Intersect with `U` to obtain a neighbourhood contained in `U`.
   use K, toSubset t U
   exact ⟨LocallyLipschitz.restrict_aux1b t U h₁U ht, LipschitzOnWith.restrict_both U t hf⟩
 
