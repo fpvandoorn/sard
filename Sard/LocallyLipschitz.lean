@@ -39,29 +39,14 @@ protected lemma id : LocallyLipschitz (@id X) := LocallyLipschitz.of_Lipschitz (
 protected lemma const (b : Y) : LocallyLipschitz (fun _ : X ↦ b) :=
   LocallyLipschitz.of_Lipschitz (LipschitzWith.const b)
 
-/-- If a function is locally Lipschitz around a point, then it is continuous at this point. -/
--- XXX: adapt this to my setting!
-theorem continuousAt_of_locally_lipschitz_copied [PseudoMetricSpace X] [PseudoMetricSpace Y] {f : X → Y}
-    {x : X} {r : ℝ} (hr : 0 < r) (K : ℝ) (h : ∀ y, dist y x < r → dist (f y) (f x) ≤ K * dist y x) :
-    ContinuousAt f x := by
-  -- We use `h` to squeeze `dist (f y) (f x)` between `0` and `K * dist y x`
-  refine tendsto_iff_dist_tendsto_zero.2 (squeeze_zero' (Filter.eventually_of_forall fun _ => dist_nonneg)
-    (Filter.mem_of_superset (Metric.ball_mem_nhds _ hr) h) ?_)
-  -- Then show that `K * dist y x` tends to zero as `y → x`
-  refine (continuous_const.mul (continuous_id.dist continuous_const)).tendsto' _ _ ?_
-  simp
+-- XXX: can I adapt `continuousAt_of_locally_lipschitz` to use LocallyLipschitz.continuous?
 
-/-- A locally Lipschitz function is continuous. (It need not be uniformly continuous.) -/
-protected theorem continuous [PseudoMetricSpace X] [PseudoMetricSpace Y] {f : X → Y} (hf : LocallyLipschitz f) : Continuous f := by
-  apply Iff.mpr continuous_iff_continuousAt --this
+/-- A locally Lipschitz function is continuous. -/
+protected theorem continuous {f : X → Y} (hf : LocallyLipschitz f) : Continuous f := by
+  apply Iff.mpr continuous_iff_continuousAt
   intro x
-  -- show: ContinuousAt f x
   rcases (hf x) with ⟨K, t, ht, hK⟩
-  -- choose r so the r-ball lies in t
-  let r : ℝ := 42 -- sorry
-  have hr : 0 < r := by norm_num
-  have h : ∀ y, dist y x < r → dist (f y) (f x) ≤ K * dist y x := sorry
-  exact continuousAt_of_locally_lipschitz_copied hr K h
+  exact ContinuousOn.continuousAt (LipschitzOnWith.continuousOn hK) ht
 
 -- tweaked version of the result in mathlib, weaker hypotheses -- not just restricting the domain,
 -- but also weakening the assumption on the codomain
