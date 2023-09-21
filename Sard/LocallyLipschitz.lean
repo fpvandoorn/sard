@@ -114,22 +114,21 @@ protected lemma comp  {f : Y → Z} {g : X → Y} (hf : LocallyLipschitz f) (hg 
   -- idea: shrink u to g(t), then apply `comp_lipschitzOnWith'`
   -- more precisely: restrict g to t' := t ∩ g⁻¹(u); the preimage of u under g':=g∣t.
   let g' := t.restrict g
-  --have h : LipschitzWith Kg g' := LipschitzOnWith.to_restrict hgL
-  -- let t' be the preimage of u under g', **as a subset of X**
-  let t' : Set X := ↑(g' ⁻¹' u)
+  let t' : Set X := ↑(g' ⁻¹' u) -- t' **as a subset of X**, this is important
   -- by inspection, observe t' = t ∩ g⁻¹(u)
   have h₁ : t' = t ∩ g ⁻¹' u := by sorry
-  --have h₂ : t' ⊆ t := by exact coe_subset
-  -- t' is a neighbourhood of x
-  have h₂ : t' ∈ 𝓝 x := sorry  -- postpone
+  --have h₂ : t' ⊆ t := coe_subset
+  have h₂ : t' ∈ 𝓝 x := by -- t' is a neighbourhood of x
+    have : Continuous g' := LipschitzWith.continuous (LipschitzOnWith.to_restrict hgL)
+    -- have : g' ⁻¹' u ∈ 𝓝 x := sorry
+    -- t is a nbhd itself, so should work...
+    sorry
   have : g '' t' ⊆ u := by calc g '' t'
-      _ = g '' (t ∩ g ⁻¹' u) := by rw [h₁]
-      _ ⊆ g '' t ∩ g '' (g ⁻¹' u) := by apply image_inter_subset
-      _ ⊆ g '' t ∩ u := by gcongr; apply image_preimage_subset
-      _ ⊆ u := by exact inter_subset_right (g '' t) u
-  -- now, f is Lipschitz on u' := g '' t'
-  have : LipschitzOnWith Kf f (g '' t') := by exact LipschitzOnWith.mono hfL this
-
+    _ = g '' (t ∩ g ⁻¹' u) := by rw [h₁]
+    _ ⊆ g '' t ∩ g '' (g ⁻¹' u) := by apply image_inter_subset
+    _ ⊆ g '' t ∩ u := by gcongr; apply image_preimage_subset
+    _ ⊆ u := by apply inter_subset_right
+  have : LipschitzOnWith Kf f (g '' t') := LipschitzOnWith.mono hfL this
   use Kf * Kg, t'
   exact ⟨h₂, comp_lipschitzOnWith' this (LipschitzOnWith.mono hgL coe_subset)⟩
 
