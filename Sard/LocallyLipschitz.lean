@@ -274,26 +274,33 @@ protected lemma sum [NormedAddCommGroup Y] [NormedSpace ℝ Y]
       _ ≤ Kf * edist y z + Kg * edist y z := add_le_add (hf' hy hz) (hg' hy hz)
       _ = (Kf + Kg) * edist y z := by ring
 
+-- this one should definitely be in mathlib!
+lemma helper (a b : ℝ) : ENNReal.ofReal (a * b) = ENNReal.ofReal a * ENNReal.ofReal b := by sorry
+
 /-- Multiplying a locally Lipschitz function by a constant remains locally Lipschitz. -/
 protected lemma smul (hf : LocallyLipschitz f) {a : ℝ} : LocallyLipschitz (fun x ↦ a • f x) := by
   intro x
   rcases hf x with ⟨Kf, t, ht, hfL⟩
-  let a' : ℝ≥0 := sorry -- want ↑‖a‖
+  let a' : ℝ≥0 := sorry -- NNReal.ofReal ‖a‖
   use a' * Kf, t
   constructor
   · exact ht
-  · have : ∀ x ∈ t, ∀ y ∈ t, dist (a • f x) (a • f y) ≤ (a' * Kf) * dist x y := by
-      intro x hx y hy
-      calc dist (a • f x) (a • f y) -- norm requires dist by definition
+  · intro x hx y hy
+    -- norm is multiplicative
+    have : dist (a • f x) (a • f y) = ‖a‖ * dist (f x) (f y) := by
+      calc dist (a • f x) (a • f y)
         _ = ‖(a • (f x)) - (a • (f y))‖ := by apply dist_eq_norm
         _ = ‖a • ((f x) - (f y))‖ := by rw [smul_sub]
         _ = ‖a‖ * ‖(f x) - (f y)‖ := by rw [norm_smul]
         _ = ‖a‖ * dist (f x) (f y) := by rw [← dist_eq_norm]
-        _ = ‖a‖ * dist (f x) (f y) := by rw [← @dist_smul₀]
-        _ ≤ ‖a‖ * Kf * dist x y := by sorry -- use hfL; that yields edist -> need to cast
-        _ ≤ a' * Kf * dist x y := by sorry -- use definition of a'
-        _ = (a' * Kf) * dist x y := by rfl
-    let asdf := LipschitzOnWith.of_dist_le' (K := (a' * Kf)) this
-    sorry -- *almost* there, except for some issue with casting
+        _ = ‖a‖ * dist (f x) (f y) := by rw [← dist_smul₀]
+    calc edist (a • f x) (a • f y)
+      _ = ENNReal.ofReal (dist (a • f x) (a • f y)) := by rw [edist_dist]
+      _ = ENNReal.ofReal (‖a‖ * dist (f x) (f y)) := by rw [this]
+      _ = ENNReal.ofReal (‖a‖) * ENNReal.ofReal (dist (f x) (f y)) := by rw [← helper]
+      _ = ENNReal.ofReal ‖a‖ * edist (f x) (f y) := by rw [edist_dist]
+      _ = a' * edist (f x) (f y) := sorry -- by definition of a'; presumably
+      _ ≤ a' * (Kf * edist x y) := by sorry -- hfL plus some conv mode
+      _ ≤ ↑(a' * Kf) * edist x y := by sorry -- some conversion shenenigang
 end LocallyLipschitz
 end Normed
