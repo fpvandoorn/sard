@@ -2,7 +2,7 @@ import Sard.LocallyLipschitz
 import Mathlib.MeasureTheory.Measure.Hausdorff
 
 -- Locally Lipschitz maps preserve measure zero sets.
-open NNReal LocallyLipschitz MeasureTheory Set Topology
+open ENNReal NNReal LocallyLipschitz MeasureTheory Set Topology
 set_option autoImplicit false
 variable {X Y : Type*} [MetricSpace X] [MeasurableSpace X] [BorelSpace X]
   [MetricSpace Y] [MeasurableSpace Y] [BorelSpace Y]
@@ -27,9 +27,9 @@ lemma locally_lipschitz_image_of_null_set_is_null_set [SigmaCompactSpace X] {d :
   have hcompact : ∀ n : ℕ, IsCompact (K n) := isCompact_compactCovering X
 
   -- By countable subadditivity, it suffices to show the claim for each K_n.
+  -- FIXME. extract to a separate lemma
   suffices ass : ∀ n : ℕ, μH[d] (f '' (s ∩ K n)) = 0 by
-    have : s = ⋃ (n : ℕ), s ∩ K n := by
-      calc s
+    have : s = ⋃ (n : ℕ), s ∩ K n := by calc s
         _ = s ∩ univ := (inter_univ s).symm
         _ = s ∩ ⋃ (n : ℕ), K n := by rw [hcov]
         _ = ⋃ (n : ℕ), s ∩ K n := by apply inter_iUnion s
@@ -48,9 +48,9 @@ lemma locally_lipschitz_image_of_null_set_is_null_set [SigmaCompactSpace X] {d :
   -- and a constant K_x such that f is K_x-Lipschitz on t_x.
   choose Kx t ht hfL using fun x ↦ (hf x)
   -- For each t_x, choose an open set U_x ∋ x contained in t_x.
-  choose U hut hUopen hxU using fun x ↦ (Iff.mp (mem_nhds_iff) (ht x))
-  -- By construction, we get an open covering.
-  have hcovering : K n ⊆ ⋃ (x : X), U x := fun y hy ↦ mem_iUnion_of_mem y (hxU y)
+  choose U hut hUopen hxU using fun x ↦ mem_nhds_iff.mp (ht x)
+  -- By construction, (U_x) is an open covering of K_n.
+  have hcovering : K n ⊆ ⋃ (x : X), U x := fun y _ ↦ mem_iUnion_of_mem y (hxU y)
   -- Since K_n is compact, (U_x) has a finite subcover V_1, ..., V_l.
   let ⟨v, hv⟩ := IsCompact.elim_finite_subcover (hcompact n) U hUopen hcovering
   -- f is Lipschitz on each U_j, hence the previous lemma applies.
@@ -58,27 +58,28 @@ lemma locally_lipschitz_image_of_null_set_is_null_set [SigmaCompactSpace X] {d :
     intro i
     have h₂ : μH[d] (s ∩ U i) = 0 := measure_mono_null (inter_subset_left s (U ↑i)) hs
     have h₁ := ((hfL i).mono (hut i)).mono (inter_subset_right s (U i))
-    apply lipschitz_image_null_set_is_null_set (Nat.cast_nonneg d) h₁ h₂
+    refine lipschitz_image_null_set_is_null_set (Nat.cast_nonneg d) h₁ h₂
+
   -- Finite subadditivity implies the claim.
-  -- FIXME. This can surely be golfed more.
-  have coe : ⋃ (i : v), U i = ⋃ (i : X) (_ : i ∈ v), U i := by apply iUnion_coe_set
+  have coe : ⋃ (i : v), U i = ⋃ (i : X) (_ : i ∈ v), U i := iUnion_coe_set _ _
   rw [← coe] at hv
-  have : f '' (s ∩ (K n)) ⊆ ⋃ (i : v), f '' (s ∩ (U i)) := by calc f '' (s ∩ (K n))
-    _ ⊆ f '' (s ∩ (⋃ (i : v), U i)) := by
-      apply Set.image_subset
-      apply Set.inter_subset_inter_right s hv
-    _ = f '' ((⋃ (i : v), s ∩ (U i))) := by rw [inter_iUnion]
-    _ = ⋃ (i : v), f '' ( s ∩ (U i)) := image_iUnion
+  have : f '' (s ∩ (K n)) ⊆ ⋃ (i : v), f '' (s ∩ (U i)) := by
+    calc f '' (s ∩ (K n))
+      _ ⊆ f '' (s ∩ (⋃ (i : v), U i)) := by
+        apply image_subset
+        apply inter_subset_inter_right s hv
+      _ = f '' ((⋃ (i : v), s ∩ (U i))) := by rw [inter_iUnion]
+      _ = ⋃ (i : v), f '' ( s ∩ (U i)) := image_iUnion
   have hless : μH[d] (f '' (s ∩ (K n))) ≤ 0 := by
     calc μH[d] (f '' (s ∩ (K n)))
       _ ≤ μH[d] (⋃ (i : v), f '' (s ∩ (U i))) := measure_mono this
-      _ ≤ ∑' (i : v), (μH[d] (f '' (s ∩ (U i))) : ENNReal) := by apply measure_iUnion_le
-      _ = ∑' (_ : v), (0 : ENNReal) := tsum_congr hnull
+      _ ≤ ∑' (i : v), (μH[d] (f '' (s ∩ (U i))) : ℝ≥0∞) := by apply measure_iUnion_le
+      _ = ∑' (_ : v), (0 : ℝ≥0∞) := tsum_congr hnull
       _ = 0 := by simp
   simp only [nonpos_iff_eq_zero, zero_le] at hless ⊢
   exact hless
 
--- version specialized to an open set
+-- version specialized to an open set. proof should be completely analogous
 lemma locally_lipschitz_image_of_null_set_is_null_set_open [SigmaCompactSpace X] {d : ℕ}
     {f : X → Y} {U : Set X} (hf : LocallyLipschitz (U.restrict f))
     {s : Set X} (hsu : s ⊆ U) (hs : μH[d] s = 0) : μH[d] (f '' s) = 0 := by sorry
