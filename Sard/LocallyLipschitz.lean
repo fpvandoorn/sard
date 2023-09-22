@@ -271,9 +271,8 @@ protected lemma LipschitzWith.sum {Kf : ℝ≥0} {Kg : ℝ≥0}
     (hf : LipschitzWith Kf f) (hg : LipschitzWith Kg g) : LipschitzWith (Kf + Kg) (f + g) :=
   lipschitzOn_univ.mp ((lipschitzOn_univ.mpr hf).sum (lipschitzOn_univ.mpr hg))
 
-namespace LocallyLipschitz
 /-- The sum of locally Lipschitz functions is locally Lipschitz. -/
-protected lemma sum (hf : LocallyLipschitz f) (hg : LocallyLipschitz g) :
+protected lemma LocallyLipschitz.sum (hf : LocallyLipschitz f) (hg : LocallyLipschitz g) :
     LocallyLipschitz (f + g) := by
   intro x
   rcases hf x with ⟨Kf, t₁, h₁t, hfL⟩
@@ -286,30 +285,34 @@ protected lemma sum (hf : LocallyLipschitz f) (hg : LocallyLipschitz g) :
 -- this one should definitely be in mathlib!
 lemma helper (a b : ℝ) : ENNReal.ofReal (a * b) = ENNReal.ofReal a * ENNReal.ofReal b := by sorry
 
-/-- Multiplying a locally Lipschitz function by a constant remains locally Lipschitz. -/
-protected lemma smul (hf : LocallyLipschitz f) {a : ℝ} : LocallyLipschitz (fun x ↦ a • f x) := by
-  intro x
-  rcases hf x with ⟨Kf, t, ht, hfL⟩
-  let a' : ℝ≥0 := sorry -- NNReal.ofReal ‖a‖
-  use a' * Kf, t
-  constructor
-  · exact ht
-  · intro x hx y hy
-    -- norm is multiplicative
-    have : dist (a • f x) (a • f y) = ‖a‖ * dist (f x) (f y) := by
+-- FIXME: there should be a nicer solution than the ugly cast!
+protected lemma LipschitzOnWith.smul {K : ℝ≥0} {s : Set X} (hf : LipschitzOnWith K f s)
+    (a : ℝ) : LipschitzOnWith (ENNReal.toNNReal (ENNReal.ofReal ‖a‖) * K) (fun x ↦ a • f x) s := by
+  intro x hx y hy
+  have : dist (a • f x) (a • f y) = ‖a‖ * dist (f x) (f y) := by
       calc dist (a • f x) (a • f y)
         _ = ‖(a • (f x)) - (a • (f y))‖ := by apply dist_eq_norm
         _ = ‖a • ((f x) - (f y))‖ := by rw [smul_sub]
         _ = ‖a‖ * ‖(f x) - (f y)‖ := by rw [norm_smul]
         _ = ‖a‖ * dist (f x) (f y) := by rw [← dist_eq_norm]
         _ = ‖a‖ * dist (f x) (f y) := by rw [← dist_smul₀]
-    calc edist (a • f x) (a • f y)
+  calc edist (a • f x) (a • f y)
       _ = ENNReal.ofReal (dist (a • f x) (a • f y)) := by rw [edist_dist]
       _ = ENNReal.ofReal (‖a‖ * dist (f x) (f y)) := by rw [this]
       _ = ENNReal.ofReal (‖a‖) * ENNReal.ofReal (dist (f x) (f y)) := by rw [← helper]
       _ = ENNReal.ofReal ‖a‖ * edist (f x) (f y) := by rw [edist_dist]
-      _ = a' * edist (f x) (f y) := sorry -- by definition of a'; presumably
-      _ ≤ a' * (Kf * edist x y) := by sorry -- hfL plus some conv mode
-      _ ≤ ↑(a' * Kf) * edist x y := by sorry -- some conversion shenenigang
-end LocallyLipschitz
+      _ = ENNReal.toNNReal (ENNReal.ofReal ‖a‖) * edist (f x) (f y) := by
+        sorry -- ‖a‖ is non-negative, so these are the same
+      _ ≤ ENNReal.toNNReal (ENNReal.ofReal ‖a‖) * (K * edist x y) := by exact mul_le_mul_left' (hf hx hy) _
+      _ ≤ ↑(ENNReal.toNNReal (ENNReal.ofReal ‖a‖) * K) * edist x y := by sorry --exact?-- sorry -- some conversion shenenigans
+
+protected lemma LipschitzWith.smul {K : ℝ≥0} (hf : LipschitzWith K f) {a : ℝ} :
+    LipschitzWith (ENNReal.toNNReal (ENNReal.ofReal ‖a‖)  * K) (fun x ↦ a • f x) :=
+  lipschitzOn_univ.mp ((lipschitzOn_univ.mpr hf).smul a)
+
+/-- Multiplying a locally Lipschitz function by a constant remains locally Lipschitz. -/
+protected lemma LocallyLipschitz.mysmul (hf : LocallyLipschitz f) {a : ℝ} : LocallyLipschitz (fun x ↦ a • f x) := by
+  intro x
+  rcases hf x with ⟨Kf, t, ht, hfL⟩
+  exact ⟨ENNReal.toNNReal (ENNReal.ofReal ‖a‖) * Kf, t, ht, hfL.smul a⟩
 end Normed
