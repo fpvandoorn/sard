@@ -7,6 +7,21 @@ set_option autoImplicit false
 variable {X Y : Type*} [MetricSpace X] [MeasurableSpace X] [BorelSpace X]
   [MetricSpace Y] [MeasurableSpace Y] [BorelSpace Y]
 
+-- this belongs lower in mathlib, find_home! says Mathlib.MeasureTheory.Measure.MeasureSpaceDef
+/-- If `(s_n)` is a countable cover of `t` consisting of null sets, `t` is a null set. -/
+lemma null_set_from_countable_cover {t : Set X} (μ : Measure X)
+    (s : ℕ → Set X) (hnull : ∀ n, μ (s n) = 0) (hcov : t ⊆ ⋃ (n : ℕ), s n) : μ t = 0 := by
+  have h : μ t ≤ 0 := by
+    have : ∀ n, μ (s n ∩ t) = 0 := fun n => measure_inter_null_of_null_left t (hnull n)
+    calc μ t
+      _ = μ ((⋃ (n : ℕ), s n) ∩ t) := by simp only [inter_eq_right_iff_subset.mpr hcov]
+      _ = μ (⋃ (n : ℕ), (s n ∩ t)) := by rw [iUnion_inter]
+      _ ≤ ∑' (n : ℕ), μ (s n ∩ t) := by apply OuterMeasure.iUnion_nat
+      _ = ∑' (n : ℕ), 0 := by simp_rw [this]
+      _ = 0 := by rw [tsum_zero]
+  simp only [nonpos_iff_eq_zero, zero_le] at h ⊢
+  exact h
+
 section ImageMeasureZeroSet
 /-- If `f : X → Y` is a Lipschitz map between metric spaces, then `f` maps null sets
 to null sets, w.r.t. the `d`-dimensional Hausdorff measure on `X` resp. `Y`. -/
@@ -25,23 +40,15 @@ lemma locally_lipschitz_image_of_null_set_is_null_set [SigmaCompactSpace X] {d :
   let K : ℕ → Set X := compactCovering X
   have hcov : ⋃ (n : ℕ), K n = univ := iUnion_compactCovering X
   have hcompact : ∀ n : ℕ, IsCompact (K n) := isCompact_compactCovering X
-
   -- By countable subadditivity, it suffices to show the claim for each K_n.
-  -- FIXME. extract to a separate lemma
   suffices ass : ∀ n : ℕ, μH[d] (f '' (s ∩ K n)) = 0 by
+    apply null_set_from_countable_cover _ _ ass
+    rw [← image_iUnion]
     have : s = ⋃ (n : ℕ), s ∩ K n := by calc s
         _ = s ∩ univ := (inter_univ s).symm
         _ = s ∩ ⋃ (n : ℕ), K n := by rw [hcov]
         _ = ⋃ (n : ℕ), s ∩ K n := by apply inter_iUnion s
-    have hless : μH[d] (f '' s) ≤ 0 := by
-      calc μH[d] (f '' s)
-        _ = μH[d] (f '' (⋃ (n : ℕ), s ∩ K n)) := by rw [← this]
-        _ = μH[d] (⋃ (n : ℕ), f '' (s ∩ K n)) := by rw [image_iUnion]
-        _ ≤ ∑' (n : ℕ), μH[d] (f '' (s ∩ K n)) := by apply OuterMeasure.iUnion_nat
-        _ = ∑' (n : ℕ), 0 := by simp_rw [ass]
-        _ = 0 := by rw [tsum_zero]
-    simp only [nonpos_iff_eq_zero, zero_le] at hless ⊢
-    exact hless
+    exact Eq.subset (congrArg (image f) this)
 
   intro n
   -- Consider the cover (t_x) of K_n induced by hf: for each x, choose a neighbourhood t_x of x
