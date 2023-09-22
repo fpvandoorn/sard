@@ -246,33 +246,42 @@ end LocallyLipschitz
 end EMetric
 
 section Normed
-namespace LocallyLipschitz
 variable [MetricSpace X] [NormedAddCommGroup Y] [NormedSpace ℝ Y] {f g : X → Y}
+
+/-- The sum of Lipschitz functions is Lipschitz. -/
+protected lemma LipschitzOnWith.sum {Kf : ℝ≥0} {Kg : ℝ≥0} {s : Set X}
+    (hf : LipschitzOnWith Kf f s) (hg : LipschitzOnWith Kg g s) :
+    LipschitzOnWith (Kf + Kg) (f + g) s := by
+  intro y hy z hz
+  -- Since Y is normed, the distance is translation-invariant.
+  have translation: ∀ w w' w'' : Y, edist (w + w'') (w' + w'') = edist w w' := by
+    intro w w' w''
+    simp only [edist_add_right]
+  simp only [Pi.add_apply, ENNReal.coe_add]
+  calc edist (f y + g y) (f z + g z)
+    _ ≤ edist (f y + g y) (g y + f z) + edist (g y + f z) (f z + g z) := by apply edist_triangle
+    _ = edist (f y + g y) (f z + g y) + edist (g y + f z) (g z + f z) := by
+        simp only [add_comm, edist_add_right, edist_add_left]
+    _ ≤ edist (f y) (f z) + edist (g y) (g z) := by rw [translation, translation]
+    _ ≤ Kf * edist y z + Kg * edist y z := add_le_add (hf hy hz) (hg hy hz)
+    _ = (Kf + Kg) * edist y z := by ring
+
+/-- The sum of Lipschitz functions on `s` is Lipschitz on `s`. -/
+protected lemma LipschitzWith.sum {Kf : ℝ≥0} {Kg : ℝ≥0}
+    (hf : LipschitzWith Kf f) (hg : LipschitzWith Kg g) : LipschitzWith (Kf + Kg) (f + g) :=
+  lipschitzOn_univ.mp ((lipschitzOn_univ.mpr hf).sum (lipschitzOn_univ.mpr hg))
+
+namespace LocallyLipschitz
 /-- The sum of locally Lipschitz functions is locally Lipschitz. -/
-protected lemma sum [NormedAddCommGroup Y] [NormedSpace ℝ Y]
-    (hf : LocallyLipschitz f) (hg : LocallyLipschitz g) : LocallyLipschitz (f + g) := by
+protected lemma sum (hf : LocallyLipschitz f) (hg : LocallyLipschitz g) :
+    LocallyLipschitz (f + g) := by
   intro x
   rcases hf x with ⟨Kf, t₁, h₁t, hfL⟩
   rcases hg x with ⟨Kg, t₂, h₂t, hgL⟩
   use Kf + Kg, t₁ ∩ t₂
-  have hf' : LipschitzOnWith Kf f (t₁ ∩ t₂) := LipschitzOnWith.mono hfL (Set.inter_subset_left t₁ t₂)
-  have hg' : LipschitzOnWith Kg g (t₁ ∩ t₂) := LipschitzOnWith.mono hgL (Set.inter_subset_right t₁ t₂)
-  constructor
-  · exact Filter.inter_mem h₁t h₂t
-  · intro y hy z hz
-    -- FIXME. This entire proof can surely be golfed a lot!
-    -- Y is normed, hence the distance is translation-invariant.
-    have translation: ∀ w w' w'' : Y, edist (w + w'') (w' + w'') = edist w w' := by
-      intro w w' w''
-      simp only [edist_add_right]
-    simp only [Pi.add_apply, ENNReal.coe_add]
-    calc edist (f y + g y) (f z + g z)
-      _ ≤ edist (f y + g y) (g y + f z) + edist (g y + f z) (f z + g z) := by apply edist_triangle
-      _ = edist (f y + g y) (f z + g y) + edist (g y + f z) (g z + f z) := by
-          simp only [add_comm, edist_add_right, edist_add_left]
-      _ ≤ edist (f y) (f z) + edist (g y) (g z) := by rw [translation, translation]
-      _ ≤ Kf * edist y z + Kg * edist y z := add_le_add (hf' hy hz) (hg' hy hz)
-      _ = (Kf + Kg) * edist y z := by ring
+  have hf' : LipschitzOnWith Kf f (t₁ ∩ t₂) := hfL.mono (Set.inter_subset_left t₁ t₂)
+  have hg' : LipschitzOnWith Kg g (t₁ ∩ t₂) := hgL.mono (Set.inter_subset_right t₁ t₂)
+  exact ⟨Filter.inter_mem h₁t h₂t, hf'.sum hg'⟩
 
 -- this one should definitely be in mathlib!
 lemma helper (a b : ℝ) : ENNReal.ofReal (a * b) = ENNReal.ofReal a * ENNReal.ofReal b := by sorry
