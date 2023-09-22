@@ -242,9 +242,14 @@ theorem min_const (hf : LocallyLipschitz f) (a : ℝ) : LocallyLipschitz fun x =
 
 theorem const_min (hf : LocallyLipschitz f) (a : ℝ) : LocallyLipschitz fun x => min a (f x) :=
   LocallyLipschitz.min (LocallyLipschitz.const a) hf
+end LocallyLipschitz
+end EMetric
 
+section Normed
+namespace LocallyLipschitz
+variable [MetricSpace X] [NormedAddCommGroup Y] [NormedSpace ℝ Y] {f g : X → Y}
 /-- The sum of locally Lipschitz functions is locally Lipschitz. -/
-protected lemma sum {f g : X → Y} [NormedAddCommGroup Y] [NormedSpace ℝ Y]
+protected lemma sum [NormedAddCommGroup Y] [NormedSpace ℝ Y]
     (hf : LocallyLipschitz f) (hg : LocallyLipschitz g) : LocallyLipschitz (f + g) := by
   intro x
   rcases hf x with ⟨Kf, t₁, h₁t, hfL⟩
@@ -255,18 +260,22 @@ protected lemma sum {f g : X → Y} [NormedAddCommGroup Y] [NormedSpace ℝ Y]
   constructor
   · exact Filter.inter_mem h₁t h₂t
   · intro y hy z hz
-    -- FIXME. This can surely be golfed!
+    -- FIXME. This entire proof can surely be golfed a lot!
+    -- Y is normed, hence the distance is translation-invariant.
+    have translation: ∀ w w' w'' : Y, edist (w + w'') (w' + w'') = edist w w' := by
+      intro w w' w''
+      simp only [edist_add_right]
     simp only [Pi.add_apply, ENNReal.coe_add]
     calc edist (f y + g y) (f z + g z)
       _ ≤ edist (f y + g y) (g y + f z) + edist (g y + f z) (f z + g z) := by apply edist_triangle
-      -- Y is normed, hence the distance is translation-invariant
-      _ ≤ edist (f y) (f z) + edist (g y) (g z) := by sorry
+      _ = edist (f y + g y) (f z + g y) + edist (g y + f z) (g z + f z) := by
+          simp only [add_comm, edist_add_right, edist_add_left]
+      _ ≤ edist (f y) (f z) + edist (g y) (g z) := by rw [translation, translation]
       _ ≤ Kf * edist y z + Kg * edist y z := add_le_add (hf' hy hz) (hg' hy hz)
       _ = (Kf + Kg) * edist y z := by ring
 
 /-- Multiplying a locally Lipschitz function by a constant remains locally Lipschitz. -/
-protected lemma smul {f : X → Y} [NormedAddCommGroup Y] [NormedSpace ℝ Y]
-    (hf : LocallyLipschitz f) {a : ℝ} : LocallyLipschitz (fun x ↦ a • f x) := by
+protected lemma smul (hf : LocallyLipschitz f) {a : ℝ} : LocallyLipschitz (fun x ↦ a • f x) := by
   intro x
   rcases hf x with ⟨Kf, t, ht, hfL⟩
   let a' : ℝ≥0 := sorry -- want ↑‖a‖
@@ -287,4 +296,4 @@ protected lemma smul {f : X → Y} [NormedAddCommGroup Y] [NormedSpace ℝ Y]
     let asdf := LipschitzOnWith.of_dist_le' (K := (a' * Kf)) this
     sorry -- *almost* there, except for some issue with casting
 end LocallyLipschitz
-end EMetric
+end Normed
