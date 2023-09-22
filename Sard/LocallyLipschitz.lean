@@ -68,12 +68,19 @@ protected lemma comp  {f : Y → Z} {g : X → Y}
   -- idea: shrink u to g(t), then apply `comp_lipschitzOnWith'`
   -- more precisely: restrict g to t' := t ∩ g⁻¹(u); the preimage of u under g':=g∣t.
   let g' := t.restrict g
-  set t' : Set X := ↑(g' ⁻¹' u) with ht'
+  let t'' := (g' ⁻¹' u)
+  let t' : Set X := { (x : X) | x ∈ t'' }
   have h₁ : t' = t ∩ g ⁻¹' u := by
-    rw [ht']
-    ext1 y
-    simp [Lean.Internal.coeM]
-    aesop
+    apply Set.Subset.antisymm_iff.mpr
+    constructor
+    · intro x hx
+      simp at hx
+      obtain ⟨x, ha1, ha2, rfl⟩ := hx
+      exact ⟨by assumption, by simp only [mem_preimage, ha1]⟩
+    · rintro x ⟨ht, hgu⟩
+      simp only [mem_preimage] at hgu
+      simp says simp only [mem_preimage, restrict_apply, Subtype.exists, exists_and_left, exists_prop, mem_setOf_eq]
+      use x
   have h₂ : t' ∈ 𝓝 x := by -- FIXME: the following is a tour de force; there must be a nicer proof
     -- by ht, t contains an open subset U
     rcases (Iff.mp (mem_nhds_iff) ht) with ⟨U, hUt, hUopen, hxU⟩
@@ -93,8 +100,9 @@ protected lemma comp  {f : Y → Z} {g : X → Y}
     _ ⊆ g '' t ∩ u := by gcongr; apply image_preimage_subset
     _ ⊆ u := by apply inter_subset_right
   use Kf * Kg, t'
+  have h: t' ⊆ t := by rw [h₁]; exact inter_subset_left t (g ⁻¹' u)
   exact ⟨h₂, comp_lipschitzOnWith'
-    (LipschitzOnWith.mono hfL this) (LipschitzOnWith.mono hgL coe_subset)⟩
+    (LipschitzOnWith.mono hfL this) (LipschitzOnWith.mono hgL h)⟩
 
 /-- If `f` and `g` are locally Lipschitz, so is the induced map `f × g` to the product type. -/
 protected lemma prod {f : X → Y} (hf : LocallyLipschitz f) {g : X → Z} (hg : LocallyLipschitz g) :
