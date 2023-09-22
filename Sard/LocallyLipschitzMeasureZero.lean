@@ -2,7 +2,7 @@ import Sard.LocallyLipschitz
 import Mathlib.MeasureTheory.Measure.Hausdorff
 
 -- Locally Lipschitz maps preserve measure zero sets.
-open NNReal LocallyLipschitz MeasureTheory Set
+open NNReal LocallyLipschitz MeasureTheory Set Topology
 set_option autoImplicit false
 variable {X Y : Type*} [MetricSpace X] [MeasurableSpace X] [BorelSpace X]
   [MetricSpace Y] [MeasurableSpace Y] [BorelSpace Y]
@@ -44,42 +44,36 @@ lemma locally_lipschitz_image_of_null_set_is_null_set [SigmaCompactSpace X] {d :
     exact hless
 
   intro n
-  -- Consider the open cover (U_x) of K_n induced by hf: each U_x is an open subset containing x
-  -- on which f is Lipschitz, say with constant K_x.
-  let U : K n → Set X := by
-    intro x
-    -- tactic 'induction' failed, recursor 'Exists.casesOn' can only eliminate into Prop
-    sorry -- rcases hf x with ⟨Kf, t, ht, hfL⟩
-  -- These properties hold by construction.
-  have hcovering : K n ⊆ ⋃ (x : (K n)), U x := sorry -- use kU above
-  have hopen : ∀ x : (K n), IsOpen (U x) := sorry -- use kU above
-  have hLipschitz : ∀ x : (K n), ∃ K, LipschitzOnWith K f (U x) := by sorry -- use hKU
-
-  -- Since K_n is compact, (U_x) has a finite subcover U_1, ..., U_l.
-  let subcover := IsCompact.elim_finite_subcover (hcompact n) U hopen hcovering
-  rcases subcover with ⟨t, ht⟩
-  -- On each U_j, f is Lipschitz by hypothesis, hence the previous lemma applies.
-  have hnull: ∀ i : t, μH[d] (f '' (s ∩ U i)) = 0 := by
+  -- Consider the cover (t_x) of K_n induced by hf: for each x, choose a neighbourhood t_x of x
+  -- and a constant K_x such that f is K_x-Lipschitz on t_x.
+  choose Kx t ht hfL using fun x ↦ (hf x)
+  -- For each t_x, choose an open set U_x ∋ x contained in t_x.
+  choose U hut hUopen hxU using fun x ↦ (Iff.mp (mem_nhds_iff) (ht x))
+  -- By construction, we get an open covering.
+  have hcovering : K n ⊆ ⋃ (x : X), U x := fun y hy ↦ mem_iUnion_of_mem y (hxU y)
+  -- Since K_n is compact, (U_x) has a finite subcover V_1, ..., V_l.
+  let ⟨v, hv⟩ := IsCompact.elim_finite_subcover (hcompact n) U hUopen hcovering
+  -- f is Lipschitz on each U_j, hence the previous lemma applies.
+  have hnull: ∀ i : v, μH[d] (f '' (s ∩ U i)) = 0 := by
     intro i
-    rcases hLipschitz i with ⟨K, hK⟩
     have h₂ : μH[d] (s ∩ U i) = 0 := measure_mono_null (inter_subset_left s (U ↑i)) hs
-    have h₁ := hK.mono (inter_subset_right s (U i))
+    have h₁ := ((hfL i).mono (hut i)).mono (inter_subset_right s (U i))
     apply lipschitz_image_null_set_is_null_set (Nat.cast_nonneg d) h₁ h₂
   -- Finite subadditivity implies the claim.
   -- FIXME. This can surely be golfed more.
-  have coe : ⋃ (i : t), U i = ⋃ (i : K n) (_ : i ∈ t), U i := by apply iUnion_coe_set
-  rw [← coe] at ht
-  have : f '' (s ∩ (K n)) ⊆ ⋃ (i : t), f '' (s ∩ (U i)) := by calc f '' (s ∩ (K n))
-    _ ⊆ f '' (s ∩ (⋃ (i : t), U i)) := by
+  have coe : ⋃ (i : v), U i = ⋃ (i : X) (_ : i ∈ v), U i := by apply iUnion_coe_set
+  rw [← coe] at hv
+  have : f '' (s ∩ (K n)) ⊆ ⋃ (i : v), f '' (s ∩ (U i)) := by calc f '' (s ∩ (K n))
+    _ ⊆ f '' (s ∩ (⋃ (i : v), U i)) := by
       apply Set.image_subset
-      apply Set.inter_subset_inter_right s (ht)
-    _ = f '' ((⋃ (i : t), s ∩ (U i))) := by rw [inter_iUnion]
-    _ = ⋃ (i : t), f '' ( s ∩ (U i)) := image_iUnion
+      apply Set.inter_subset_inter_right s hv
+    _ = f '' ((⋃ (i : v), s ∩ (U i))) := by rw [inter_iUnion]
+    _ = ⋃ (i : v), f '' ( s ∩ (U i)) := image_iUnion
   have hless : μH[d] (f '' (s ∩ (K n))) ≤ 0 := by
     calc μH[d] (f '' (s ∩ (K n)))
-      _ ≤ μH[d] (⋃ (i : t), f '' (s ∩ (U i))) := measure_mono this
-      _ ≤ ∑' (i : t), (μH[d] (f '' (s ∩ (U i))) : ENNReal) := by apply measure_iUnion_le
-      _ = ∑' (i : t), (0 : ENNReal) := tsum_congr hnull
+      _ ≤ μH[d] (⋃ (i : v), f '' (s ∩ (U i))) := measure_mono this
+      _ ≤ ∑' (i : v), (μH[d] (f '' (s ∩ (U i))) : ENNReal) := by apply measure_iUnion_le
+      _ = ∑' (_ : v), (0 : ENNReal) := tsum_congr hnull
       _ = 0 := by simp
   simp only [nonpos_iff_eq_zero, zero_le] at hless ⊢
   exact hless
