@@ -4,27 +4,23 @@ import Mathlib.MeasureTheory.Measure.Hausdorff
 -- Locally Lipschitz maps preserve measure zero sets.
 open NNReal LocallyLipschitz MeasureTheory Set
 set_option autoImplicit false
+variable {X Y : Type*} [MetricSpace X] [MeasurableSpace X] [BorelSpace X]
+  [MetricSpace Y] [MeasurableSpace Y] [BorelSpace Y]
 
 section ImageMeasureZeroSet
 /-- If `f : X → Y` is a Lipschitz map between metric spaces, then `f` maps null sets
 to null sets, w.r.t. the `d`-dimensional Hausdorff measure on `X` resp. `Y`. -/
-lemma lipschitz_image_null_set_is_null_set
-    {X Y : Type*} [MetricSpace X] [MeasurableSpace X] [BorelSpace X]
-    [MetricSpace Y] [MeasurableSpace Y] [BorelSpace Y]
-    {d : ℝ} (hd : d ≥ 0) {s : Set X} {f : X → Y} {K : ℝ≥0} (hf : LipschitzOnWith K f s)
-    (hs : μH[d] s = 0) : μH[d] (f '' s) = 0 := by
-  have aux : μH[d] (f '' s) ≤ (K : ENNReal) ^ d * μH[d] s :=
-    LipschitzOnWith.hausdorffMeasure_image_le hf hd
+lemma lipschitz_image_null_set_is_null_set {d : ℝ} (hd : d ≥ 0) {s : Set X} {f : X → Y} {K : ℝ≥0}
+    (hf : LipschitzOnWith K f s) (hs : μH[d] s = 0) : μH[d] (f '' s) = 0 := by
+  have aux : μH[d] (f '' s) ≤ (K : ENNReal) ^ d * μH[d] s := hf.hausdorffMeasure_image_le hd
   rw [hs] at aux
   simp only [mul_zero, nonpos_iff_eq_zero, hs] at aux ⊢
   exact aux
 
 /-- Consider two metric spaces `X` and `Y` with the `d`-dimensional Hausdorff measure.
-If `X` is `σ`-compact, a locally Lipschitz map $f : X → Y$ maps null sets in `X` to null sets in `Y`. -/
-lemma locally_lipschitz_image_of_null_set_is_null_set {X Y : Type*}
-    [MetricSpace X] [MeasurableSpace X] [BorelSpace X] [SigmaCompactSpace X]
-    [MetricSpace Y] [MeasurableSpace Y] [BorelSpace Y] {d : ℕ} {f : X → Y}
-    (hf : LocallyLipschitz f) {s : Set X} (hs : μH[d] s = 0) : μH[d] (f '' s) = 0 := by
+If `X` is `σ`-compact, a locally Lipschitz map `f : X → Y` maps null sets in `X` to null sets in `Y`. -/
+lemma locally_lipschitz_image_of_null_set_is_null_set [SigmaCompactSpace X] {d : ℕ}
+    {f : X → Y} (hf : LocallyLipschitz f) {s : Set X} (hs : μH[d] s = 0) : μH[d] (f '' s) = 0 := by
   -- Choose a countable cover of X by compact sets K_n.
   let K : ℕ → Set X := compactCovering X
   have hcov : ⋃ (n : ℕ), K n = univ := iUnion_compactCovering X
@@ -34,7 +30,7 @@ lemma locally_lipschitz_image_of_null_set_is_null_set {X Y : Type*}
   suffices ass : ∀ n : ℕ, μH[d] (f '' (s ∩ K n)) = 0 by
     have : s = ⋃ (n : ℕ), s ∩ K n := by
       calc s
-        _ = s ∩ univ := Eq.symm (inter_univ s)
+        _ = s ∩ univ := (inter_univ s).symm
         _ = s ∩ ⋃ (n : ℕ), K n := by rw [hcov]
         _ = ⋃ (n : ℕ), s ∩ K n := by apply inter_iUnion s
     have hless : μH[d] (f '' s) ≤ 0 := by
@@ -67,7 +63,7 @@ lemma locally_lipschitz_image_of_null_set_is_null_set {X Y : Type*}
     intro i
     rcases hLipschitz i with ⟨K, hK⟩
     have h₂ : μH[d] (s ∩ U i) = 0 := measure_mono_null (inter_subset_left s (U ↑i)) hs
-    have h₁ := LipschitzOnWith.mono hK (inter_subset_right s (U i))
+    have h₁ := hK.mono (inter_subset_right s (U i))
     apply lipschitz_image_null_set_is_null_set (Nat.cast_nonneg d) h₁ h₂
   -- Finite subadditivity implies the claim.
   -- FIXME. This can surely be golfed more.
@@ -89,9 +85,7 @@ lemma locally_lipschitz_image_of_null_set_is_null_set {X Y : Type*}
   exact hless
 
 -- version specialized to an open set
-lemma locally_lipschitz_image_of_null_set_is_null_set_open {X Y : Type*}
-    [MetricSpace X] [MeasurableSpace X] [BorelSpace X] [SigmaCompactSpace X]
-    [MetricSpace Y] [MeasurableSpace Y] [BorelSpace Y] {d : ℕ} {f : X → Y} {U : Set X}
-    (hf : LocallyLipschitz (U.restrict f)) {s : Set X} (hsu : s ⊆ U) (hs : μH[d] s = 0) :
-    μH[d] (f '' s) = 0 := by sorry
+lemma locally_lipschitz_image_of_null_set_is_null_set_open [SigmaCompactSpace X] {d : ℕ}
+    {f : X → Y} {U : Set X} (hf : LocallyLipschitz (U.restrict f))
+    {s : Set X} (hsu : s ⊆ U) (hs : μH[d] s = 0) : μH[d] (f '' s) = 0 := by sorry
 end ImageMeasureZeroSet
