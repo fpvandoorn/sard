@@ -285,6 +285,15 @@ protected lemma LocallyLipschitz.sum (hf : LocallyLipschitz f) (hg : LocallyLips
 -- this one should definitely be in mathlib!
 lemma helper (a b : ℝ) : ENNReal.ofReal (a * b) = ENNReal.ofReal a * ENNReal.ofReal b := by sorry
 
+lemma last (a : ℝ) (K : ℝ≥0) (c : ℝ≥0) :
+  ENNReal.toNNReal (ENNReal.ofReal ‖a‖) * (K * c) ≤ ↑(ENNReal.toNNReal (ENNReal.ofReal ‖a‖) * K) * c := by
+  -- by definition, all of these numbers are finite and non-negative -> should be obvious
+  sorry
+
+-- in contrast, this version is obvious
+lemma last' (a : ℝ≥0) (K : ℝ≥0) (c : ℝ≥0) : ((a * K) : NNReal) * c = a * ((K * c) : NNReal) := by
+  exact mul_assoc a K c
+
 -- FIXME: there should be a nicer solution than the ugly cast!
 protected lemma LipschitzOnWith.smul {K : ℝ≥0} {s : Set X} (hf : LipschitzOnWith K f s)
     (a : ℝ) : LipschitzOnWith (ENNReal.toNNReal (ENNReal.ofReal ‖a‖) * K) (fun x ↦ a • f x) s := by
@@ -301,10 +310,9 @@ protected lemma LipschitzOnWith.smul {K : ℝ≥0} {s : Set X} (hf : LipschitzOn
       _ = ENNReal.ofReal (‖a‖ * dist (f x) (f y)) := by rw [this]
       _ = ENNReal.ofReal (‖a‖) * ENNReal.ofReal (dist (f x) (f y)) := by rw [← helper]
       _ = ENNReal.ofReal ‖a‖ * edist (f x) (f y) := by rw [edist_dist]
-      _ = ENNReal.toNNReal (ENNReal.ofReal ‖a‖) * edist (f x) (f y) := by
-        sorry -- ‖a‖ is non-negative, so these are the same
+      _ = ENNReal.toNNReal (ENNReal.ofReal ‖a‖) * edist (f x) (f y) := rfl
       _ ≤ ENNReal.toNNReal (ENNReal.ofReal ‖a‖) * (K * edist x y) := by exact mul_le_mul_left' (hf hx hy) _
-      _ ≤ ↑(ENNReal.toNNReal (ENNReal.ofReal ‖a‖) * K) * edist x y := by sorry --exact?-- sorry -- some conversion shenenigans
+      _ ≤ ↑(ENNReal.toNNReal (ENNReal.ofReal ‖a‖) * K) * edist x y := by exact last a K (edist x y)
 
 protected lemma LipschitzWith.smul {K : ℝ≥0} (hf : LipschitzWith K f) {a : ℝ} :
     LipschitzWith (ENNReal.toNNReal (ENNReal.ofReal ‖a‖)  * K) (fun x ↦ a • f x) :=
