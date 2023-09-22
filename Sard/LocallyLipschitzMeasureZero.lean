@@ -91,3 +91,24 @@ lemma locally_lipschitz_image_of_null_set_is_null_set_open [SigmaCompactSpace X]
     {f : X → Y} {U : Set X} (hf : LocallyLipschitz (U.restrict f))
     {s : Set X} (hsu : s ⊆ U) (hs : μH[d] s = 0) : μH[d] (f '' s) = 0 := by sorry
 end ImageMeasureZeroSet
+
+section C1
+/-- If `f: E → F` is C¹ and `E` is σ-compact, `f` maps null sets to null sets. -/
+lemma C1_preserves_null_sets {E F : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    [MeasurableSpace E] [MeasureSpace E] [BorelSpace E] [SigmaCompactSpace E]
+    [NormedAddCommGroup F] [NormedSpace ℝ F] [MeasurableSpace F] [MeasureSpace F] [BorelSpace F]
+    {f : E → F} (hf : ContDiff ℝ 1 f)
+     {d : ℕ} {s : Set E} (hs : μH[d] s = 0) : μH[d] (f '' s) = 0 :=
+  locally_lipschitz_image_of_null_set_is_null_set (LocallyLipschitz.of_C1 hf) hs
+
+/-- If `f: E → F` is C¹ and `E` is σ-compact, `f` maps null sets to null sets. -/
+lemma C1_preserves_null_sets_open {E F : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    [MeasurableSpace E] [MeasureSpace E] [BorelSpace E] [SigmaCompactSpace E]
+    [NormedAddCommGroup F] [NormedSpace ℝ F] [MeasurableSpace F] [MeasureSpace F] [BorelSpace F]
+    {f : E → F} {U : Set E} (hU : IsOpen U) (hf : ContDiffOn ℝ 1 f U)
+    {d : ℕ} {s : Set E} (hsU: s ⊆ U) (hs : μH[d] s = 0) : μH[d] (f '' s) = 0 := by
+  -- break U into smaller pieces! (or can the hypothesis on ContDiff be removed?)
+  have : Convex ℝ U := sorry
+  exact locally_lipschitz_image_of_null_set_is_null_set_open
+    (LocallyLipschitz.of_C1_on_open hU this hf) hsU hs
+end C1
