@@ -9,7 +9,7 @@ import Mathlib.Order.Filter.Basic
 Define locally Lipschitz functions and show their elementary properties.
 Show that C¹ functions are locally Lipschitz.
 -/
--- FIXME: move to a suitable section of `Lipschitz.lean`
+-- STATUS. This file has mostly been PRed to mathlib; refactors there are not merged here.
 
 open Function NNReal Set Topology
 set_option autoImplicit false
@@ -39,8 +39,8 @@ protected lemma id : LocallyLipschitz (@id X) := LocallyLipschitz.of_Lipschitz (
 protected lemma const (b : Y) : LocallyLipschitz (fun _ : X ↦ b) :=
   LocallyLipschitz.of_Lipschitz (LipschitzWith.const b)
 
-/-- A locally Lipschitz function is continuous.
-(The converse is false: for example, $x : ℝ≥0 ↦√x$ is continuous, but not locally Lipschitz at 0.) -/
+/-- A locally Lipschitz function is continuous. (The converse is false: for example,
+$x ↦ \sqrt{x}$ is continuous, but not locally Lipschitz at 0.) -/
 protected theorem continuous {f : X → Y} (hf : LocallyLipschitz f) : Continuous f := by
   apply Iff.mpr continuous_iff_continuousAt
   intro x
@@ -143,6 +143,8 @@ protected theorem pow {f : Function.End X} (h : LocallyLipschitz f) :
 end LocallyLipschitz
 end EMetric
 
+--------- everything above here has been PRed
+
 section Metric
 variable [MetricSpace X] [MetricSpace Y] [MetricSpace Z]
 namespace LocallyLipschitz
@@ -186,7 +188,7 @@ protected lemma restrict {f : X → Y} (hf : LocallyLipschitz f) (s : Set X) :
   exact ⟨ToSubset.compatible_with_nhds s t ht, LipschitzOnWith.restrict_subtype s t hfL⟩
 
 /-- C¹ functions are locally Lipschitz. -/
--- TODO: move to ContDiff.lean!
+-- upstreamed, as ContDiff.locallyLipschitz
 protected lemma of_C1 {E F: Type*} {f : E → F} [NormedAddCommGroup E] [NormedSpace ℝ E]
     [NormedAddCommGroup F] [NormedSpace ℝ F] (hf : ContDiff ℝ 1 f) : LocallyLipschitz f := by
   intro x
@@ -194,7 +196,7 @@ protected lemma of_C1 {E F: Type*} {f : E → F} [NormedAddCommGroup E] [NormedS
   use K, t
 
 /-- If `f` is C¹ on an open convex set `U`, the restriction of `f` to `U` is locally Lipschitz. -/
--- TODO: move to ContDiffOn.lean!
+-- TODO: upstream to ContDiffOn.lean! once the restriction stuff is figured out. can drop the variables there :-)
 lemma of_C1_on_open {E F: Type*} {f : E → F} [NormedAddCommGroup E] [NormedSpace ℝ E]
     [NormedAddCommGroup F] [NormedSpace ℝ F] {U : Set E} (h₁U : IsOpen U) (h₂U : Convex ℝ U)
     (hf : ContDiffOn ℝ 1 f U) : LocallyLipschitz (U.restrict f) := by
@@ -211,6 +213,9 @@ end Metric
 
 section EMetric
 namespace LocallyLipschitz
+---------------------------------
+-- all of this section has been PRed, except for the sum and smul lemmas
+---------------------------------
 variable [MetricSpace X] [MetricSpace Y] [MetricSpace Z] {f g : X → ℝ}
 /-- The minimum of locally Lipschitz functions is locally Lipschitz. -/
 protected lemma min (hf : LocallyLipschitz f) (hg : LocallyLipschitz g) :

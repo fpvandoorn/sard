@@ -23,8 +23,8 @@ The **Sard-Smale** theorem is a generalisation to infinite-dimensional Banach ma
    - show the ae filter is induced from the charts
    - perhaps not all of these are truly required
 
-- define: locally Lipschitz maps; show C¹ maps are locally Lipschitz
-(complete: not PRed yet; could add much more API for locally Lipschitz functions)
+- define locally Lipschitz maps; show C¹ maps are locally Lipschitz
+(first parts [PRed](https://github.com/leanprover-community/mathlib4/pull/7314); a few sorries/potential API additions remain)
 - show: locally Lipschitz maps preserve null sets (mostly done; remaining sorries are due to one Lean-related error)
 
 - meager sets and relation to measure zero
