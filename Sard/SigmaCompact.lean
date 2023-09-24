@@ -40,6 +40,26 @@ lemma IsSigmaCompact.image {f : X → Y} (hf : Continuous f) {s : Set X} (hs : I
   rcases hs with ⟨K, hcompact, hcov⟩
   exact ⟨(fun n ↦ f '' (K n)), ⟨fun n ↦ (hcompact n).image hf, by rw [← hcov, image_iUnion]⟩⟩
 
+-- TODO: this is missing API for toSubset
+lemma toSubset_aux1 {X Y : Type*} (f : X → Y) {s w : Set X} (hsw : s ⊆ w) :
+    f '' (s ∩ w) = (w.restrict f) '' (toSubset s w) := sorry
+
+-- TODO: this is missing API for toSubset or rather IsSigmaCompact
+lemma toSubset_aux2 {X Y : Type*} [TopologicalSpace X] [TopologicalSpace Y]
+    {s w : Set X} (hsw : s ⊆ w) (hs : IsSigmaCompact s) : IsSigmaCompact (toSubset s w) := sorry
+
+lemma IsSigmaCompact.imageOn {f : X → Y} {s w : Set X} (hsw : s ⊆ w) (hs : IsSigmaCompact s)
+    (hf : ContinuousOn f w) : IsSigmaCompact (f '' s) := by
+  -- XXX. is there a nicer proof, like: take the open covers K_n, but make sure there are contained in w?
+  let g := w.restrict f
+  have : f '' s = g '' (toSubset s w) := by
+    have : s ∩ w = s := Iff.mpr inter_eq_left_iff_subset hsw
+    calc f '' s
+      _ = f '' (s ∩ w) := by rw [this]
+      _ = g '' (toSubset s w) := by rw [(toSubset_aux1 f hsw)]
+  rw [this]
+  exact image hf.restrict (toSubset_aux2 hsw hs (X := X) (Y := Y))
+
 /-- If `X` is σ-compact, `im f` is σ-compact. -/
 lemma isSigmaCompact_range {f : X → Y} (hf : Continuous f) [i : SigmaCompactSpace X] :
     IsSigmaCompact (range f) := by

@@ -1,6 +1,7 @@
 import Sard.LocallyLipschitz
 import Sard.LocallyLipschitzMeasureZero
 import Sard.MeasureZero
+import Sard.SigmaCompact
 import Mathlib.Analysis.Calculus.ContDiff
 import Mathlib.Geometry.Manifold.ChartedSpace
 import Mathlib.Geometry.Manifold.MFDeriv
@@ -174,14 +175,6 @@ theorem sard_local {s w : Set E} {f : E → F} (hw : IsOpen w) (hsw : s ⊆ w)
     exact hless
   · sorry
 
--- TODO: this is missing API for toSubset
-lemma toSubset_aux1 {X Y : Type*} (f : X → Y) {s w : Set X} (hsw : s ⊆ w) :
-    f '' (s ∩ w) = (w.restrict f) '' (toSubset s w) := sorry
-
--- TODO: this is missing API for toSubset or rather IsSigmaCompact
-lemma toSubset_aux2 {X Y : Type*} [TopologicalSpace X] [TopologicalSpace Y]
-    {s w : Set X} (hsw : s ⊆ w) (hs : IsSigmaCompact s) : IsSigmaCompact (toSubset s w) := sorry
-
 /-- Local version of Sard's theorem. If $W ⊆ ℝ^m$ is open and $f: W → ℝ^n$ is $C^r$,
 the set of critical values of `f` is a meagre set.
 We phrase this for any closed set `s` of critical points of `f`; this is fine
@@ -189,22 +182,13 @@ as the critical set of `f` is closed. -/
 theorem sard_local' {s w : Set E} {f : E → F} (hw : IsOpen w) (hs : IsClosed s) (hsw : s ⊆ w)
     (hf : ContDiffOn ℝ r f w) {f' : E → E →L[ℝ] F} (hf' : ∀ x ∈ s, HasFDerivWithinAt f (f' x) s x)
     (h'f' : ∀ x ∈ s, ¬ Surjective (f' x)) : IsMeagre (f '' s) := by
-  -- The critical set of `f` is closed: enlarge `s` if needed.
-  -- Hence, it's σ-compact, and thus is the set of critical values.
-  have h₁: IsSigmaCompact s := isSigmaCompact_univ.of_isClosed_subset hs (subset_univ s)
-  have : IsSigmaCompact (f '' s) := by
-    let g := w.restrict f
-    have : f '' s = g '' (toSubset s w) := by
-      calc f '' s
-        _ = f '' (s ∩ w) := congrArg (image f) (inter_eq_left_iff_subset.mpr hsw).symm
-        _ = g '' (toSubset s w) := by rw [(toSubset_aux1 f hsw)]
-    rw [this]
-    have : IsSigmaCompact (toSubset s w) := toSubset_aux2 hsw h₁ (X := E) (Y := F)
-    exact this.image (ContinuousOn.restrict (ContDiffOn.continuousOn hf))
-
   obtain ⟨K''⟩ : Nonempty (PositiveCompacts F) := PositiveCompacts.nonempty'
   let μ : Measure F := addHaarMeasure K''
   have ass : μ (f '' s) = 0 := sard_local hr hw hsw hf hf' h'f' μ
+
+  -- `s` is closed, hence σ-compact --- thus so is f '' s.
+  have : IsSigmaCompact s := isSigmaCompact_univ.of_isClosed_subset hs (subset_univ s)
+  have : IsSigmaCompact (f '' s) := this.imageOn hsw (ContDiffOn.continuousOn hf)
   exact meagre_of_sigma_compact_null this ass
 
 
