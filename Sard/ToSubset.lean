@@ -32,3 +32,7 @@ lemma coe_toSubset : (s.toSubset t : Set X) = s ∩ t := by
     obtain ⟨ha, rfl⟩ := ha
     exact ⟨ha, a.property⟩
 end Set
+
+-- unused, but seems like missing API
+lemma toSubset_aux1 {X Y : Type*} (f : X → Y) {s w : Set X} (hsw : s ⊆ w) :
+    f '' (s ∩ w) = (w.restrict f) '' (Set.toSubset s w) := sorry
