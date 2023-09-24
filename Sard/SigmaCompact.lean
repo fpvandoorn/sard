@@ -102,6 +102,10 @@ lemma isSigmaCompact_iff_sigmaCompactSpace {s : Set X} :
     IsSigmaCompact s ↔ SigmaCompactSpace s :=
   isSigmaCompact_iff_isSigmaCompact_univ.trans isSigmaCompact_univ_iff
 
+/-- The empty set is σ-compact. -/
+@[simp]
+lemma isSigmaCompact_empty : IsSigmaCompact (∅ : Set X) := sorry
+
 /-- Compact sets are σ-compact. -/
 lemma isSigmaCompact_of_compact {s : Set X} (hs : IsCompact s) : IsSigmaCompact s := by
   -- proof 1: show by hand
@@ -111,19 +115,35 @@ lemma isSigmaCompact_of_compact {s : Set X} (hs : IsCompact s) : IsSigmaCompact 
   exact (isCompact_iff_compactSpace.mp hs).sigma_compact
 
 /-- Countable unions of compact sets are σ-compact. -/
-lemma isSigmaCompact_of_countable_compact (S : Set (Set X)) (hc : Set.Countable S) (hcomp : ∀ (s : Set X), s ∈ S → IsCompact s) :
-  IsSigmaCompact (⋃₀ S) := by
-  -- easy "in principle": S is countable, so get a bijection, that yields the covering
-  have h : ∃ t : Set X, IsCompact t := by sorry -- pick one element S; if empty, we're good
-  -- this does almost what we want: except it's for a cover of univ, whereas we want just S
-  let lem := Iff.mpr (exists_seq_cover_iff_countable h)
-  have hyp : ∃ S, Set.Countable S ∧ (∀ (s : Set X), s ∈ S → IsCompact s) ∧ ⋃₀ S = univ := by
-    use S
-    exact ⟨hc, ⟨hcomp, sorry⟩⟩
-  -- in particular, lem does not fully match what I need!
-  specialize lem hyp
-  simp [IsSigmaCompact] at *
-  sorry
+lemma isSigmaCompact_of_countable_compact (S : Set (Set X)) (hc : Set.Countable S)
+    (hcomp : ∀ (s : Set X), s ∈ S → IsCompact s) : IsSigmaCompact (⋃₀ S) := by
+  by_cases S = ∅
+  · simp only [h, sUnion_empty, isSigmaCompact_empty]
+  · -- Choose a surjection f : ℕ → S, this yields a map ℕ → Set X.
+    obtain ⟨f, hf⟩ := (Set.countable_iff_exists_surjective (nmem_singleton_empty.mp h)).mp hc
+    use fun n ↦ f n
+    constructor
+    · exact fun n ↦ hcomp (f n) (Subtype.mem (f n))
+    · apply Subset.antisymm
+      · -- Suppose x ∈ ⋃ n, f n. Then x ∈ f i for some i.
+        intro _ hx
+        rw [mem_iUnion] at hx
+        rcases hx with ⟨i, hi⟩
+        -- But f i is a set in S, so x ∈ ⋃ S as well.
+        exact ⟨f i, Subtype.mem (f i), hi⟩
+      · -- Suppose x ∈ ⋃ s, then x ∈ s for some s ∈ S.
+        intro x hx
+        rw [mem_sUnion] at hx
+        rcases hx with ⟨s, h, hxs⟩
+        -- Choose n with f n = s (using surjectitivity of ).
+        have : ∀ s : ↑S, ∃ n : ℕ, f n = s := hf
+        -- x has type X, but hs says x ∈ S -> how can I cast x to S?
+        -- let sdf := this s -- type mismatch! s has type X, should have type s...
+        -- let _ := this h
+        have : ∃ n, f n = s := by sorry --exact?
+        -- simp [hf] is also nice, but doesn't solve this
+        rcases this with ⟨n, hn⟩
+        exact ⟨f n, mem_range_self n, (by rw [hn]; exact hxs)⟩
 
 /-- Countable unions of σ-compact sets are σ-compact. -/
 lemma isSigmaCompact_of_countable_sigma_compact (S : Set (Set X)) (hc : Countable S) (hcomp : ∀ (s : Set X), s ∈ S → IsSigmaCompact s) :
