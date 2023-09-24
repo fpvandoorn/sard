@@ -190,8 +190,8 @@ open MeasureTheory Measure
 variable {X : Type*} [TopologicalSpace X] [MeasurableSpace X] [BorelSpace X]
   {μ : Measure X} [IsOpenPosMeasure μ]
 
-lemma open_measure_zero_implies_empty {s : Set X}
-  (hs : IsOpen s) (hs' : μ s = 0) : s = ∅ := Iff.mp (IsOpen.measure_eq_zero_iff μ hs) hs'
+lemma open_measure_zero_implies_empty {s : Set X} (hs : IsOpen s) (hs' : μ s = 0) : s = ∅ :=
+  (IsOpen.measure_eq_zero_iff μ hs).mp hs'
 
 /-- A measure zero subset has empty interior. -/
 lemma empty_interior_of_null {s : Set X} (hs : μ s = 0) : interior s = ∅ :=
@@ -199,22 +199,20 @@ lemma empty_interior_of_null {s : Set X} (hs : μ s = 0) : interior s = ∅ :=
 
 /-- A *closed* measure zero subset is nowhere dense.
 (Closedness is required: there are generalised Cantor sets of positive Lebesgue measure.) -/
-lemma nowhere_dense_of_closed_null {s : Set X} (h₁s : IsClosed s) (h₂s : μ s = 0) : IsNowhereDense s :=
-  Iff.mpr (closed_nowhere_dense_iff h₁s) (empty_interior_of_null h₂s)
+lemma nowhere_dense_of_closed_null {s : Set X} (h₁s : IsClosed s) (h₂s : μ s = 0) :
+    IsNowhereDense s := (closed_nowhere_dense_iff h₁s).mpr (empty_interior_of_null h₂s)
+
+/-- A compact measure zero set is nowhere dense. -/
+-- FIXME: is this lemma useful to have?
+lemma nowhere_dense_of_compact_null [T2Space X] {s : Set X} (h₁s : IsCompact s) (h₂s : μ s = 0) : IsNowhereDense s :=
+  nowhere_dense_of_closed_null h₁s.isClosed h₂s
 
 /-- A σ-compact measure zero subset is meagre. -/
 lemma meagre_of_sigma_compact_null [T2Space X] {s : Set X} (h₁s : IsSigmaCompact s) (h₂s : μ s = 0) : IsMeagre s := by
   rcases h₁s with ⟨K, hcompact, hcover⟩
-  suffices hyp : ∀ (n : ℕ), IsNowhereDense (K n) by
-    use range K
-    constructor
-    · rintro t ⟨n, hn⟩
-      rw [← hn]
-      exact hyp n
-    · exact ⟨countable_range K, Eq.subset (id (Eq.symm hcover))⟩
-
-  intro n
-  have : K n ⊆ s := by rw [← hcover] ; exact subset_iUnion K n
-  have : μ (K n) = 0 := measure_mono_null this h₂s
-  exact nowhere_dense_of_closed_null (IsCompact.isClosed (hcompact n)) this
+  have h : ∀ (n : ℕ), IsNowhereDense (K n) := by
+    intro n
+    have : μ (K n) = 0 := measure_mono_null (by rw [← hcover]; exact subset_iUnion K n) h₂s
+    exact nowhere_dense_of_compact_null (hcompact n) this
+  exact ⟨range K, fun t ⟨n, hn⟩ ↦ (by rw [← hn]; exact h n), countable_range K, hcover.symm.subset⟩
 end MeasureZero

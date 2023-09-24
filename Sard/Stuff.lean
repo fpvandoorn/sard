@@ -195,9 +195,8 @@ theorem sard_local' {s w : Set E} {f : E → F} (hw : IsOpen w) (hs : IsClosed s
   have : IsSigmaCompact (f '' s) := by
     let g := w.restrict f
     have : f '' s = g '' (toSubset s w) := by
-      have : s ∩ w = s := Iff.mpr inter_eq_left_iff_subset hsw
       calc f '' s
-        _ = f '' (s ∩ w) := by rw [this]
+        _ = f '' (s ∩ w) := congrArg (image f) (inter_eq_left_iff_subset.mpr hsw).symm
         _ = g '' (toSubset s w) := by rw [(toSubset_aux1 f hsw)]
     rw [this]
     have : IsSigmaCompact (toSubset s w) := toSubset_aux2 hsw h₁ (X := E) (Y := F)

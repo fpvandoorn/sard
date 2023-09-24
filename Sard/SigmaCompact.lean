@@ -38,14 +38,13 @@ lemma isSigmaCompact_univ [h : SigmaCompactSpace X] : IsSigmaCompact (univ : Set
 lemma IsSigmaCompact.image {f : X → Y} (hf : Continuous f) {s : Set X} (hs : IsSigmaCompact s) :
     IsSigmaCompact (f '' s) := by
   rcases hs with ⟨K, hcompact, hcov⟩
-  use (fun n ↦ f '' (K n))
-  exact ⟨fun n ↦ IsCompact.image (hcompact n) hf, by rw [← hcov, image_iUnion]⟩
+  exact ⟨(fun n ↦ f '' (K n)), ⟨fun n ↦ (hcompact n).image hf, by rw [← hcov, image_iUnion]⟩⟩
 
 /-- If `X` is σ-compact, `im f` is σ-compact. -/
 lemma isSigmaCompact_range {f : X → Y} (hf : Continuous f) [i : SigmaCompactSpace X] :
     IsSigmaCompact (range f) := by
   rw [← image_univ]
-  apply IsSigmaCompact.image hf (Iff.mpr isSigmaCompact_univ_iff i)
+  apply IsSigmaCompact.image hf isSigmaCompact_univ
 
 /-- If `f : X → Y` is an `Embedding`, the image `f '' s` of a set `s` is σ-compact
 if and only `s`` is σ-compact. -/
@@ -90,12 +89,10 @@ lemma isSigmaCompact_iff_sigmaCompactSpace {s : Set X} :
 /-- Compact sets are σ-compact. -/
 lemma isSigmaCompact_of_compact {s : Set X} (hs : IsCompact s) : IsSigmaCompact s := by
   -- proof 1: show by hand
-  -- use fun _ => s
-  -- exact ⟨fun _ => hs, iUnion_const _⟩
+  -- exact ⟨fun _ => s, fun _ => hs, iUnion_const _⟩
   -- proof 2: reduce to subspaces. not sure if that's nicer
   rw [isSigmaCompact_iff_sigmaCompactSpace]
-  have : CompactSpace ↑s := by exact Iff.mp isCompact_iff_compactSpace hs
-  exact CompactSpace.sigma_compact
+  exact (isCompact_iff_compactSpace.mp hs).sigma_compact
 
 /-- Countable unions of compact sets are σ-compact. -/
 lemma isSigmaCompact_of_countable_compact (S : Set (Set X)) (hc : Set.Countable S) (hcomp : ∀ (s : Set X), s ∈ S → IsCompact s) :
@@ -122,7 +119,6 @@ lemma IsSigmaCompact.of_isClosed_subset {s t : Set X} (ht : IsSigmaCompact t)
   rcases ht with ⟨K, hcompact, hcov⟩
   use (fun n ↦ s ∩ (K n))
   constructor
-  · intro n
-    exact IsCompact.inter_left (hcompact n) hs
+  · exact fun n ↦ (hcompact n).inter_left hs
   · rw [← inter_iUnion, hcov]
-    exact Iff.mpr inter_eq_left_iff_subset h
+    exact inter_eq_left_iff_subset.mpr h
