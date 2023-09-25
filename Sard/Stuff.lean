@@ -188,7 +188,7 @@ theorem sard_local' {s w : Set E} {f : E → F} (hw : IsOpen w) (hs : IsClosed s
 
   -- `s` is closed, hence σ-compact --- thus so is f '' s.
   have : IsSigmaCompact s := isSigmaCompact_univ.of_isClosed_subset hs (subset_univ s)
-  have : IsSigmaCompact (f '' s) := this.image_of_continuousOn hsw hf.continuousOn
+  have : IsSigmaCompact (f '' s) := this.image_of_continuousOn (hf.continuousOn.mono hsw)
   exact meagre_of_sigma_compact_null this ass
 
 /-- **Sard's theorem**. Let $M$ and $N$ be real $C^r$ manifolds of dimensions

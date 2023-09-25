@@ -32,29 +32,27 @@ lemma isSigmaCompact_univ_iff : IsSigmaCompact (univ : Set X) ↔ SigmaCompactSp
   ⟨fun h ↦ { exists_compact_covering := h }, fun _ ↦ SigmaCompactSpace.exists_compact_covering⟩
 
 lemma isSigmaCompact_univ [h : SigmaCompactSpace X] : IsSigmaCompact (univ : Set X) :=
-  Iff.mpr isSigmaCompact_univ_iff h
-
-/-- If `s` is σ-compact and `f` continuous, `f(A)` is σ-compact. -/
-lemma IsSigmaCompact.image {f : X → Y} (hf : Continuous f) {s : Set X} (hs : IsSigmaCompact s) :
-    IsSigmaCompact (f '' s) := by
-  rcases hs with ⟨K, hcompact, hcov⟩
-  exact ⟨(fun n ↦ f '' (K n)), ⟨fun n ↦ (hcompact n).image hf, by rw [← hcov, image_iUnion]⟩⟩
+  isSigmaCompact_univ_iff.mpr h
 
 -- unused, but might be useful
 lemma toSubset_aux2 {X Y : Type*} [TopologicalSpace X] [TopologicalSpace Y]
     {s w : Set X} (hsw : s ⊆ w) (hs : IsSigmaCompact s) : IsSigmaCompact (toSubset s w) := sorry
 
-lemma IsSigmaCompact.image_of_continuousOn {f : X → Y} {s w : Set X} (hs : IsSigmaCompact s)
-    (hsw : s ⊆ w) (hf : ContinuousOn f w) : IsSigmaCompact (f '' s) := by
+/-- If `s` is σ-compact and `f` continuous on a set `w` containing `s`, `f(s)` is σ-compact.-/
+lemma IsSigmaCompact.image_of_continuousOn {f : X → Y} {s : Set X} (hs : IsSigmaCompact s)
+    (hf : ContinuousOn f s) : IsSigmaCompact (f '' s) := by
   rcases hs with ⟨K, hcompact, hcov⟩
   have : ∀ n, IsCompact (f '' (K n)) := by
     intro n
-    have : K n ⊆ w := by calc K n
+    have : K n ⊆ s := by calc K n
       _ ⊆ ⋃ n, K n := subset_iUnion K n
       _ = s := by rw [hcov]
-      _ ⊆ w := by exact hsw
     exact (hcompact n).image_of_continuousOn (hf.mono this)
   exact ⟨fun n ↦ f '' K n, fun n ↦ this n, (by rw [← hcov]; exact image_iUnion.symm)⟩
+
+/-- If `s` is σ-compact and `f` continuous, `f(s)` is σ-compact. -/
+lemma IsSigmaCompact.image {f : X → Y} (hf : Continuous f) {s : Set X} (hs : IsSigmaCompact s) :
+    IsSigmaCompact (f '' s) := hs.image_of_continuousOn hf.continuousOn
 
 /-- If `X` is σ-compact, `im f` is σ-compact. -/
 lemma isSigmaCompact_range {f : X → Y} (hf : Continuous f) [i : SigmaCompactSpace X] :
