@@ -68,7 +68,13 @@ lemma Embedding.isSigmaCompact_iff_isSigmaCompact_image {f : X → Y} {s : Set X
   constructor
   · intro h
     apply h.image (continuous hf)
-  · rintro ⟨K, hcompact, hcov⟩
+  · -- suppose f '' s is σ-compact; we want to show f is σ-compact
+    -- a nicer proof: as an embedding, f is a homeomorphism to its image
+    -- hence f '' s being σ-compact implies s is
+    -- xxx: which of this is in mathlib? seems all the building blocks are; can't find the details
+    -- consider the inverse (involves choice?) f⁻¹; is well-def'd because injective
+    -- as f is inducing, f⁻¹ is continuous -- that should be easy. ask on zulip first!
+    rintro ⟨K, hcompact, hcov⟩
     use (fun n ↦ f ⁻¹' (K n))
     constructor
     · intro n
@@ -102,7 +108,9 @@ lemma isSigmaCompact_iff_sigmaCompactSpace {s : Set X} :
 
 /-- The empty set is σ-compact. -/
 @[simp]
-lemma isSigmaCompact_empty : IsSigmaCompact (∅ : Set X) := sorry
+lemma isSigmaCompact_empty : IsSigmaCompact (∅ : Set X) := by
+  use fun _ ↦ ∅
+  simp only [isCompact_empty, forall_const, iUnion_empty, and_self]
 
 /-- Compact sets are σ-compact. -/
 lemma isSigmaCompact_of_compact {s : Set X} (hs : IsCompact s) : IsSigmaCompact s := by
