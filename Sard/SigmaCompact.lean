@@ -1,4 +1,5 @@
 import Sard.ToSubset
+import Mathlib.Topology.Homeomorph
 import Mathlib.Topology.Separation
 import Mathlib.Topology.SubsetProperties
 /-!
@@ -34,9 +35,35 @@ lemma isSigmaCompact_univ_iff : IsSigmaCompact (univ : Set X) ↔ SigmaCompactSp
 lemma isSigmaCompact_univ [h : SigmaCompactSpace X] : IsSigmaCompact (univ : Set X) :=
   isSigmaCompact_univ_iff.mpr h
 
--- unused, but might be useful
-lemma toSubset_aux2 {X Y : Type*} [TopologicalSpace X] [TopologicalSpace Y]
-    {s w : Set X} (hsw : s ⊆ w) (hs : IsSigmaCompact s) : IsSigmaCompact (toSubset s w) := sorry
+lemma toSubset_iUnion {X : Type*} {t : Set X} (S : ℕ → Set X) : toSubset (⋃ n, S n) t = ⋃ n, toSubset (S n) t := by
+  ext
+  rw [mem_toSubset]
+  sorry
+
+/-- If `s ⊆ X` is a compact set and `s ⊆ t`, then `s` is also compact in `t` (with the subspace topology). -/
+lemma toSubset_compact {X Y : Type*} [TopologicalSpace X] [TopologicalSpace Y]
+    {s t : Set X} (hsw : s ⊆ t) (hs : IsCompact s) : IsCompact (toSubset s t) := by
+  -- Let U_i be an open cover of s, in t.
+  -- By definition, each U_i is of the form U_i = t ∩ V_i for some V_i ⊆ X open.
+  -- Since s is compact in X, it has a finite subcover V_i1, ..., V_in.
+  -- But now, s = s ∩ t ⊆ (⋃ V_i1) ∩ t = ⋃ (V_ij ∩ t) = ⋃ U_ij, done.
+  sorry
+-- non-proof: `s ⊆ t` is the preimage of `s` under the inclusion `t → X`
+-- this works *if* `t` is closed (so the inclusion is a closed embedding), but fails in general:
+-- for instance, the open unit disc in ℝ² is not compact, but it is the preimage of its closure.
+
+lemma toSubset_sigmaCompact {X Y : Type*} [TopologicalSpace X] [TopologicalSpace Y]
+    {s w : Set X} (hsw : s ⊆ w) (hs : IsSigmaCompact s) : IsSigmaCompact (toSubset s w) := by
+  -- Choose a covering by compact sets. Each is compact on w also, done.
+  rcases hs with ⟨K, hcomp, hcov⟩
+  have : ∀ n, K n ⊆ w := by
+    intro n
+    apply Subset.trans _ hsw
+    rw [← hcov]
+    exact subset_iUnion K n
+  exact ⟨fun n ↦ toSubset (K n) w, fun n ↦ toSubset_compact (this n) (Y := Y) (hcomp n), by rw [← toSubset_iUnion, hcov]⟩
+
+-- lemma toSubset_univ {X : Type*} : (toSubset univ univ) = (univ : Set X) := sorry
 
 /-- If `s` is σ-compact and `f` continuous on a set `w` containing `s`, `f(s)` is σ-compact.-/
 lemma IsSigmaCompact.image_of_continuousOn {f : X → Y} {s : Set X} (hs : IsSigmaCompact s)
@@ -71,6 +98,28 @@ lemma Embedding.isSigmaCompact_iff_isSigmaCompact_image {f : X → Y} {s : Set X
   · -- suppose f '' s is σ-compact; we want to show f is σ-compact
     -- a nicer proof: as an embedding, f is a homeomorphism to its image
     -- hence f '' s being σ-compact implies s is
+    intro h
+    have : IsSigmaCompact (toSubset (f '' s) (f '' s)) :=
+      toSubset_sigmaCompact (Eq.subset rfl) h (Y := f '' s)
+    have : SigmaCompactSpace (f '' s) := by
+      sorry -- apply isSigmaCompact_univ_iff.mp this -- almost there, toSubset univ univ vs univ
+    sorry
+    #exit
+    have : X ≃ₜ range f := by apply Homeomorph.ofEmbedding hf (f := f)
+    let g := this.invFun
+    have : ↑(g ⁻¹' s) = f '' s := sorry
+    -- now, f '' s being σ-compact implies it is σ-compact in the subspace ?!
+    -- then, g of that is σ-compact, so we're good
+    -- have : s = g '' (ToSubset(f '' s)) := sorry-- have : s ≃ f '' s := by
+    --   let g := s.restrict f
+    --   have : f '' s = range g := sorry
+    --   rw [this]
+    --   have : Embedding g := sorry
+    --   sorry
+      --apply Homeomorph.ofEmbedding this
+    sorry
+    #exit
+
     -- xxx: which of this is in mathlib? seems all the building blocks are; can't find the details
     -- consider the inverse (involves choice?) f⁻¹; is well-def'd because injective
     -- as f is inducing, f⁻¹ is continuous -- that should be easy. ask on zulip first!
