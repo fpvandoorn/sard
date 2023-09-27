@@ -87,6 +87,20 @@ lemma isSigmaCompact_range {f : X → Y} (hf : Continuous f) [i : SigmaCompactSp
   rw [← image_univ]
   apply IsSigmaCompact.image hf isSigmaCompact_univ
 
+lemma Homeomorph.isSigmaCompact_image {s : Set X} (h : X ≃ₜ Y) : IsSigmaCompact (↑h '' s) ↔ IsSigmaCompact s := by
+  constructor <;> intro hyp
+  · -- suppose h''s is sigma-compact
+    rcases hyp with ⟨K, hcomp, hcov⟩
+    let k := h.invFun
+    refine ⟨fun n ↦ k '' (K n), fun n ↦ (hcomp n).image (h.continuous_invFun), ?_⟩
+    calc ⋃ (n : ℕ), k '' K n
+      _ = k '' (⋃ (n : ℕ), K n) := by rw [image_iUnion]
+      _ = k '' (h '' s) := by rw [hcov]
+      _ = (k ∘ h) '' s := by rw [image_comp]
+      _ = id '' s := by sorry -- exact h.left_inv plus some congr magic
+      _ = s := by rw [image_id]
+  · apply hyp.image h.continuous
+
 /-- If `f : X → Y` is an `Embedding`, the image `f '' s` of a set `s` is σ-compact
 if and only `s`` is σ-compact. -/
 -- this proof of <= requires injectivity to conclude s = f ⁻¹' (f '' s)
@@ -95,52 +109,20 @@ lemma Embedding.isSigmaCompact_iff_isSigmaCompact_image {f : X → Y} {s : Set X
   constructor
   · intro h
     apply h.image (continuous hf)
-  · -- suppose f '' s is σ-compact; we want to show f is σ-compact
+  · intro h -- suppose f '' s is σ-compact; we want to show f is σ-compact
     -- a nicer proof: as an embedding, f is a homeomorphism to its image
-    -- hence f '' s being σ-compact implies s is
-    intro h
-    have : IsSigmaCompact (toSubset (f '' s) (f '' s)) :=
-      toSubset_sigmaCompact (Eq.subset rfl) h (Y := f '' s)
-    have : SigmaCompactSpace (f '' s) := by
-      sorry -- apply isSigmaCompact_univ_iff.mp this -- almost there, toSubset univ univ vs univ
-    sorry
-    #exit
-    have : X ≃ₜ range f := by apply Homeomorph.ofEmbedding hf (f := f)
-    let g := this.invFun
-    have : ↑(g ⁻¹' s) = f '' s := sorry
-    -- now, f '' s being σ-compact implies it is σ-compact in the subspace ?!
-    -- then, g of that is σ-compact, so we're good
-    -- have : s = g '' (ToSubset(f '' s)) := sorry-- have : s ≃ f '' s := by
-    --   let g := s.restrict f
-    --   have : f '' s = range g := sorry
-    --   rw [this]
-    --   have : Embedding g := sorry
-    --   sorry
-      --apply Homeomorph.ofEmbedding this
-    sorry
+    -- restricting to s yields a homeomorphism between s and f '' s
+    let f' := s.restrict f
+    have hf' : Embedding f' := by sorry
+    have : range f' = f '' s := by calc range f'
+      _ = f' '' univ := by rw [image_univ]
+      _ = f '' s := by sorry -- rw? cannot find this, but should be in mathlib
+    have : s ≃ₜ f '' s := by
+      rw [← this]
+      apply Homeomorph.ofEmbedding hf' (f := f')
+    sorry -- refine Iff.mp (Homeomorph.isSigmaCompact_image this) h
     #exit
 
-    -- xxx: which of this is in mathlib? seems all the building blocks are; can't find the details
-    -- consider the inverse (involves choice?) f⁻¹; is well-def'd because injective
-    -- as f is inducing, f⁻¹ is continuous -- that should be easy. ask on zulip first!
-    rintro ⟨K, hcompact, hcov⟩
-    use (fun n ↦ f ⁻¹' (K n))
-    constructor
-    · intro n
-      let S := f ⁻¹' K n
-      let f' := S.restrict f
-      have : ClosedEmbedding f' := sorry
-      have : IsCompact (f' ⁻¹' K n) := ClosedEmbedding.isCompact_preimage this (K := K n) (hcompact n)
-      have h : (f' ⁻¹' K n) = toSubset (f ⁻¹' K n) S := sorry
-      have : IsClosed S := by -- if Y is T2, this holds. most likely, this is not needed!
-        sorry
-        -- have hcont : ContinuousOn f univ := Iff.mp continuous_iff_continuousOn_univ (continuous hf)
-        -- let h := ContinuousOn.preimage_closed_of_closed hcont isClosed_univ (IsCompact.isClosed (hcompact n))
-        -- rw [univ_inter] at h
-        -- exact h
-      sorry
-    · have : f ⁻¹' (f '' s) = s := by apply preimage_image_eq s hf.inj
-      rw [← preimage_iUnion, hcov, this]
 
 lemma isSigmaCompact_iff_isSigmaCompact_in_subtype {p : X → Prop} {s : Set { a // p a }} :
     IsSigmaCompact s ↔ IsSigmaCompact (((↑) : _ → X) '' s) :=
