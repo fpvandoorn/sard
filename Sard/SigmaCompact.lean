@@ -18,7 +18,7 @@ set_option autoImplicit false
 variable {X Y : Type*} [TopologicalSpace X] [TopologicalSpace Y]
 
 /-- The preimage of a compact set under an inducing map is a compact set. -/
--- Direct PR to mathlib; this removes the injectivity hypothesis from ClosedEmbedding.isCompact_preimage.
+-- PRed and merged in mathlib; remove when updating mathlib!
 theorem Inducing.isCompact_preimage {f : X → Y} (hf : Inducing f) (hf' : IsClosed (range f)) {K : Set Y}
     (hK : IsCompact K) : IsCompact (f ⁻¹' K) := by
   replace hK := hK.inter_right hf'
@@ -39,13 +39,11 @@ lemma isSigmaCompact_univ [h : SigmaCompactSpace X] : IsSigmaCompact (univ : Set
 lemma IsSigmaCompact.image_of_continuousOn {f : X → Y} {s : Set X} (hs : IsSigmaCompact s)
     (hf : ContinuousOn f s) : IsSigmaCompact (f '' s) := by
   rcases hs with ⟨K, hcompact, hcov⟩
-  have : ∀ n, IsCompact (f '' (K n)) := by
-    intro n
-    have : K n ⊆ s := by calc K n
-      _ ⊆ ⋃ n, K n := subset_iUnion K n
-      _ = s := by rw [hcov]
-    exact (hcompact n).image_of_continuousOn (hf.mono this)
-  exact ⟨fun n ↦ f '' K n, fun n ↦ this n, (by rw [← hcov]; exact image_iUnion.symm)⟩
+  refine ⟨fun n ↦ f '' K n, ?_, (by rw [← hcov]; exact image_iUnion.symm)⟩
+  refine fun n ↦ (hcompact n).image_of_continuousOn (hf.mono ?_)
+  calc K n
+    _ ⊆ ⋃ n, K n := subset_iUnion K n
+    _ = s := by rw [hcov]
 
 /-- If `s` is σ-compact and `f` continuous, `f(s)` is σ-compact. -/
 lemma IsSigmaCompact.image {f : X → Y} (hf : Continuous f) {s : Set X} (hs : IsSigmaCompact s) :
@@ -74,7 +72,8 @@ lemma Homeomorph.isSigmaCompact_image {s : Set X} (h : X ≃ₜ Y) : IsSigmaComp
 
 lemma Set.image_preimage_eq_subset {f : X → Y} {s : Set Y} (hs : s ⊆ range f) : f '' (f ⁻¹' s) = s := by
   apply Subset.antisymm (image_preimage_subset f s)
-  intro x hx -- xxx: this can surely be golfed!
+  intro x hx
+  -- xxx: this can surely be golfed!
   -- choose y such that f y = x
   have : x ∈ range f := by exact hs hx
   rw [mem_range] at this
@@ -84,8 +83,8 @@ lemma Set.image_preimage_eq_subset {f : X → Y} {s : Set Y} (hs : s ⊆ range f
   exact hx
 
 /-- If `f : X → Y` is an `Embedding`, the image `f '' s` of a set `s` is σ-compact
-if and only `s`` is σ-compact. -/
--- this proof of <= requires injectivity to conclude s = f ⁻¹' (f '' s)
+if and only `s`` is σ-compact.
+This does not hold for merely inducing maps; direction `←` requires injectivity. -/
 lemma Embedding.isSigmaCompact_iff_isSigmaCompact_image {f : X → Y} {s : Set X} (hf : Embedding f) :
     IsSigmaCompact s ↔ IsSigmaCompact (f '' s) := by
   constructor
@@ -142,31 +141,27 @@ lemma isSigmaCompact_of_countable_compact (S : Set (Set X)) (hc : Set.Countable 
     (hcomp : ∀ (s : Set X), s ∈ S → IsCompact s) : IsSigmaCompact (⋃₀ S) := by
   by_cases S = ∅
   · simp only [h, sUnion_empty, isSigmaCompact_empty]
-  · -- Choose a surjection f : ℕ → S, this yields a map ℕ → Set X.
+  · -- If S is non-empty, choose a surjection f : ℕ → S, this yields a map ℕ → Set X.
     obtain ⟨f, hf⟩ := (Set.countable_iff_exists_surjective (nmem_singleton_empty.mp h)).mp hc
-    use fun n ↦ f n
-    constructor
-    · exact fun n ↦ hcomp (f n) (Subtype.mem (f n))
-    · apply Subset.antisymm
-      · -- Suppose x ∈ ⋃ n, f n. Then x ∈ f i for some i.
-        intro _ hx
-        rw [mem_iUnion] at hx
-        rcases hx with ⟨i, hi⟩
-        -- But f i is a set in S, so x ∈ ⋃ S as well.
-        exact ⟨f i, Subtype.mem (f i), hi⟩
-      · -- Suppose x ∈ ⋃ s, then x ∈ s for some s ∈ S.
-        intro x hx
-        rw [mem_sUnion] at hx
-        rcases hx with ⟨s, h, hxs⟩
-        -- Choose n with f n = s (using surjectitivity of ).
-        have : ∀ s : ↑S, ∃ n : ℕ, f n = s := hf
-        -- x has type X, but hs says x ∈ S -> how can I cast x to S?
-        -- let sdf := this s -- type mismatch! s has type X, should have type s...
-        -- let _ := this h
-        have : ∃ n, f n = s := by sorry --exact?
-        -- simp [hf] is also nice, but doesn't solve this
-        rcases this with ⟨n, hn⟩
-        exact ⟨f n, mem_range_self n, (by rw [hn]; exact hxs)⟩
+    refine ⟨fun n ↦ f n, fun n ↦ hcomp (f n) (Subtype.mem (f n)), ?_⟩
+    apply Subset.antisymm
+    · -- Suppose x ∈ ⋃ n, f n. Then x ∈ f i for some i.
+      intro _ hx
+      rw [mem_iUnion] at hx
+      rcases hx with ⟨i, hi⟩
+      -- But f i is a set in S, so x ∈ ⋃ S as well.
+      exact ⟨f i, Subtype.mem (f i), hi⟩
+    · -- Suppose x ∈ ⋃ s, then x ∈ s for some s ∈ S.
+      intro x hx
+      rw [mem_sUnion] at hx
+      rcases hx with ⟨s, h, hxs⟩
+      -- Choose n with f n = s (using surjectitivity of f).
+      have : ∀ s : ↑S, ∃ n : ℕ, f n = s := hf
+      -- x has type X, but hs says x ∈ S -> how can I cast x to S?
+      have : ∃ n, f n = s := by sorry --exact?
+      -- simp [hf] is nice, but doesn't solve this
+      rcases this with ⟨n, hn⟩
+      exact ⟨f n, mem_range_self n, (by rw [hn]; exact hxs)⟩
 
 /-- Countable unions of σ-compact sets are σ-compact. -/
 lemma isSigmaCompact_of_countable_sigma_compact (S : Set (Set X)) (hc : Countable S) (hcomp : ∀ (s : Set X), s ∈ S → IsSigmaCompact s) :
