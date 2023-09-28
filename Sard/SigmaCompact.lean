@@ -180,8 +180,6 @@ lemma isSigmaCompact_of_countable_sigma_compact (S : Set (Set X)) (hc : Countabl
 lemma IsSigmaCompact.of_isClosed_subset {s t : Set X} (ht : IsSigmaCompact t)
     (hs : IsClosed s) (h : s ⊆ t) : IsSigmaCompact s := by
   rcases ht with ⟨K, hcompact, hcov⟩
-  use (fun n ↦ s ∩ (K n))
-  constructor
-  · exact fun n ↦ (hcompact n).inter_left hs
-  · rw [← inter_iUnion, hcov]
-    exact inter_eq_left_iff_subset.mpr h
+  refine ⟨(fun n ↦ s ∩ (K n)), fun n ↦ (hcompact n).inter_left hs, ?_⟩
+  rw [← inter_iUnion, hcov]
+  exact inter_eq_left_iff_subset.mpr h
