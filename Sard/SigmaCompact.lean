@@ -102,6 +102,17 @@ lemma Homeomorph.isSigmaCompact_image {s : Set X} (h : X ≃ₜ Y) : IsSigmaComp
       _ = s := by rw [image_id]
   · apply hyp.image h.continuous
 
+lemma Set.image_preimage_eq_subset {f : X → Y} {s : Set Y} (hs : s ⊆ range f) : f '' (f ⁻¹' s) = s := by
+  apply Subset.antisymm (image_preimage_subset f s)
+  intro x hx -- xxx: this can surely be golfed!
+  -- choose y such that f y = x
+  have : x ∈ range f := by exact hs hx
+  rw [mem_range] at this
+  obtain ⟨y, hy⟩ := this
+  refine ⟨y, ?_, hy⟩
+  rw [mem_preimage, hy]
+  exact hx
+
 /-- If `f : X → Y` is an `Embedding`, the image `f '' s` of a set `s` is σ-compact
 if and only `s`` is σ-compact. -/
 -- this proof of <= requires injectivity to conclude s = f ⁻¹' (f '' s)
@@ -116,8 +127,11 @@ lemma Embedding.isSigmaCompact_iff_isSigmaCompact_image {f : X → Y} {s : Set X
     refine ⟨fun n ↦ f ⁻¹' (L n), ?_, ?_⟩
     · intro n
       have : f '' (f ⁻¹' (L n)) = L n := by
-        apply image_preimage_eq
-        sorry -- missing: f is surjective --- which it is onto f '' s, hence L n
+        apply image_preimage_eq_subset
+        have h: L n ⊆ f '' s := by
+          rw [← hcov]
+          exact subset_iUnion L n
+        exact SurjOn.subset_range h
       specialize hcomp n
       rw [← this] at hcomp
       apply hf.toInducing.isCompact_iff.mp (hcomp)
@@ -125,7 +139,6 @@ lemma Embedding.isSigmaCompact_iff_isSigmaCompact_image {f : X → Y} {s : Set X
         _ = f ⁻¹' (⋃ n, L n) := by rw [preimage_iUnion]
         _ = f ⁻¹' (f '' s) := by rw [hcov]
         _ = s := by apply (preimage_image_eq s hf.inj)
-    #exit
 
 lemma isSigmaCompact_iff_isSigmaCompact_in_subtype {p : X → Prop} {s : Set { a // p a }} :
     IsSigmaCompact s ↔ IsSigmaCompact (((↑) : _ → X) '' s) :=
