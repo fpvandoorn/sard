@@ -93,11 +93,12 @@ lemma Homeomorph.isSigmaCompact_image {s : Set X} (h : X ≃ₜ Y) : IsSigmaComp
     rcases hyp with ⟨K, hcomp, hcov⟩
     let k := h.invFun
     refine ⟨fun n ↦ k '' (K n), fun n ↦ (hcomp n).image (h.continuous_invFun), ?_⟩
+    have : k ∘ h = id := by sorry --exact h.left_inv
     calc ⋃ (n : ℕ), k '' K n
       _ = k '' (⋃ (n : ℕ), K n) := by rw [image_iUnion]
       _ = k '' (h '' s) := by rw [hcov]
       _ = (k ∘ h) '' s := by rw [image_comp]
-      _ = id '' s := by sorry -- exact h.left_inv plus some congr magic
+      _ = id '' s := by rw [this]
       _ = s := by rw [image_id]
   · apply hyp.image h.continuous
 
@@ -107,22 +108,24 @@ if and only `s`` is σ-compact. -/
 lemma Embedding.isSigmaCompact_iff_isSigmaCompact_image {f : X → Y} {s : Set X} (hf : Embedding f) :
     IsSigmaCompact s ↔ IsSigmaCompact (f '' s) := by
   constructor
-  · intro h
-    apply h.image (continuous hf)
-  · intro h -- suppose f '' s is σ-compact; we want to show f is σ-compact
-    -- a nicer proof: as an embedding, f is a homeomorphism to its image
-    -- restricting to s yields a homeomorphism between s and f '' s
-    let f' := s.restrict f
-    have hf' : Embedding f' := by sorry
-    have : range f' = f '' s := by calc range f'
-      _ = f' '' univ := by rw [image_univ]
-      _ = f '' s := by sorry -- rw? cannot find this, but should be in mathlib
-    have : s ≃ₜ f '' s := by
-      rw [← this]
-      apply Homeomorph.ofEmbedding hf' (f := f')
-    sorry -- refine Iff.mp (Homeomorph.isSigmaCompact_image this) h
+  · exact fun h ↦ h.image (continuous hf)
+  · rintro ⟨L, hcomp, hcov⟩ -- suppose f '' s is σ-compact; we want to show f is σ-compact
+    -- write f(s) as a union of compact sets L n,
+    -- so s = ⋃ K n with K n := f⁻¹(L n)
+    -- since f is an embedding, K n is compact iff L n is.
+    refine ⟨fun n ↦ f ⁻¹' (L n), ?_, ?_⟩
+    · intro n
+      have : f '' (f ⁻¹' (L n)) = L n := by
+        apply image_preimage_eq
+        sorry -- missing: f is surjective --- which it is onto f '' s, hence L n
+      specialize hcomp n
+      rw [← this] at hcomp
+      apply hf.toInducing.isCompact_iff.mp (hcomp)
+    · calc ⋃ n, f ⁻¹' L n
+        _ = f ⁻¹' (⋃ n, L n) := by rw [preimage_iUnion]
+        _ = f ⁻¹' (f '' s) := by rw [hcov]
+        _ = s := by apply (preimage_image_eq s hf.inj)
     #exit
-
 
 lemma isSigmaCompact_iff_isSigmaCompact_in_subtype {p : X → Prop} {s : Set { a // p a }} :
     IsSigmaCompact s ↔ IsSigmaCompact (((↑) : _ → X) '' s) :=
