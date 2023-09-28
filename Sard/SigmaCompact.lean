@@ -24,46 +24,16 @@ theorem Inducing.isCompact_preimage {f : X → Y} (hf : Inducing f) (hf' : IsClo
   replace hK := hK.inter_right hf'
   rwa [← hf.isCompact_iff, image_preimage_eq_inter_range]
 
-/-- A subset `A ⊆ X` is called **σ-compact** iff it is the union of countably many compact sets. --/
-def IsSigmaCompact (A : Set X) : Prop :=
-  ∃ K : ℕ → Set X, (∀ n, IsCompact (K n)) ∧ ⋃ n, K n = A
+/-- A subset `s ⊆ X` is called **σ-compact** if it is the union of countably many compact sets. -/
+def IsSigmaCompact (s : Set X) : Prop :=
+  ∃ K : ℕ → Set X, (∀ n, IsCompact (K n)) ∧ ⋃ n, K n = s
 
-/-- A topological space is σ-compact iff `univ` is σ-compact. --/
+/-- A topological space is σ-compact iff `univ` is σ-compact. -/
 lemma isSigmaCompact_univ_iff : IsSigmaCompact (univ : Set X) ↔ SigmaCompactSpace X :=
   ⟨fun h ↦ { exists_compact_covering := h }, fun _ ↦ SigmaCompactSpace.exists_compact_covering⟩
 
 lemma isSigmaCompact_univ [h : SigmaCompactSpace X] : IsSigmaCompact (univ : Set X) :=
   isSigmaCompact_univ_iff.mpr h
-
-lemma toSubset_iUnion {X : Type*} {t : Set X} (S : ℕ → Set X) : toSubset (⋃ n, S n) t = ⋃ n, toSubset (S n) t := by
-  ext
-  rw [mem_toSubset]
-  sorry
-
-/-- If `s ⊆ X` is a compact set and `s ⊆ t`, then `s` is also compact in `t` (with the subspace topology). -/
-lemma toSubset_compact {X Y : Type*} [TopologicalSpace X] [TopologicalSpace Y]
-    {s t : Set X} (hsw : s ⊆ t) (hs : IsCompact s) : IsCompact (toSubset s t) := by
-  -- Let U_i be an open cover of s, in t.
-  -- By definition, each U_i is of the form U_i = t ∩ V_i for some V_i ⊆ X open.
-  -- Since s is compact in X, it has a finite subcover V_i1, ..., V_in.
-  -- But now, s = s ∩ t ⊆ (⋃ V_i1) ∩ t = ⋃ (V_ij ∩ t) = ⋃ U_ij, done.
-  sorry
--- non-proof: `s ⊆ t` is the preimage of `s` under the inclusion `t → X`
--- this works *if* `t` is closed (so the inclusion is a closed embedding), but fails in general:
--- for instance, the open unit disc in ℝ² is not compact, but it is the preimage of its closure.
-
-lemma toSubset_sigmaCompact {X Y : Type*} [TopologicalSpace X] [TopologicalSpace Y]
-    {s w : Set X} (hsw : s ⊆ w) (hs : IsSigmaCompact s) : IsSigmaCompact (toSubset s w) := by
-  -- Choose a covering by compact sets. Each is compact on w also, done.
-  rcases hs with ⟨K, hcomp, hcov⟩
-  have : ∀ n, K n ⊆ w := by
-    intro n
-    apply Subset.trans _ hsw
-    rw [← hcov]
-    exact subset_iUnion K n
-  exact ⟨fun n ↦ toSubset (K n) w, fun n ↦ toSubset_compact (this n) (Y := Y) (hcomp n), by rw [← toSubset_iUnion, hcov]⟩
-
--- lemma toSubset_univ {X : Type*} : (toSubset univ univ) = (univ : Set X) := sorry
 
 /-- If `s` is σ-compact and `f` continuous on a set `w` containing `s`, `f(s)` is σ-compact.-/
 lemma IsSigmaCompact.image_of_continuousOn {f : X → Y} {s : Set X} (hs : IsSigmaCompact s)
@@ -93,7 +63,7 @@ lemma Homeomorph.isSigmaCompact_image {s : Set X} (h : X ≃ₜ Y) : IsSigmaComp
     rcases hyp with ⟨K, hcomp, hcov⟩
     let k := h.invFun
     refine ⟨fun n ↦ k '' (K n), fun n ↦ (hcomp n).image (h.continuous_invFun), ?_⟩
-    have : k ∘ h = id := by sorry --exact h.left_inv
+    have : k ∘ h = id := by ext x; exact h.left_inv x
     calc ⋃ (n : ℕ), k '' K n
       _ = k '' (⋃ (n : ℕ), K n) := by rw [image_iUnion]
       _ = k '' (h '' s) := by rw [hcov]

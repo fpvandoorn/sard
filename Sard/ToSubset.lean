@@ -1,4 +1,5 @@
 import Mathlib.Data.Set.Functor
+import Mathlib.Topology.SubsetProperties
 -- Coercion of sets and subsets.
 -- Solutions taken from zulip: https://leanprover.zulipchat.com/#narrow/stream/113489-new-members/topic/Cast.20to.20a.20subset.2C.20given.20proof.20of.20inclusion
 
@@ -33,6 +34,37 @@ lemma coe_toSubset : (s.toSubset t : Set X) = s ∩ t := by
     exact ⟨ha, a.property⟩
 end Set
 
+open Set
 -- unused, but seems like missing API
 lemma toSubset_aux1 {X Y : Type*} (f : X → Y) {s w : Set X} (hsw : s ⊆ w) :
-    f '' (s ∩ w) = (w.restrict f) '' (Set.toSubset s w) := sorry
+    f '' (s ∩ w) = (w.restrict f) '' (toSubset s w) := sorry
+
+-- unused, but seems like missing API
+lemma toSubset_iUnion {X : Type*} {t : Set X} (S : ℕ → Set X) : toSubset (⋃ n, S n) t = ⋃ n, toSubset (S n) t := by
+  ext
+  rw [mem_toSubset]
+  sorry
+
+/-- If `s ⊆ X` is a compact set and `s ⊆ t`, then `s` is also compact in `t` (with the subspace topology). -/
+lemma toSubset_compact {X Y : Type*} [TopologicalSpace X] [TopologicalSpace Y]
+    {s t : Set X} (hsw : s ⊆ t) (hs : IsCompact s) : IsCompact (toSubset s t) := by
+  -- Let U_i be an open cover of s, in t.
+  -- By definition, each U_i is of the form U_i = t ∩ V_i for some V_i ⊆ X open.
+  -- Since s is compact in X, it has a finite subcover V_i1, ..., V_in.
+  -- But now, s = s ∩ t ⊆ (⋃ V_i1) ∩ t = ⋃ (V_ij ∩ t) = ⋃ U_ij, done.
+  sorry
+-- non-proof: `s ⊆ t` is the preimage of `s` under the inclusion `t → X`
+-- this works *if* `t` is closed (so the inclusion is a closed embedding), but fails in general:
+-- for instance, the open unit disc in ℝ² is not compact, but it is the preimage of its closure.
+
+-- commented to prevent cycles
+-- lemma toSubset_sigmaCompact {X Y : Type*} [TopologicalSpace X] [TopologicalSpace Y]
+--     {s w : Set X} (hsw : s ⊆ w) (hs : IsSigmaCompact s) : IsSigmaCompact (toSubset s w) := by
+--   -- Choose a covering by compact sets. Each is compact on w also, done.
+--   rcases hs with ⟨K, hcomp, hcov⟩
+--   have : ∀ n, K n ⊆ w := by
+--     intro n
+--     apply Subset.trans _ hsw
+--     rw [← hcov]
+--     exact subset_iUnion K n
+--   exact ⟨fun n ↦ toSubset (K n) w, fun n ↦ toSubset_compact (this n) (Y := Y) (hcomp n), by rw [← toSubset_iUnion, hcov]⟩
