@@ -161,18 +161,38 @@ lemma isSigmaCompact_of_countable_compact (S : Set (Set X)) (hc : Set.Countable 
       rcases this with ⟨n, hn⟩
       exact ⟨f n, mem_range_self n, (by rw [hn]; exact hxs)⟩
 
+-- /-- If `X` and `Y` are countable, so is `X × Y`. -/
+lemma Countable.prod {X Y : Type*} (hx : Countable X) (hy : Countable Y) : Countable (X × Y) := sorry
+
+lemma Countable.prod' (hx : Countable X) : Countable (X × ℕ) := sorry
+
+-- /-- If `s` and `t` are countable subsets of `X`, so is `s × t`. -/
+lemma Set.countable_prod {s t : Set X} (hs : Set.Countable s) (ht : Set.Countable t) : Countable (s × t) := sorry
+
+/-- If `S` is a countable set, `S × ℕ` is a countable type. -/
+-- XXX: I'm probably doing something wrong if I need this :-)
+lemma Set.countable_prod' (S : Set X) (hc : Set.Countable S) : Countable (↑S × ℕ) := by
+  sorry
+
 /-- Countable unions of σ-compact sets are σ-compact. -/
 lemma isSigmaCompact_of_countable_sigma_compact (S : Set (Set X)) (hc : Set.Countable S)
     (hcomp : ∀ s : S, IsSigmaCompact s (X := X)) : IsSigmaCompact (⋃₀ S) := by
   -- Choose a decomposition s = ⋃ s_i for each s ∈ S.
   choose K hcomp hcov using fun s ↦ hcomp s
   -- Then, we have a countable union of countable unions of compact sets, i.e. countably many.
-  have : Countable (⋃ s, range (K s)) := by
-    have : ∀ s, Countable (range (K s)) := by
-      intro s -- should be obvious
-      sorry -- N is countable, so the range should be countable also
-    sorry --apply Countable.sUnion_iff.mpr this
-  sorry
+  have : ⋃₀ S = ⋃₀ range (K.uncurry) := by
+    calc ⋃₀ S
+      _ = ⋃ s : S, s := by rw [← sUnion_eq_iUnion]
+      _ = ⋃ s : S, ⋃ n, (K s n) := by simp_rw [hcov]
+      _ = ⋃ s : S, ⋃ n, (K.uncurry ⟨s, n⟩) := by rw [Function.uncurry_def]
+      _ = ⋃ t : S × ℕ, (K.uncurry t) := by sorry -- TODO: how to prove this?
+      _ = ⋃₀ range (K.uncurry) := by rw [sUnion_range]
+  rw [this]
+  have : Countable (↑S × ℕ) := countable_prod' S hc
+  refine isSigmaCompact_of_countable_compact _ (countable_range (K.uncurry)) fun s hs ↦ ?_
+  obtain ⟨⟨ys, yn⟩, hy⟩ := mem_range.mp hs
+  rw [← hy]
+  exact hcomp ys yn
 
 -- A closed subset of a σ-compact set is σ-compact.
 lemma IsSigmaCompact.of_isClosed_subset {s t : Set X} (ht : IsSigmaCompact t)
