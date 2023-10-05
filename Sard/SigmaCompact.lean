@@ -7,10 +7,6 @@ We define σ-compact subsets of a topological space, show their elementary prope
 and relate them to σ-compact spaces.
 -/
 -- probably, this also should go into `Mathlib.Topology.SubsetPropertes`
--- TODO: finish proving that σ-compact spaces are closed under countable unions
---   (and transfer this to σ-compact spaces)
--- FIXME: are these proofs easier in terms of that reduction? didn't feel like it,
---   at least there was missing API in terms of relating properties to the subspace
 
 open Set
 set_option autoImplicit false
@@ -56,7 +52,7 @@ lemma isSigmaCompact_range {f : X → Y} (hf : Continuous f) [i : SigmaCompactSp
 
 lemma Homeomorph.isSigmaCompact_image {s : Set X} (h : X ≃ₜ Y) : IsSigmaCompact (↑h '' s) ↔ IsSigmaCompact s := by
   constructor <;> intro hyp
-  · -- suppose h''s is sigma-compact
+  · -- Suppose h(s) is σ-compact.
     rcases hyp with ⟨K, hcomp, hcov⟩
     let k := h.invFun
     refine ⟨fun n ↦ k '' (K n), fun n ↦ (hcomp n).image (h.continuous_invFun), ?_⟩
@@ -73,7 +69,7 @@ lemma Set.image_preimage_eq_subset {f : X → Y} {s : Set Y} (hs : s ⊆ range f
   apply Subset.antisymm (image_preimage_subset f s)
   intro x hx
   -- xxx: this can surely be golfed!
-  -- choose y such that f y = x
+  -- Choose y such that f y = x.
   have : x ∈ range f := hs hx
   rw [mem_range] at this
   obtain ⟨y, hy⟩ := this
@@ -88,10 +84,10 @@ lemma Embedding.isSigmaCompact_iff_isSigmaCompact_image {f : X → Y} {s : Set X
     IsSigmaCompact s ↔ IsSigmaCompact (f '' s) := by
   constructor
   · exact fun h ↦ h.image (continuous hf)
-  · rintro ⟨L, hcomp, hcov⟩ -- suppose f '' s is σ-compact; we want to show f is σ-compact
-    -- write f(s) as a union of compact sets L n,
-    -- so s = ⋃ K n with K n := f⁻¹(L n)
-    -- since f is an embedding, K n is compact iff L n is.
+  · rintro ⟨L, hcomp, hcov⟩
+    -- Suppose f '' s is σ-compact; we want to show f is σ-compact.
+    -- Write f(s) as a union of compact sets L n, so s = ⋃ K n with K n := f⁻¹(L n).
+    -- Since f is an embedding, K n is compact iff L n is.
     refine ⟨fun n ↦ f ⁻¹' (L n), ?_, ?_⟩
     · intro n
       have : f '' (f ⁻¹' (L n)) = L n := by
@@ -179,13 +175,10 @@ lemma isSigmaCompact_of_countable_sigma_compact (S : Set (Set X)) (hc : Set.Coun
       _ = ⋃ s : S, ⋃ n, (K s n) := by simp_rw [hcov]
       _ = ⋃ s : S, ⋃ n, (K.uncurry ⟨s, n⟩) := by rw [Function.uncurry_def]
       _ = ⋃ (s : S) (n : ℕ), (K.uncurry ⟨s, n⟩) := by rw [iUnion_coe_set]
-      _ = ⋃ t : S × ℕ, (K.uncurry t) := by apply iUnion_prod'
+      _ = ⋃ t : S × ℕ, (K.uncurry t) := by rw [iUnion_prod']
       _ = ⋃₀ range (K.uncurry) := by rw [sUnion_range]
   rw [this]
-  -- FIXME: there ought to be a more elegant way.
-  have : Countable (↑S × ℕ) := by
-    rw [← Set.countable_coe_iff] at hc
-    exact instCountableProd
+  rw [← Set.countable_coe_iff] at hc
   refine isSigmaCompact_of_countable_compact _ (countable_range (K.uncurry)) fun s hs ↦ ?_
   obtain ⟨⟨ys, yn⟩, hy⟩ := mem_range.mp hs
   rw [← hy]

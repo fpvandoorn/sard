@@ -29,7 +29,7 @@ The **Sard-Smale** theorem is a generalisation to infinite-dimensional Banach ma
 
 - meager sets and relation to measure zero
   - define nowhere dense and meagre sets: complete, [PRed](https://github.com/leanprover-community/mathlib4/pull/7180)
-  - define $\sigma$-compact subsets, relate to $\sigma$-compact spaces, show basic properties (everything I need is done; some sorries remain)
+  - define $\sigma$-compact subsets, relate to $\sigma$-compact spaces, show basic properties (done)
   - $\sigma$-compact measure zero sets are meagre (done)
 - finite-dimensional manifolds are locally compact: missing
 
