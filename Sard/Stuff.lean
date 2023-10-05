@@ -205,11 +205,47 @@ theorem sard {f : M → N} (hf : ContMDiff I J r f)
     {f' : ∀x, TangentSpace I x →L[ℝ] TangentSpace J (f x)} {s : Set M}
     (hf' : ∀ x ∈ s, HasMFDerivWithinAt I J f s x (f' x))
     (h'f' : ∀ x ∈ s, ¬ Surjective (f' x)) : MeasureZero J (f '' s) := by
-  suffices hyp: ∀ e ∈ atlas H M, MeasureZero J (f '' (e.source ∩ s)) by
-    exact measure_zero_image_iff_chart_domains hyp
+  suffices hyp: ∀ e ∈ atlas H M, MeasureZero J (f '' (e.source ∩ s)) from
+    measure_zero_image_iff_chart_domains hyp
   intro e he
-  -- reduce to images of chart domains, then apply `sard_local`
-  sorry
+  -- Reduce to images of chart domains, then apply `sard_local`.
+  -- Tedious part: check that all hypotheses transfer to their local counterparts.
+  intro μ hμ e' he'
+  -- Data for the reduction to local coordinates.
+  let w := I ∘ e '' e.source
+  let s_better := I ∘ e '' (e.source ∩ s)
+  let f_local := (J ∘ e') ∘ f ∘ (e.invFun ∘ I.invFun)
+  let f'_local : E → E →L[ℝ] F := fun x ↦ f' ((e.invFun ∘ I.invFun) x)
+  have : J ∘ e' '' (e'.source ∩ f '' (e.source ∩ s)) = f_local '' s_better := by
+    symm
+    -- actually: this only holds on e.source, TODO adapt proof!
+    have : (e.invFun ∘ I.invFun) ∘ (I ∘ e) = id := by
+      calc (e.invFun ∘ I.invFun) ∘ (I ∘ e)
+        _ = e.invFun ∘ (I.invFun ∘ I) ∘ e := by simp only [comp.assoc]
+        _ = e.invFun ∘ id ∘ e := by sorry -- "obvious", holds after adaptation
+        _ = e.invFun ∘ e := by rw [left_id]
+        _ = id := by sorry -- "obvious", holds after adaptation
+    calc f_local '' s_better
+      _ = (J ∘ e') ∘ f ∘ (e.invFun ∘ I.invFun) '' (I ∘ e '' (e.source ∩ s)) := rfl
+      _ = (J ∘ e') ∘ f '' (((e.invFun ∘ I.invFun) ∘ (I ∘ e)) '' (e.source ∩ s)) := by
+        simp only [comp.assoc, image_comp]
+      _ = (J ∘ e') '' (f '' (e.source ∩ s)) := by rw [this, image_id, image_comp]
+      -- TODO: tweak definition of s or f_local to ensure the image lies in the source of e'
+      _ = J ∘ e' '' (e'.source ∩ f '' (e.source ∩ s)) := sorry
+  rw [this]
+  apply sard_local hr (w := w) (s := s_better) (f := f_local) (f' := f'_local) ?_ ?_ ?_ ?_ ?_ μ
+  · sorry -- IsOpen w
+  --   have : IsOpen e.source := e.open_source
+  --   -- e is an embedding on e.source (but not globally) -- the below is not fully correct!
+  --   -- XXX. is there a local version of open embeddings?
+  --   refine Iff.mp (OpenEmbedding.open_iff_image_open ?hf) this
+  --   have h1: OpenEmbedding I := sorry
+  --   have h2: OpenEmbedding e := sorry
+  --   exact OpenEmbedding.comp h1 h2
+  · exact image_subset (↑I ∘ ↑e) (inter_subset_left e.source s)
+  · sorry -- ContDiffOn ℝ (↑r) f_local w
+  · sorry -- ∀ x ∈ s_better, HasFDerivWithinAt f_local (f'_local x) s_better x
+  · sorry -- ∀ x ∈ s_better, ¬Surjective ↑(f'_local x)
 
 /-- **Sard's theorem**: let $M$ and $N$ be real $C^r$ manifolds of dimensions $m$ and $n$,
 and $f:M→N$ a $C^r$ map. If $r>\max{0, m-n}$, the critical set is meagre. -/
@@ -224,8 +260,7 @@ theorem sard' {f : M → N} (hf : ContMDiff I J r f) [T2Space N]
     have : LocallyCompactSpace M := by sorry -- infer_instance
     exact sigmaCompactSpace_of_locally_compact_second_countable
   have : IsSigmaCompact s := isSigmaCompact_univ.of_isClosed_subset hs (subset_univ s)
-  have : IsSigmaCompact (f '' s) := this.image (ContMDiff.continuous hf)
-  exact MeasureZero.meagre_if_sigma_compact J (sard _ hf hf' h'f') this
+  exact MeasureZero.meagre_if_sigma_compact J (sard _ hr hf hf' h'f') (this.image (hf.continuous))
 
 -- Corollary. The set of regular values is residual and therefore dense.
 
