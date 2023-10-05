@@ -7,7 +7,6 @@ We define σ-compact subsets of a topological space, show their elementary prope
 and relate them to σ-compact spaces.
 -/
 -- probably, this also should go into `Mathlib.Topology.SubsetPropertes`
--- TODO: finish proving that σ-compact sets are spaces are related
 -- TODO: finish proving that σ-compact spaces are closed under countable unions
 --   (and transfer this to σ-compact spaces)
 -- FIXME: are these proofs easier in terms of that reduction? didn't feel like it,
@@ -75,7 +74,7 @@ lemma Set.image_preimage_eq_subset {f : X → Y} {s : Set Y} (hs : s ⊆ range f
   intro x hx
   -- xxx: this can surely be golfed!
   -- choose y such that f y = x
-  have : x ∈ range f := by exact hs hx
+  have : x ∈ range f := hs hx
   rw [mem_range] at this
   obtain ⟨y, hy⟩ := this
   refine ⟨y, ?_, hy⟩
@@ -96,18 +95,17 @@ lemma Embedding.isSigmaCompact_iff_isSigmaCompact_image {f : X → Y} {s : Set X
     refine ⟨fun n ↦ f ⁻¹' (L n), ?_, ?_⟩
     · intro n
       have : f '' (f ⁻¹' (L n)) = L n := by
-        apply image_preimage_eq_subset
         have h: L n ⊆ f '' s := by
           rw [← hcov]
           exact subset_iUnion L n
-        exact SurjOn.subset_range h
+        exact image_preimage_eq_subset (SurjOn.subset_range h)
       specialize hcomp n
       rw [← this] at hcomp
       apply hf.toInducing.isCompact_iff.mp (hcomp)
     · calc ⋃ n, f ⁻¹' L n
         _ = f ⁻¹' (⋃ n, L n) := by rw [preimage_iUnion]
         _ = f ⁻¹' (f '' s) := by rw [hcov]
-        _ = s := by apply (preimage_image_eq s hf.inj)
+        _ = s := preimage_image_eq s hf.inj
 
 lemma isSigmaCompact_iff_isSigmaCompact_in_subtype {p : X → Prop} {s : Set { a // p a }} :
     IsSigmaCompact s ↔ IsSigmaCompact (((↑) : _ → X) '' s) :=
@@ -144,6 +142,7 @@ lemma isSigmaCompact_of_countable_compact (S : Set (Set X)) (hc : Set.Countable 
   · -- If S is non-empty, choose a surjection f : ℕ → S, this yields a map ℕ → Set X.
     obtain ⟨f, hf⟩ := (Set.countable_iff_exists_surjective (nmem_singleton_empty.mp h)).mp hc
     refine ⟨fun n ↦ f n, fun n ↦ hcomp (f n) (Subtype.mem (f n)), ?_⟩
+    -- I presume this part can be golfed/ there are missing lemmas here.
     apply Subset.antisymm
     · -- Suppose x ∈ ⋃ n, f n. Then x ∈ f i for some i.
       intro _ hx
@@ -155,16 +154,15 @@ lemma isSigmaCompact_of_countable_compact (S : Set (Set X)) (hc : Set.Countable 
       intro x hx
       rw [mem_sUnion] at hx
       rcases hx with ⟨s, h, hxs⟩
-      -- Choose n with f n = s (using surjectitivity of f).
+      -- Choose n with f n = s (using surjectivity of f).
       have : ∀ s : ↑S, ∃ n : ℕ, f n = s := hf
       -- x has type X, but hs says x ∈ S -> how can I cast x to S?
-      have : ∃ n, f n = s := by sorry --exact?
-      -- simp [hf] is nice, but doesn't solve this
+      have : ∃ n, f n = s := by sorry -- simp [hf] doesn't solve this
       rcases this with ⟨n, hn⟩
       exact ⟨f n, mem_range_self n, (by rw [hn]; exact hxs)⟩
 
 /-- Countable unions of σ-compact sets are σ-compact. -/
-lemma isSigmaCompact_of_countable_sigma_compact (S : Set (Set X)) (hc : Countable S)
+lemma isSigmaCompact_of_countable_sigma_compact (S : Set (Set X)) (hc : Set.Countable S)
     (hcomp : ∀ s : S, IsSigmaCompact s (X := X)) : IsSigmaCompact (⋃₀ S) := by
   -- Choose a decomposition s = ⋃ s_i for each s ∈ S.
   choose K hcomp hcov using fun s ↦ hcomp s
