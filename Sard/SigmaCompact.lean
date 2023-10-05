@@ -155,24 +155,17 @@ lemma isSigmaCompact_of_countable_compact (S : Set (Set X)) (hc : Set.Countable 
       rw [mem_sUnion] at hx
       rcases hx with ⟨s, h, hxs⟩
       -- Choose n with f n = s (using surjectivity of f).
-      have : ∀ s : ↑S, ∃ n : ℕ, f n = s := hf
-      -- x has type X, but hs says x ∈ S -> how can I cast x to S?
-      have : ∃ n, f n = s := by sorry -- simp [hf] doesn't solve this
+      have : ∃ n, f n = s := by
+        obtain ⟨y, hy⟩ := hf ⟨s, h⟩
+        use y
+        simp_all only [Subtype.forall]
       rcases this with ⟨n, hn⟩
       exact ⟨f n, mem_range_self n, (by rw [hn]; exact hxs)⟩
 
-lemma iUnion_product {X Y Z : Type*} (f : X × Y → Set Z) :
-  ⋃ (x : X) (y : Y), (f ⟨x, y⟩) = ⋃ t : X × Y, (f t) := by
-  ext z
-  rw [Set.mem_iUnion₂]
-  constructor
-  · rintro ⟨i, j, hij⟩
-    rw [mem_iUnion]
-    use ⟨i, j⟩
-  · intro h
-    rw [mem_iUnion] at h
-    rcases h with ⟨⟨i, j⟩, ht⟩
-    use i, j
+-- PRed to mathlib, #7528.
+lemma Set.iUnion_prod' {X Y Z : Type*} (f : X × Y → Set Z) :
+    ⋃ (x : X) (y : Y), (f ⟨x, y⟩) = ⋃ t : X × Y, (f t) := by
+  simp only [iUnion, iSup_eq_iUnion, iSup_prod]
 
 /-- Countable unions of σ-compact sets are σ-compact. -/
 lemma isSigmaCompact_of_countable_sigma_compact (S : Set (Set X)) (hc : Set.Countable S)
@@ -186,7 +179,7 @@ lemma isSigmaCompact_of_countable_sigma_compact (S : Set (Set X)) (hc : Set.Coun
       _ = ⋃ s : S, ⋃ n, (K s n) := by simp_rw [hcov]
       _ = ⋃ s : S, ⋃ n, (K.uncurry ⟨s, n⟩) := by rw [Function.uncurry_def]
       _ = ⋃ (s : S) (n : ℕ), (K.uncurry ⟨s, n⟩) := by rw [iUnion_coe_set]
-      _ = ⋃ t : S × ℕ, (K.uncurry t) := by apply iUnion_product
+      _ = ⋃ t : S × ℕ, (K.uncurry t) := by apply iUnion_prod'
       _ = ⋃₀ range (K.uncurry) := by rw [sUnion_range]
   rw [this]
   -- FIXME: there ought to be a more elegant way.
