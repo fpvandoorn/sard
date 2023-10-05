@@ -161,6 +161,9 @@ lemma isSigmaCompact_of_countable_compact (S : Set (Set X)) (hc : Set.Countable 
       rcases this with ⟨n, hn⟩
       exact ⟨f n, mem_range_self n, (by rw [hn]; exact hxs)⟩
 
+lemma iUnion_product {X Y Z : Type*} (L : X × Z → Set Y) :
+  ⋃ (s : X) (z : Z), (L ⟨s, z⟩) = ⋃ t : X × Z, (L t) := by sorry -- TODO: how to prove
+
 /-- Countable unions of σ-compact sets are σ-compact. -/
 lemma isSigmaCompact_of_countable_sigma_compact (S : Set (Set X)) (hc : Set.Countable S)
     (hcomp : ∀ s : S, IsSigmaCompact s (X := X)) : IsSigmaCompact (⋃₀ S) := by
@@ -172,7 +175,8 @@ lemma isSigmaCompact_of_countable_sigma_compact (S : Set (Set X)) (hc : Set.Coun
       _ = ⋃ s : S, s := by rw [← sUnion_eq_iUnion]
       _ = ⋃ s : S, ⋃ n, (K s n) := by simp_rw [hcov]
       _ = ⋃ s : S, ⋃ n, (K.uncurry ⟨s, n⟩) := by rw [Function.uncurry_def]
-      _ = ⋃ t : S × ℕ, (K.uncurry t) := by sorry -- TODO: how to prove this?
+      _ = ⋃ (s : S) (n : ℕ), (K.uncurry ⟨s, n⟩) := by rw [iUnion_coe_set]
+      _ = ⋃ t : S × ℕ, (K.uncurry t) := by apply iUnion_product
       _ = ⋃₀ range (K.uncurry) := by rw [sUnion_range]
   rw [this]
   -- FIXME: there ought to be a more elegant way.
