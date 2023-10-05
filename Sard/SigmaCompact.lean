@@ -161,8 +161,18 @@ lemma isSigmaCompact_of_countable_compact (S : Set (Set X)) (hc : Set.Countable 
       rcases this with ⟨n, hn⟩
       exact ⟨f n, mem_range_self n, (by rw [hn]; exact hxs)⟩
 
-lemma iUnion_product {X Y Z : Type*} (L : X × Z → Set Y) :
-  ⋃ (s : X) (z : Z), (L ⟨s, z⟩) = ⋃ t : X × Z, (L t) := by sorry -- TODO: how to prove
+lemma iUnion_product {X Y Z : Type*} (f : X × Y → Set Z) :
+  ⋃ (x : X) (y : Y), (f ⟨x, y⟩) = ⋃ t : X × Y, (f t) := by
+  ext z
+  rw [Set.mem_iUnion₂]
+  constructor
+  · rintro ⟨i, j, hij⟩
+    rw [mem_iUnion]
+    use ⟨i, j⟩
+  · intro h
+    rw [mem_iUnion] at h
+    rcases h with ⟨⟨i, j⟩, ht⟩
+    use i, j
 
 /-- Countable unions of σ-compact sets are σ-compact. -/
 lemma isSigmaCompact_of_countable_sigma_compact (S : Set (Set X)) (hc : Set.Countable S)
