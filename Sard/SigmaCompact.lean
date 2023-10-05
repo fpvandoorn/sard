@@ -161,19 +161,6 @@ lemma isSigmaCompact_of_countable_compact (S : Set (Set X)) (hc : Set.Countable 
       rcases this with ⟨n, hn⟩
       exact ⟨f n, mem_range_self n, (by rw [hn]; exact hxs)⟩
 
--- /-- If `X` and `Y` are countable, so is `X × Y`. -/
-lemma Countable.prod {X Y : Type*} (hx : Countable X) (hy : Countable Y) : Countable (X × Y) := sorry
-
-lemma Countable.prod' (hx : Countable X) : Countable (X × ℕ) := sorry
-
--- /-- If `s` and `t` are countable subsets of `X`, so is `s × t`. -/
-lemma Set.countable_prod {s t : Set X} (hs : Set.Countable s) (ht : Set.Countable t) : Countable (s × t) := sorry
-
-/-- If `S` is a countable set, `S × ℕ` is a countable type. -/
--- XXX: I'm probably doing something wrong if I need this :-)
-lemma Set.countable_prod' (S : Set X) (hc : Set.Countable S) : Countable (↑S × ℕ) := by
-  sorry
-
 /-- Countable unions of σ-compact sets are σ-compact. -/
 lemma isSigmaCompact_of_countable_sigma_compact (S : Set (Set X)) (hc : Set.Countable S)
     (hcomp : ∀ s : S, IsSigmaCompact s (X := X)) : IsSigmaCompact (⋃₀ S) := by
@@ -188,7 +175,10 @@ lemma isSigmaCompact_of_countable_sigma_compact (S : Set (Set X)) (hc : Set.Coun
       _ = ⋃ t : S × ℕ, (K.uncurry t) := by sorry -- TODO: how to prove this?
       _ = ⋃₀ range (K.uncurry) := by rw [sUnion_range]
   rw [this]
-  have : Countable (↑S × ℕ) := countable_prod' S hc
+  -- FIXME: there ought to be a more elegant way.
+  have : Countable (↑S × ℕ) := by
+    rw [← Set.countable_coe_iff] at hc
+    exact instCountableProd
   refine isSigmaCompact_of_countable_compact _ (countable_range (K.uncurry)) fun s hs ↦ ?_
   obtain ⟨⟨ys, yn⟩, hy⟩ := mem_range.mp hs
   rw [← hy]
