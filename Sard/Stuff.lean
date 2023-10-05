@@ -254,10 +254,19 @@ theorem sard' {f : M → N} (hf : ContMDiff I J r f) [T2Space N]
     {f' : ∀x, TangentSpace I x →L[ℝ] TangentSpace J (f x)} {s : Set M} (hs : IsClosed s)
     (hf' : ∀ x ∈ s, HasMFDerivWithinAt I J f s x (f' x))
     (h'f' : ∀ x ∈ s, ¬ Surjective (f' x)) : IsMeagre (f '' s) := by
-
   -- M is second countable and locally compact (as finite-dimensional), hence σ-compact.
   have : SigmaCompactSpace M := by
-    have : LocallyCompactSpace M := by sorry -- infer_instance
+    -- TODO: make an instance, so infer_instance works instead of this argument
+    have : LocallyCompactSpace M := by
+      suffices aux : ∀ (x : M), ∀ n ∈ 𝓝 x, ∃ s ∈ 𝓝 x, s ⊆ n ∧ IsCompact s by
+        exact { local_compact_nhds := aux }
+      intro x n hn
+      -- Choose a chart around x; e.g. the chart at x.
+      let chart := ChartedSpace.chartAt (H := H) x
+      -- Intersecting n with the chart source yields a nbhd of x; applying the chart
+      -- yields a neighbourhood on E. Then use local compactness of E to find a nbhd,
+      -- and transport it back using the chart.
+      sorry
     exact sigmaCompactSpace_of_locally_compact_second_countable
   have : IsSigmaCompact s := isSigmaCompact_univ.of_isClosed_subset hs (subset_univ s)
   exact MeasureZero.meagre_if_sigma_compact J (sard _ hr hf hf' h'f') (this.image (hf.continuous))
