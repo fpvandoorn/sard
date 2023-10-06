@@ -258,8 +258,8 @@ theorem sard' {f : M → N} (hf : ContMDiff I J r f) [T2Space N]
   have : SigmaCompactSpace M := by
     -- TODO: make an instance, so infer_instance works instead of this argument
     have : LocallyCompactSpace M := by
-      suffices aux : ∀ (x : M), ∀ n ∈ 𝓝 x, ∃ s ∈ 𝓝 x, s ⊆ n ∧ IsCompact s by
-        exact { local_compact_nhds := aux }
+      suffices aux : ∀ (x : M), ∀ n ∈ 𝓝 x, ∃ s ∈ 𝓝 x, s ⊆ n ∧ IsCompact s from
+        { local_compact_nhds := aux }
       intro x n hn
       -- Choose a chart around x; e.g. the chart at x.
       let chart := ChartedSpace.chartAt (H := H) x

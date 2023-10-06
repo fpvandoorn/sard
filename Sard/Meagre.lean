@@ -86,7 +86,7 @@ lemma closed_nowhere_dense_iff_complement {s : Set α} :
   · rintro ⟨hopen, hdense⟩
     constructor
     · exact { isOpen_compl := hopen }
-    · have : IsClosed s := by exact { isOpen_compl := hopen }
+    · have : IsClosed s := { isOpen_compl := hopen }
       rw [closed_nowhere_dense_iff this, interior_eq_empty_iff_dense_compl]
       exact hdense
 
