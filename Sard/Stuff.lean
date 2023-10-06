@@ -1,14 +1,6 @@
-import Sard.LocallyLipschitz
 import Sard.LocallyLipschitzMeasureZero
 import Sard.MeasureZero
-import Sard.SigmaCompact
-import Mathlib.Analysis.Calculus.ContDiff
-import Mathlib.Geometry.Manifold.ChartedSpace
-import Mathlib.Geometry.Manifold.MFDeriv
-import Mathlib.MeasureTheory.Measure.Hausdorff
-import Mathlib.Topology.Bases
-import Mathlib.Topology.Basic
-import Mathlib.Topology.MetricSpace.Lipschitz
+import Mathlib.Geometry.Manifold.ContMDiff
 
 open ENNReal NNReal FiniteDimensional Function Manifold MeasureTheory Measure Set TopologicalSpace Topology LocallyLipschitz
 set_option autoImplicit false

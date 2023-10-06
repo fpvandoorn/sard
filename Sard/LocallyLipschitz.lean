@@ -1,8 +1,6 @@
 import Sard.ToSubset
 import Mathlib.Analysis.Calculus.ContDiff
 import Mathlib.Topology.MetricSpace.Lipschitz
-import Mathlib.Topology.Basic
-import Mathlib.Order.Filter.Basic
 
 /-!
 ## Locally Lipschitz functions

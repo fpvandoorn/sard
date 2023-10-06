@@ -3,10 +3,9 @@ Copyright (c) 2023 Michael Rothgang. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Michael Rothgang.
 -/
-import Mathlib.Geometry.Manifold.SmoothManifoldWithCorners
-import Mathlib.Topology.MetricSpace.Polish
-import Mathlib.MeasureTheory.Measure.Haar.Basic
 import Sard.Meagre
+import Mathlib.Geometry.Manifold.SmoothManifoldWithCorners
+import Mathlib.MeasureTheory.Measure.Haar.Basic
 
 /-!
 # Measure zero subsets of a manifold

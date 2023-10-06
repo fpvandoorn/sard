@@ -1,7 +1,4 @@
-import Sard.ToSubset
 import Mathlib.Topology.Homeomorph
-import Mathlib.Topology.Separation
-import Mathlib.Topology.SubsetProperties
 /-!
 We define σ-compact subsets of a topological space, show their elementary properties
 and relate them to σ-compact spaces.
