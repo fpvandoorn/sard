@@ -17,9 +17,9 @@ variable
   -- declare a smooth manifold `M` over the pair `(E, H)`.
   {E : Type*}
   [NormedAddCommGroup E] [NormedSpace ℝ E] {H : Type*} [TopologicalSpace H]
-  (I : ModelWithCorners ℝ E H) {M : Type*} [TopologicalSpace M] [ChartedSpace H M]
-  [SmoothManifoldWithCorners I M] [FiniteDimensional ℝ E] [SecondCountableTopology M]
-  [MeasurableSpace E] [BorelSpace E]
+  (I : ModelWithCorners ℝ E H) {M : Type*} [TopologicalSpace M] [ChartedSpace H M] [I.Boundaryless]
+  [SmoothManifoldWithCorners I M] [FiniteDimensional ℝ E]
+  [SecondCountableTopology M] [MeasurableSpace E] [BorelSpace E]
   -- declare a smooth manifold `N` over the pair `(F, G)`.
   {F : Type*}
   [NormedAddCommGroup F] [NormedSpace ℝ F] {G : Type*} [TopologicalSpace G]
@@ -191,6 +191,19 @@ theorem sard_local' {s w : Set E} {f : E → F} (hw : IsOpen w) (hs : IsClosed s
   have : IsSigmaCompact (f '' s) := this.image_of_continuousOn (hf.continuousOn.mono hsw)
   exact meagre_of_sigma_compact_null this ass
 
+-- generalises statements in Data.Set.Image.lean
+theorem image_subset_preimage_of_inverseOn {α β : Type*} {f : α → β} {g : β → α} (s : Set α)
+    (I : LeftInvOn g f s) : f '' s ⊆ g ⁻¹' s := by
+  sorry -- mathlib proof: fun _ ⟨a, h, e⟩ => e ▸ ((I a).symm ▸ h : g (f a) ∈ s)
+
+theorem preimage_subset_image_of_inverseOn {α β : Type*} {f : α → β} {g : β → α} (t : Set β) (I : RightInvOn g f t)  :
+    f ⁻¹' t ⊆ g '' t := sorry -- mathlib proof: fun b h => ⟨f b, h, I b⟩
+
+theorem image_eq_preimage_of_inverseOn {α β : Type*} {f : α → β} {g : β → α} {s : Set α}
+  (h₁ : LeftInvOn g f s) /-(h₂ : RightInvOn g f (f '' s))-/ : f '' s = g ⁻¹' s := by
+  apply Subset.antisymm (image_subset_preimage_of_inverseOn s h₁)
+  · sorry -- apply preimage_subset_image_of_inverseOn h₂ s almost works
+
 /-- **Sard's theorem**. Let $M$ and $N$ be real $C^r$ manifolds of dimensions
 $m$ and $n$, and $f : M → N$ a $C^r$ map. If $r>\max{0, m-n}$,
 the set of regular values of `f` has full measure.
@@ -217,8 +230,13 @@ theorem sard {f : M → N} (hf : ContMDiff I J r f)
   let f_local := (J ∘ e') ∘ f ∘ (e.invFun ∘ I.invFun)
   let f'_local : E → E →L[ℝ] F := fun x ↦ f' ((e.invFun ∘ I.invFun) x)
 
-  -- This is the statement I need to prove.
-  have warmup: ∀ {t : Set M}, t ⊆ e.source → e.invFun ∘ e '' t = t := by
+  -- As I has no boundary, it is a homeo E → H. Hence, I.invFun ∘ I = id.
+  have Iinv : I.invFun ∘ I = id := by
+    funext
+    apply I.left_inv'
+    rw [I.source_eq]
+    exact trivial
+  have helper: ∀ {t : Set M}, t ⊆ e.source → e.invFun ∘ e '' t = t := by
     intro t ht
     have : ∀ x : t, (e.invFun ∘ e) x = x := fun ⟨x, hxt⟩ ↦ e.left_inv' (ht hxt)
     sorry -- this is "funext", except that I need t and not M
@@ -227,8 +245,8 @@ theorem sard {f : M → N} (hf : ContMDiff I J r f)
     calc (e.invFun ∘ I.invFun) ∘ (I ∘ e) '' t
       _ = e.invFun ∘ (I.invFun ∘ I) ∘ e '' t := by simp only [comp.assoc]
       _ = e.invFun '' ((I.invFun ∘ I) '' (e '' t)) := by simp only [image_comp]
-      _ = e.invFun ∘ e '' t := sorry -- should be similar to warmup above
-      _ = t := by rw [warmup ht]
+      _ = e.invFun ∘ e '' t := by rw [Iinv, image_id, image_comp]
+      _ = t := by rw [helper ht]
   have cor : (e.invFun ∘ I.invFun) ∘ (I ∘ e) '' (s ∩ e.source ∩ f ⁻¹' e'.source) = s ∩ e.source ∩ f ⁻¹' e'.source := by
     rw [inv_fixed]
     rw [inter_comm s, inter_assoc]
@@ -248,18 +266,31 @@ theorem sard {f : M → N} (hf : ContMDiff I J r f)
   · -- goal: IsOpen w
     have : IsOpen (e.source ∩ f ⁻¹' e'.source) :=
       IsOpen.inter e.open_source (e'.open_source.preimage hf.continuous)
-    sorry
-     -- e is an embedding on e.source (but not globally) -- the below is not fully correct!
-  --   -- XXX. is there a local version of open embeddings?
-  --   refine Iff.mp (OpenEmbedding.open_iff_image_open ?hf) this
-  --   have h1: OpenEmbedding I := sorry
-  --   have h2: OpenEmbedding e := sorry
-  --   exact OpenEmbedding.comp h1 h2
+    have : IsOpen (e '' (e.source ∩ f ⁻¹' e'.source)) := by
+      have h1: e '' (e.source ∩ f ⁻¹' e'.source) = e.invFun ⁻¹' (e.source ∩ f ⁻¹' e'.source) :=
+        image_eq_preimage_of_inverseOn (LeftInvOn.mono (fun x ↦ e.left_inv) (inter_subset_left _ _))
+      rw [h1]
+      refine e.continuous_invFun.isOpen_preimage e.open_target ?_ this
+      have : e '' e.source ⊆ e.target := by sorry -- is essentially map_source'
+      calc e.invFun ⁻¹' (e.source ∩ f ⁻¹' e'.source)
+        _ = e '' (e.source ∩ f ⁻¹' e'.source) := by rw [← h1]
+        _ ⊆ e '' (e.source) := by apply image_subset ; exact inter_subset_left e.source _
+        _ ⊆ e.target := this
+    -- As M has no boundary, I is a homeo from H to E, hence an open embedding.
+    -- XXX. there should be a nicer way to show this, using I.toHomeomorph!
+    have h₂: OpenEmbedding I := by
+      have h : IsOpen (range I) := by rw [I.range_eq_univ] ; exact isOpen_univ
+      have : Embedding I := LeftInverse.embedding (congrFun Iinv) I.continuous_invFun I.continuous_toFun
+      exact { toEmbedding := this, open_range := h }
+    simp only [image_comp I e]
+    apply (OpenEmbedding.open_iff_image_open h₂).mp this
   · apply image_subset (↑I ∘ ↑e)
     rw [inter_assoc]
     exact inter_subset_right s (e.source ∩ f ⁻¹' e'.source)
   · sorry -- ContDiffOn ℝ (↑r) f_local w
+    -- should follow by definition, of ContDiff f in charts
   · sorry -- ∀ x ∈ s_better, HasFDerivWithinAt f_local (f'_local x) s_better x
+    -- should follow almost by definition
   · -- ∀ x ∈ s_better, ¬Surjective ↑(f'_local x)
     intro x hx
     apply h'f' ((e.invFun ∘ I.invFun) x)
