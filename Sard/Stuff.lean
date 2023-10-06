@@ -212,8 +212,8 @@ theorem sard {f : M → N} (hf : ContMDiff I J r f)
   -- Tedious part: check that all hypotheses transfer to their local counterparts.
   intro μ hμ e' he'
   -- Data for the reduction to local coordinates.
-  let w := I ∘ e '' e.source
-  let s_better := I ∘ e '' (e.source ∩ s)
+  let w := I ∘ e '' (e.source ∩ f ⁻¹' e'.source)
+  let s_better := I ∘ e '' (s ∩ e.source ∩ f ⁻¹' e'.source)
   let f_local := (J ∘ e') ∘ f ∘ (e.invFun ∘ I.invFun)
   let f'_local : E → E →L[ℝ] F := fun x ↦ f' ((e.invFun ∘ I.invFun) x)
   have : J ∘ e' '' (e'.source ∩ f '' (e.source ∩ s)) = f_local '' s_better := by
@@ -225,24 +225,32 @@ theorem sard {f : M → N} (hf : ContMDiff I J r f)
         _ = e.invFun ∘ id ∘ e := by sorry -- "obvious", holds after adaptation
         _ = e.invFun ∘ e := by rw [left_id]
         _ = id := by sorry -- "obvious", holds after adaptation
+    have aux : f '' (e.source ∩ s ∩ f ⁻¹' e'.source) = f '' (e.source ∩ s) ∩ e'.source :=
+      image_inter_preimage f _ _
     calc f_local '' s_better
-      _ = (J ∘ e') ∘ f ∘ (e.invFun ∘ I.invFun) '' (I ∘ e '' (e.source ∩ s)) := rfl
-      _ = (J ∘ e') ∘ f '' (((e.invFun ∘ I.invFun) ∘ (I ∘ e)) '' (e.source ∩ s)) := by
+      _ = (J ∘ e') ∘ f ∘ (e.invFun ∘ I.invFun) '' (I ∘ e '' (s ∩ e.source ∩ f ⁻¹' e'.source)) := rfl
+      _ = (J ∘ e') ∘ f ∘ (e.invFun ∘ I.invFun) '' (I ∘ e '' (e.source ∩ s ∩ f ⁻¹' e'.source)) := by
+        rw [inter_comm s]
+      _ = (J ∘ e') ∘ f '' (((e.invFun ∘ I.invFun) ∘ (I ∘ e)) '' (e.source ∩ s ∩ f ⁻¹' e'.source)) := by
         simp only [comp.assoc, image_comp]
-      _ = (J ∘ e') '' (f '' (e.source ∩ s)) := by rw [this, image_id, image_comp]
-      -- TODO: tweak definition of s or f_local to ensure the image lies in the source of e'
-      _ = J ∘ e' '' (e'.source ∩ f '' (e.source ∩ s)) := sorry
+      _ = J ∘ e' '' (f '' (e.source ∩ s ∩ f ⁻¹' e'.source)) := by rw [this, image_id, image_comp]
+      _ = J ∘ e' '' (f '' (e.source ∩ s) ∩ e'.source) := by rw [aux]
+      _ = J ∘ e' '' (e'.source ∩ f '' (e.source ∩ s)) := by rw [inter_comm]
   rw [this]
   apply sard_local hr (w := w) (s := s_better) (f := f_local) (f' := f'_local) ?_ ?_ ?_ ?_ ?_ μ
-  · sorry -- IsOpen w
-  --   have : IsOpen e.source := e.open_source
-  --   -- e is an embedding on e.source (but not globally) -- the below is not fully correct!
+  · -- goal: IsOpen w
+    have : IsOpen (e.source ∩ f ⁻¹' e'.source) :=
+      IsOpen.inter e.open_source (e'.open_source.preimage hf.continuous)
+    sorry
+     -- e is an embedding on e.source (but not globally) -- the below is not fully correct!
   --   -- XXX. is there a local version of open embeddings?
   --   refine Iff.mp (OpenEmbedding.open_iff_image_open ?hf) this
   --   have h1: OpenEmbedding I := sorry
   --   have h2: OpenEmbedding e := sorry
   --   exact OpenEmbedding.comp h1 h2
-  · exact image_subset (↑I ∘ ↑e) (inter_subset_left e.source s)
+  · apply image_subset (↑I ∘ ↑e)
+    rw [inter_assoc]
+    exact inter_subset_right s (e.source ∩ f ⁻¹' e'.source)
   · sorry -- ContDiffOn ℝ (↑r) f_local w
   · sorry -- ∀ x ∈ s_better, HasFDerivWithinAt f_local (f'_local x) s_better x
   · sorry -- ∀ x ∈ s_better, ¬Surjective ↑(f'_local x)
