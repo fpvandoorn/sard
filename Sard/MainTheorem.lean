@@ -87,9 +87,24 @@ theorem image_eq_preimage_of_inverseOn {α β : Type*} {f : α → β} {g : β �
   · sorry -- apply preimage_subset_image_of_inverseOn h₂ s almost works
 
 /-- Analogous to the funext tactic, but only on a set. -/
-theorem funext_on {α β : Type*} {s : Set α} {f : α → β} {g : β → α} (h : ∀ x : s, (g ∘ f) x = x)
+-- move to Data.Set.Image
+theorem funext_on {α β : Type*} {f : α → β} {g : β → α} {s : Set α} (h : ∀ x : s, (g ∘ f) x = x)
     : g ∘ f '' s = s := by
   simp_all only [comp_apply, Subtype.forall, image_id']
+
+-- I presume there's a shorter proof?
+theorem boundaryless_leftInverse : I.invFun ∘ I = id := by
+  funext
+  apply I.left_inv'
+  rw [I.source_eq]
+  exact trivial
+
+-- If I is boundaryless, it is an open embedding.
+-- XXX. there should be a shorter proof, using I.toHomeomorph
+theorem boundaryless_openEmbedding : OpenEmbedding I := by
+  have h : IsOpen (range I) := by rw [I.range_eq_univ] ; exact isOpen_univ
+  have : Embedding I := LeftInverse.embedding (congrFun (boundaryless_leftInverse I)) I.continuous_invFun I.continuous_toFun
+  exact { toEmbedding := this, open_range := h }
 
 /-- **Sard's theorem**. Let $M$ and $N$ be real $C^r$ manifolds of dimensions
 $m$ and $n$, and $f : M → N$ a $C^r$ map. If $r>\max{0, m-n}$,
@@ -117,19 +132,13 @@ theorem sard {f : M → N} (hf : ContMDiff I J r f)
   let f_local := (J ∘ e') ∘ f ∘ (e.invFun ∘ I.invFun)
   let f'_local : E → E →L[ℝ] F := fun x ↦ f' ((e.invFun ∘ I.invFun) x)
 
-  -- As I has no boundary, it is a homeo E → H. Hence, I.invFun ∘ I = id.
-  have Iinv : I.invFun ∘ I = id := by
-    funext
-    apply I.left_inv'
-    rw [I.source_eq]
-    exact trivial
   have inv_fixed : ∀ t : Set M, t ⊆ e.source → (e.invFun ∘ I.invFun) ∘ (I ∘ e) '' t = t := by
     intro t ht
     have : e.invFun ∘ e '' t = t := funext_on (fun ⟨x, hxt⟩ ↦ e.left_inv' (ht hxt))
     calc (e.invFun ∘ I.invFun) ∘ (I ∘ e) '' t
       _ = e.invFun ∘ (I.invFun ∘ I) ∘ e '' t := by simp only [comp.assoc]
       _ = e.invFun '' ((I.invFun ∘ I) '' (e '' t)) := by simp only [image_comp]
-      _ = e.invFun ∘ e '' t := by rw [Iinv, image_id, image_comp]
+      _ = e.invFun ∘ e '' t := by rw [boundaryless_leftInverse, image_id, image_comp]
       _ = t := by rw [this]
   have cor : (e.invFun ∘ I.invFun) ∘ (I ∘ e) '' (s ∩ e.source ∩ f ⁻¹' e'.source) = s ∩ e.source ∩ f ⁻¹' e'.source := by
     rw [inv_fixed]
@@ -151,23 +160,18 @@ theorem sard {f : M → N} (hf : ContMDiff I J r f)
     have : IsOpen (e.source ∩ f ⁻¹' e'.source) :=
       IsOpen.inter e.open_source (e'.open_source.preimage hf.continuous)
     have : IsOpen (e '' (e.source ∩ f ⁻¹' e'.source)) := by
-      have h1: e '' (e.source ∩ f ⁻¹' e'.source) = e.invFun ⁻¹' (e.source ∩ f ⁻¹' e'.source) :=
+      have h : e '' (e.source ∩ f ⁻¹' e'.source) = e.invFun ⁻¹' (e.source ∩ f ⁻¹' e'.source) :=
         image_eq_preimage_of_inverseOn (LeftInvOn.mono (fun x ↦ e.left_inv) (inter_subset_left _ _))
-      rw [h1]
+      rw [h]
       refine e.continuous_invFun.isOpen_preimage e.open_target ?_ this
       have : e '' e.source ⊆ e.target := by sorry -- is essentially map_source'
       calc e.invFun ⁻¹' (e.source ∩ f ⁻¹' e'.source)
-        _ = e '' (e.source ∩ f ⁻¹' e'.source) := by rw [← h1]
+        _ = e '' (e.source ∩ f ⁻¹' e'.source) := by rw [← h]
         _ ⊆ e '' (e.source) := by apply image_subset ; exact inter_subset_left e.source _
         _ ⊆ e.target := this
-    -- As M has no boundary, I is a homeo from H to E, hence an open embedding.
-    -- XXX. there should be a nicer way to show this, using I.toHomeomorph!
-    have h₂: OpenEmbedding I := by
-      have h : IsOpen (range I) := by rw [I.range_eq_univ] ; exact isOpen_univ
-      have : Embedding I := LeftInverse.embedding (congrFun Iinv) I.continuous_invFun I.continuous_toFun
-      exact { toEmbedding := this, open_range := h }
+    -- As M has no boundary, I is a homeomorphism from H to E, hence an open embedding.
     simp only [image_comp I e]
-    apply (OpenEmbedding.open_iff_image_open h₂).mp this
+    apply ((boundaryless_openEmbedding I).open_iff_image_open).mp this
   · apply image_subset (↑I ∘ ↑e)
     rw [inter_assoc]
     exact inter_subset_right s (e.source ∩ f ⁻¹' e'.source)
