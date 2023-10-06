@@ -217,25 +217,31 @@ theorem sard {f : M → N} (hf : ContMDiff I J r f)
   let f_local := (J ∘ e') ∘ f ∘ (e.invFun ∘ I.invFun)
   let f'_local : E → E →L[ℝ] F := fun x ↦ f' ((e.invFun ∘ I.invFun) x)
 
-  -- actually: this only holds on e.source, TODO adapt proof!
-  have inv : (e.invFun ∘ I.invFun) ∘ (I ∘ e) = id := by
-    calc (e.invFun ∘ I.invFun) ∘ (I ∘ e)
-      _ = e.invFun ∘ (I.invFun ∘ I) ∘ e := by simp only [comp.assoc]
-      _ = e.invFun ∘ id ∘ e := by sorry -- "obvious", holds after adaptation
-      _ = e.invFun ∘ e := by rw [left_id]
-      _ = id := by sorry -- "obvious", holds after adaptation
+  -- This is the statement I need to prove.
+  have warmup: ∀ {t : Set M}, t ⊆ e.source → e.invFun ∘ e '' t = t := by
+    intro t ht
+    have : ∀ x : t, (e.invFun ∘ e) x = x := fun ⟨x, hxt⟩ ↦ e.left_inv' (ht hxt)
+    sorry -- this is "funext", except that I need t and not M
+  have inv_fixed : ∀ t : Set M, t ⊆ e.source → (e.invFun ∘ I.invFun) ∘ (I ∘ e) '' t = t := by
+    intro t ht
+    calc (e.invFun ∘ I.invFun) ∘ (I ∘ e) '' t
+      _ = e.invFun ∘ (I.invFun ∘ I) ∘ e '' t := by simp only [comp.assoc]
+      _ = e.invFun '' ((I.invFun ∘ I) '' (e '' t)) := by simp only [image_comp]
+      _ = e.invFun ∘ e '' t := sorry -- should be similar to warmup above
+      _ = t := by rw [warmup ht]
+  have cor : (e.invFun ∘ I.invFun) ∘ (I ∘ e) '' (s ∩ e.source ∩ f ⁻¹' e'.source) = s ∩ e.source ∩ f ⁻¹' e'.source := by
+    rw [inv_fixed]
+    rw [inter_comm s, inter_assoc]
+    apply inter_subset_left
   have : J ∘ e' '' (e'.source ∩ f '' (e.source ∩ s)) = f_local '' s_better := by
     symm
-    have aux : f '' (e.source ∩ s ∩ f ⁻¹' e'.source) = f '' (e.source ∩ s) ∩ e'.source :=
-      image_inter_preimage f _ _
     calc f_local '' s_better
       _ = (J ∘ e') ∘ f ∘ (e.invFun ∘ I.invFun) '' (I ∘ e '' (s ∩ e.source ∩ f ⁻¹' e'.source)) := rfl
-      _ = (J ∘ e') ∘ f ∘ (e.invFun ∘ I.invFun) '' (I ∘ e '' (e.source ∩ s ∩ f ⁻¹' e'.source)) := by
-        rw [inter_comm s]
-      _ = (J ∘ e') ∘ f '' (((e.invFun ∘ I.invFun) ∘ (I ∘ e)) '' (e.source ∩ s ∩ f ⁻¹' e'.source)) := by
+      _ = (J ∘ e') ∘ f '' (((e.invFun ∘ I.invFun) ∘ (I ∘ e)) '' (s ∩ e.source ∩ f ⁻¹' e'.source)) := by
         simp only [comp.assoc, image_comp]
-      _ = J ∘ e' '' (f '' (e.source ∩ s ∩ f ⁻¹' e'.source)) := by rw [inv, image_id, image_comp]
-      _ = J ∘ e' '' (f '' (e.source ∩ s) ∩ e'.source) := by rw [aux]
+      _ = J ∘ e' '' (f '' (s ∩ e.source ∩ f ⁻¹' e'.source)) := by rw [cor, image_comp]
+      _ = J ∘ e' '' (f '' (e.source ∩ s ∩ f ⁻¹' e'.source)) := by rw [inter_comm s]
+      _ = J ∘ e' '' (f '' (e.source ∩ s) ∩ e'.source) := by rw [image_inter_preimage f _ _]
       _ = J ∘ e' '' (e'.source ∩ f '' (e.source ∩ s)) := by rw [inter_comm]
   rw [this]
   apply sard_local hr (w := w) (s := s_better) (f := f_local) (f' := f'_local) ?_ ?_ ?_ ?_ ?_ μ
@@ -262,7 +268,7 @@ theorem sard {f : M → N} (hf : ContMDiff I J r f)
         _ = e.invFun ∘ I.invFun '' (I ∘ e '' (s ∩ e.source ∩ f ⁻¹' e'.source)) := rfl
         _ = (e.invFun ∘ I.invFun) ∘ I ∘ e '' (s ∩ e.source ∩ f ⁻¹' e'.source) := by
           simp only [comp.assoc, image_comp]
-        _ = s ∩ e.source ∩ f ⁻¹' e'.source := by rw [inv, image_id]
+        _ = s ∩ e.source ∩ f ⁻¹' e'.source := by apply cor
     have : (e.invFun ∘ I.invFun) x ∈ s ∩ e.source ∩ f ⁻¹' e'.source := by
       rw [← this]
       exact mem_image_of_mem (e.invFun ∘ I.invFun) hx
