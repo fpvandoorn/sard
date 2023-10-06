@@ -1,5 +1,6 @@
 import Sard.LocallyLipschitz
 import Sard.LocallyLipschitzMeasureZero
+import Sard.MainTheorem
 import Sard.Meagre
 import Sard.MeasureZero
 import Sard.SigmaCompact
