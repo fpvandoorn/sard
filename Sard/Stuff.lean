@@ -216,15 +216,16 @@ theorem sard {f : M → N} (hf : ContMDiff I J r f)
   let s_better := I ∘ e '' (s ∩ e.source ∩ f ⁻¹' e'.source)
   let f_local := (J ∘ e') ∘ f ∘ (e.invFun ∘ I.invFun)
   let f'_local : E → E →L[ℝ] F := fun x ↦ f' ((e.invFun ∘ I.invFun) x)
+
+  -- actually: this only holds on e.source, TODO adapt proof!
+  have inv : (e.invFun ∘ I.invFun) ∘ (I ∘ e) = id := by
+    calc (e.invFun ∘ I.invFun) ∘ (I ∘ e)
+      _ = e.invFun ∘ (I.invFun ∘ I) ∘ e := by simp only [comp.assoc]
+      _ = e.invFun ∘ id ∘ e := by sorry -- "obvious", holds after adaptation
+      _ = e.invFun ∘ e := by rw [left_id]
+      _ = id := by sorry -- "obvious", holds after adaptation
   have : J ∘ e' '' (e'.source ∩ f '' (e.source ∩ s)) = f_local '' s_better := by
     symm
-    -- actually: this only holds on e.source, TODO adapt proof!
-    have : (e.invFun ∘ I.invFun) ∘ (I ∘ e) = id := by
-      calc (e.invFun ∘ I.invFun) ∘ (I ∘ e)
-        _ = e.invFun ∘ (I.invFun ∘ I) ∘ e := by simp only [comp.assoc]
-        _ = e.invFun ∘ id ∘ e := by sorry -- "obvious", holds after adaptation
-        _ = e.invFun ∘ e := by rw [left_id]
-        _ = id := by sorry -- "obvious", holds after adaptation
     have aux : f '' (e.source ∩ s ∩ f ⁻¹' e'.source) = f '' (e.source ∩ s) ∩ e'.source :=
       image_inter_preimage f _ _
     calc f_local '' s_better
@@ -233,7 +234,7 @@ theorem sard {f : M → N} (hf : ContMDiff I J r f)
         rw [inter_comm s]
       _ = (J ∘ e') ∘ f '' (((e.invFun ∘ I.invFun) ∘ (I ∘ e)) '' (e.source ∩ s ∩ f ⁻¹' e'.source)) := by
         simp only [comp.assoc, image_comp]
-      _ = J ∘ e' '' (f '' (e.source ∩ s ∩ f ⁻¹' e'.source)) := by rw [this, image_id, image_comp]
+      _ = J ∘ e' '' (f '' (e.source ∩ s ∩ f ⁻¹' e'.source)) := by rw [inv, image_id, image_comp]
       _ = J ∘ e' '' (f '' (e.source ∩ s) ∩ e'.source) := by rw [aux]
       _ = J ∘ e' '' (e'.source ∩ f '' (e.source ∩ s)) := by rw [inter_comm]
   rw [this]
@@ -253,7 +254,20 @@ theorem sard {f : M → N} (hf : ContMDiff I J r f)
     exact inter_subset_right s (e.source ∩ f ⁻¹' e'.source)
   · sorry -- ContDiffOn ℝ (↑r) f_local w
   · sorry -- ∀ x ∈ s_better, HasFDerivWithinAt f_local (f'_local x) s_better x
-  · sorry -- ∀ x ∈ s_better, ¬Surjective ↑(f'_local x)
+  · -- ∀ x ∈ s_better, ¬Surjective ↑(f'_local x)
+    intro x hx
+    apply h'f' ((e.invFun ∘ I.invFun) x)
+    have : e.invFun ∘ I.invFun '' s_better = s ∩ e.source ∩ f ⁻¹' e'.source := by
+      calc e.invFun ∘ I.invFun '' s_better
+        _ = e.invFun ∘ I.invFun '' (I ∘ e '' (s ∩ e.source ∩ f ⁻¹' e'.source)) := rfl
+        _ = (e.invFun ∘ I.invFun) ∘ I ∘ e '' (s ∩ e.source ∩ f ⁻¹' e'.source) := by
+          simp only [comp.assoc, image_comp]
+        _ = s ∩ e.source ∩ f ⁻¹' e'.source := by rw [inv, image_id]
+    have : (e.invFun ∘ I.invFun) x ∈ s ∩ e.source ∩ f ⁻¹' e'.source := by
+      rw [← this]
+      exact mem_image_of_mem (e.invFun ∘ I.invFun) hx
+    rw [inter_assoc] at this
+    exact mem_of_mem_inter_left this
 
 /-- **Sard's theorem**: let $M$ and $N$ be real $C^r$ manifolds of dimensions $m$ and $n$,
 and $f:M→N$ a $C^r$ map. If $r>\max{0, m-n}$, the critical set is meagre. -/
