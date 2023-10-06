@@ -15,18 +15,18 @@ set_option autoImplicit false
 
 variable
   -- declare a smooth manifold `M` over the pair `(E, H)`.
-  {E : Type*}
-  [NormedAddCommGroup E] [NormedSpace ℝ E] {H : Type*} [TopologicalSpace H]
-  (I : ModelWithCorners ℝ E H) {M : Type*} [TopologicalSpace M] [ChartedSpace H M] [I.Boundaryless]
-  [SmoothManifoldWithCorners I M] [FiniteDimensional ℝ E]
+  {E : Type*} {𝕂 : Type*} [IsROrC 𝕂]
+  [NormedAddCommGroup E] [NormedSpace 𝕂 E] {H : Type*} [TopologicalSpace H]
+  (I : ModelWithCorners 𝕂 E H) {M : Type*} [TopologicalSpace M] [ChartedSpace H M] [I.Boundaryless]
+  [SmoothManifoldWithCorners I M] [FiniteDimensional 𝕂 E]
   [SecondCountableTopology M] [MeasurableSpace E] [BorelSpace E]
   -- declare a smooth manifold `N` over the pair `(F, G)`.
   {F : Type*}
-  [NormedAddCommGroup F] [NormedSpace ℝ F] {G : Type*} [TopologicalSpace G]
-  {J : ModelWithCorners ℝ F G} {N : Type*} [TopologicalSpace N] [ChartedSpace G N] [J.Boundaryless]
-  [SmoothManifoldWithCorners J N] [FiniteDimensional ℝ F]
+  [NormedAddCommGroup F] [NormedSpace 𝕂 F] {G : Type*} [TopologicalSpace G]
+  {J : ModelWithCorners 𝕂 F G} {N : Type*} [TopologicalSpace N] [ChartedSpace G N] [J.Boundaryless]
+  [SmoothManifoldWithCorners J N] [FiniteDimensional 𝕂 F]
   [MeasurableSpace F] [BorelSpace F]
-variable {m n r : ℕ} (hm : finrank ℝ E = m) (hn : finrank ℝ F = n) (hr : r > m-n)
+variable {m n r : ℕ} (hm : finrank 𝕂 E = m) (hn : finrank 𝕂 F = n) (hr : r > m-n)
 
 -- TODO: literally the same proof is in `MeasureZero.lean`; replacing this fails for unknown reasons.
 /-- The image `f(s)` of a set `s ⊆ M` under a C¹ map `f : M → N` has measure zero
@@ -38,18 +38,18 @@ lemma measure_zero_image_iff_chart_domains {f : M → N} {s : Set M}
 /-- If $U ⊆ ℝ^m$ is open and $f : U → ℝ^n$ is a $C^1$ map with `m < n`, $f(U)$ has measure zero. -/
 lemma image_measure_zero_of_C1_dimension_increase {g : E → F} {U : Set E} (hU : IsOpen U)
     [MeasurableSpace F] [BorelSpace F] (ν : Measure F) [IsAddHaarMeasure ν]
-    (hg : ContDiffOn ℝ 1 g U) (hmn : m < n) : ν (g '' U) = 0 := by sorry
+    (hg : ContDiffOn 𝕂 1 g U) (hmn : m < n) : ν (g '' U) = 0 := by sorry
 -- mostly in mathlib already; `Stuff.lean` contains a proof "by hand".
 
 /-- Local version of Sard's theorem. If $W ⊆ ℝ^m$ is open and $f: W → ℝ^n$ is $C^r$,
 the set of critical values has measure zero. -/
 theorem sard_local {s w : Set E} {f : E → F} (hw : IsOpen w) (hsw : s ⊆ w)
-    (hf : ContDiffOn ℝ r f w) {f' : E → E →L[ℝ] F} (hf' : ∀ x ∈ s, HasFDerivWithinAt f (f' x) s x)
+    (hf : ContDiffOn 𝕂 r f w) {f' : E → E →L[𝕂] F} (hf' : ∀ x ∈ s, HasFDerivWithinAt f (f' x) s x)
     (h'f' : ∀ x ∈ s, ¬ Surjective (f' x)) (μ : Measure F) [IsAddHaarMeasure μ] :
     μ (f '' s) = 0 := by
   by_cases hyp: m < n
   · have hr : 1 ≤ (r : ℕ∞) := Iff.mpr Nat.one_le_cast (Nat.one_le_of_lt hr)
-    have : ContDiffOn ℝ 1 f w := by apply ContDiffOn.of_le hf hr
+    have : ContDiffOn 𝕂 1 f w := by apply ContDiffOn.of_le hf hr
     have hless: μ (f '' s) ≤ 0 := by calc
       μ (f '' s) ≤ μ (f '' w) := measure_mono (image_subset f hsw)
       _ = 0 := image_measure_zero_of_C1_dimension_increase hw μ this hyp
@@ -62,13 +62,15 @@ the set of critical values of `f` is a meagre set.
 We phrase this for any closed set `s` of critical points of `f`; this is fine
 as the critical set of `f` is closed. -/
 theorem sard_local' {s w : Set E} {f : E → F} (hw : IsOpen w) (hs : IsClosed s) (hsw : s ⊆ w)
-    (hf : ContDiffOn ℝ r f w) {f' : E → E →L[ℝ] F} (hf' : ∀ x ∈ s, HasFDerivWithinAt f (f' x) s x)
+    (hf : ContDiffOn 𝕂 r f w) {f' : E → E →L[𝕂] F} (hf' : ∀ x ∈ s, HasFDerivWithinAt f (f' x) s x)
     (h'f' : ∀ x ∈ s, ¬ Surjective (f' x)) : IsMeagre (f '' s) := by
+  have : WeaklyLocallyCompactSpace F := sorry -- TODO: over ℝ, this instance is found, but not over 𝕂
   obtain ⟨K''⟩ : Nonempty (PositiveCompacts F) := PositiveCompacts.nonempty'
   let μ : Measure F := addHaarMeasure K''
   have ass : μ (f '' s) = 0 := sard_local hr hw hsw hf hf' h'f' μ
 
   -- `s` is closed, hence σ-compact --- thus so is f '' s.
+  have : SigmaCompactSpace E := sorry -- TODO: over ℝ, this instance is found, but not over 𝕂
   have : IsSigmaCompact s := isSigmaCompact_univ.of_isClosed_subset hs (subset_univ s)
   have : IsSigmaCompact (f '' s) := this.image_of_continuousOn (hf.continuousOn.mono hsw)
   exact meagre_of_sigma_compact_null this ass
@@ -117,7 +119,7 @@ However, note that the case $m > n$ requires a different proof: for $m>n$, the c
 $f\in C^1$ is not sufficient any more: Whitney (1957) constructed a C¹ function
 $$f : ℝ² → ℝ$$ whose set of critical values contains an open set, thus has positive measure. -/
 theorem sard {f : M → N} (hf : ContMDiff I J r f)
-    {f' : ∀x, TangentSpace I x →L[ℝ] TangentSpace J (f x)} {s : Set M}
+    {f' : ∀x, TangentSpace I x →L[𝕂] TangentSpace J (f x)} {s : Set M}
     (hf' : ∀ x ∈ s, HasMFDerivWithinAt I J f s x (f' x))
     (h'f' : ∀ x ∈ s, ¬ Surjective (f' x)) : MeasureZero J (f '' s) := by
   suffices hyp: ∀ e ∈ atlas H M, MeasureZero J (f '' (e.source ∩ s)) from
@@ -130,7 +132,7 @@ theorem sard {f : M → N} (hf : ContMDiff I J r f)
   let w := I ∘ e '' (e.source ∩ f ⁻¹' e'.source)
   let s_better := I ∘ e '' (s ∩ e.source ∩ f ⁻¹' e'.source)
   let f_local := (J ∘ e') ∘ f ∘ (e.invFun ∘ I.invFun)
-  let f'_local : E → E →L[ℝ] F := fun x ↦ f' ((e.invFun ∘ I.invFun) x)
+  let f'_local : E → E →L[𝕂] F := fun x ↦ f' ((e.invFun ∘ I.invFun) x)
 
   have inv_fixed : ∀ t : Set M, t ⊆ e.source → (e.invFun ∘ I.invFun) ∘ (I ∘ e) '' t = t := by
     intro t ht
@@ -198,7 +200,7 @@ theorem sard {f : M → N} (hf : ContMDiff I J r f)
 and $f:M→N$ a $C^r$ map. If $r>\max{0, m-n}$, the critical set is meagre. -/
 -- FIXME: do I really need N to be Hausdorff? For the local result, I don't...
 theorem sard' {f : M → N} (hf : ContMDiff I J r f) [T2Space N]
-    {f' : ∀x, TangentSpace I x →L[ℝ] TangentSpace J (f x)} {s : Set M} (hs : IsClosed s)
+    {f' : ∀x, TangentSpace I x →L[𝕂] TangentSpace J (f x)} {s : Set M} (hs : IsClosed s)
     (hf' : ∀ x ∈ s, HasMFDerivWithinAt I J f s x (f' x))
     (h'f' : ∀ x ∈ s, ¬ Surjective (f' x)) : IsMeagre (f '' s) := by
   -- M is second countable and locally compact (as finite-dimensional), hence σ-compact.
