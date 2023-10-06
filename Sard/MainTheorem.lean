@@ -20,15 +20,8 @@ variable
   [MeasurableSpace F] [BorelSpace F]
 variable {m n r : ℕ} (hm : finrank 𝕂 E = m) (hn : finrank 𝕂 F = n) (hr : r > m-n)
 
--- TODO: literally the same proof is in `MeasureZero.lean`; replacing this fails for unknown reasons.
-/-- The image `f(s)` of a set `s ⊆ M` under a C¹ map `f : M → N` has measure zero
-iff for each chart $(φ, U)$ of $M$, the image $f(U ∩ s)$ has measure zero. -/
--- is the converse useful or just busywork?
-lemma measure_zero_image_iff_chart_domains {f : M → N} {s : Set M}
-    (hs : ∀ e ∈ atlas H M, MeasureZero J (f '' (e.source ∩ s))) : MeasureZero J (f '' s) := by sorry
-
 /-- If $U ⊆ ℝ^m$ is open and $f : U → ℝ^n$ is a $C^1$ map with `m < n`, $f(U)$ has measure zero. -/
-lemma image_measure_zero_of_C1_dimension_increase {g : E → F} {U : Set E} (hU : IsOpen U)
+lemma image_measure_zero_of_C1_dimension_increase' {g : E → F} {U : Set E} (hU : IsOpen U)
     [MeasurableSpace F] [BorelSpace F] (ν : Measure F) [IsAddHaarMeasure ν]
     (hg : ContDiffOn 𝕂 1 g U) (hmn : m < n) : ν (g '' U) = 0 := by sorry
 -- mostly in mathlib already; `Stuff.lean` contains a proof "by hand".
@@ -44,7 +37,7 @@ theorem sard_local {s w : Set E} {f : E → F} (hw : IsOpen w) (hsw : s ⊆ w)
     have : ContDiffOn 𝕂 1 f w := by apply ContDiffOn.of_le hf hr
     have hless: μ (f '' s) ≤ 0 := by calc
       μ (f '' s) ≤ μ (f '' w) := measure_mono (image_subset f hsw)
-      _ = 0 := image_measure_zero_of_C1_dimension_increase hw μ this hyp
+      _ = 0 := image_measure_zero_of_C1_dimension_increase' hw μ this hyp
     simp only [nonpos_iff_eq_zero, zero_le] at hless ⊢
     exact hless
   · sorry
@@ -115,7 +108,7 @@ theorem sard {f : M → N} (hf : ContMDiff I J r f)
     (hf' : ∀ x ∈ s, HasMFDerivWithinAt I J f s x (f' x))
     (h'f' : ∀ x ∈ s, ¬ Surjective (f' x)) : MeasureZero J (f '' s) := by
   suffices hyp: ∀ e ∈ atlas H M, MeasureZero J (f '' (e.source ∩ s)) from
-    measure_zero_image_iff_chart_domains hyp
+    MeasureZero.measure_zero_image_iff_chart_domains (J := J) hyp
   intro e he
   -- Reduce to images of chart domains, then apply `sard_local`.
   -- Tedious part: check that all hypotheses transfer to their local counterparts.

@@ -90,21 +90,13 @@ lemma image_measure_zero_of_C1_dimension_increase {g : E → F} {U : Set E} (hU 
   rw [← commutes]
   exact this
 
--- TODO: replace this by the (exact same) proof! in MeasureZero.lean!
--- Currently, doing so fails with errors I don't understand.
-/-- The image `f(s)` of a set `s ⊆ M` under a C¹ map `f : M → N` has measure zero
-iff for each chart $(φ, U)$ of $M$, the image $f(U ∩ s)$ has measure zero. -/
--- is the converse useful or just busywork?
-lemma measure_zero_image_iff_chart_domains {f : M → N} {s : Set M}
-    (hs : ∀ e ∈ atlas H M, MeasureZero J (f '' (e.source ∩ s))) : MeasureZero J (f '' s) := by sorry
-
 /-- If M, N are C¹ manifolds with dim M < dim N and f:M → N is C¹, then f(M) has measure zero. -/
 -- XXX: do I actually use this result?
 lemma image_null_of_C1_of_dimension_increase {f : M → N} (hf : ContMDiff I J r f)
     (hdim : m < n) : MeasureZero J (Set.range f) := by
   rw [← image_univ]
   suffices hyp : ∀ e ∈ atlas H M, MeasureZero J (f '' (e.source ∩ univ)) by
-    exact measure_zero_image_iff_chart_domains hyp
+    apply MeasureZero.measure_zero_image_iff_chart_domains (J := J) hyp
   -- Fix a chart; we want to show f(U ∩ M) has measure zero.
   intro e he μ hμ e' he'
   -- FIXME. This looks a bit sketchy... adapt proof if necessary!
