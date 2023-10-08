@@ -79,18 +79,13 @@ theorem funext_on {α β : Type*} {f : α → β} {g : β → α} {s : Set α} (
     : g ∘ f '' s = s := by
   simp_all only [comp_apply, Subtype.forall, image_id']
 
--- I presume there's a shorter proof?
-theorem boundaryless_leftInverse : I.invFun ∘ I = id := by
-  funext
-  apply I.left_inv'
-  rw [I.source_eq]
-  exact trivial
+theorem ModelWithCorners.leftInverse' : I.invFun ∘ I = id := funext I.leftInverse
 
 -- If I is boundaryless, it is an open embedding.
 -- XXX. there should be a shorter proof, using I.toHomeomorph
-theorem boundaryless_openEmbedding : OpenEmbedding I := by
+theorem ModelWithCorners.openEmbedding : OpenEmbedding I := by
   have h : IsOpen (range I) := by rw [I.range_eq_univ] ; exact isOpen_univ
-  have : Embedding I := LeftInverse.embedding (congrFun (boundaryless_leftInverse I)) I.continuous_invFun I.continuous_toFun
+  have : Embedding I := LeftInverse.embedding I.leftInverse I.continuous_invFun I.continuous_toFun
   exact { toEmbedding := this, open_range := h }
 
 /-- **Sard's theorem**. Let $M$ and $N$ be real $C^r$ manifolds of dimensions
@@ -125,7 +120,7 @@ theorem sard {f : M → N} (hf : ContMDiff I J r f)
     calc (e.invFun ∘ I.invFun) ∘ (I ∘ e) '' t
       _ = e.invFun ∘ (I.invFun ∘ I) ∘ e '' t := by simp only [comp.assoc]
       _ = e.invFun '' ((I.invFun ∘ I) '' (e '' t)) := by simp only [image_comp]
-      _ = e.invFun ∘ e '' t := by rw [boundaryless_leftInverse, image_id, image_comp]
+      _ = e.invFun ∘ e '' t := by rw [I.leftInverse', image_id, image_comp]
       _ = t := by rw [this]
   have cor : (e.invFun ∘ I.invFun) ∘ (I ∘ e) '' (s ∩ e.source ∩ f ⁻¹' e'.source) = s ∩ e.source ∩ f ⁻¹' e'.source := by
     rw [inv_fixed]
@@ -158,7 +153,7 @@ theorem sard {f : M → N} (hf : ContMDiff I J r f)
         _ ⊆ e.target := this
     -- As M has no boundary, I is a homeomorphism from H to E, hence an open embedding.
     simp only [image_comp I e]
-    apply ((boundaryless_openEmbedding I).open_iff_image_open).mp this
+    apply (I.openEmbedding.open_iff_image_open).mp this
   · apply image_subset (↑I ∘ ↑e)
     rw [inter_assoc]
     exact inter_subset_right s (e.source ∩ f ⁻¹' e'.source)
