@@ -45,22 +45,19 @@ lemma IsSigmaCompact.image {f : X → Y} (hf : Continuous f) {s : Set X} (hs : I
 lemma isSigmaCompact_range {f : X → Y} (hf : Continuous f) [i : SigmaCompactSpace X] :
     IsSigmaCompact (range f) := by
   rw [← image_univ]
-  apply IsSigmaCompact.image hf isSigmaCompact_univ
+  apply isSigmaCompact_univ.image hf
 
-lemma Homeomorph.isSigmaCompact_image {s : Set X} (h : X ≃ₜ Y) : IsSigmaCompact (↑h '' s) ↔ IsSigmaCompact s := by
-  constructor <;> intro hyp
-  · -- Suppose h(s) is σ-compact.
-    rcases hyp with ⟨K, hcomp, hcov⟩
-    let k := h.invFun
-    refine ⟨fun n ↦ k '' (K n), fun n ↦ (hcomp n).image (h.continuous_invFun), ?_⟩
-    have : k ∘ h = id := by ext x; exact h.left_inv x
-    calc ⋃ (n : ℕ), k '' K n
-      _ = k '' (⋃ (n : ℕ), K n) := by rw [image_iUnion]
-      _ = k '' (h '' s) := by rw [hcov]
-      _ = (k ∘ h) '' s := by rw [image_comp]
-      _ = id '' s := by rw [this]
-      _ = s := by rw [image_id]
-  · apply hyp.image h.continuous
+lemma Homeomorph.isSigmaCompact_image {s : Set X} (h : X ≃ₜ Y) :
+    IsSigmaCompact (↑h '' s) ↔ IsSigmaCompact s := by
+  refine ⟨?_, fun hyp => hyp.image h.continuous⟩
+  rintro ⟨K, hcomp, hcov⟩
+  refine ⟨fun n ↦ h.invFun '' (K n), fun n ↦ (hcomp n).image (h.continuous_invFun), ?_⟩
+  have : h.invFun ∘ h = id := by ext x; exact h.left_inv x
+  calc ⋃ (n : ℕ), h.invFun '' K n
+    _ = h.invFun '' (⋃ (n : ℕ), K n) := by rw [image_iUnion]
+    _ = (h.invFun ∘ h) '' s := by rw [hcov, image_comp]
+    _ = id '' s := by rw [this]
+    _ = s := by rw [image_id]
 
 lemma Set.image_preimage_eq_subset {f : X → Y} {s : Set Y} (hs : s ⊆ range f) : f '' (f ⁻¹' s) = s := by
   apply Subset.antisymm (image_preimage_subset f s)
@@ -172,16 +169,15 @@ lemma isSigmaCompact_of_countable_sigma_compact (S : Set (Set X)) (hc : Set.Coun
       _ = ⋃ s : S, ⋃ n, (K s n) := by simp_rw [hcov]
       _ = ⋃ s : S, ⋃ n, (K.uncurry ⟨s, n⟩) := by rw [Function.uncurry_def]
       _ = ⋃ (s : S) (n : ℕ), (K.uncurry ⟨s, n⟩) := by rw [iUnion_coe_set]
-      _ = ⋃ t : S × ℕ, (K.uncurry t) := by rw [iUnion_prod']
-      _ = ⋃₀ range (K.uncurry) := by rw [sUnion_range]
+      _ = ⋃₀ range (K.uncurry) := by rw [iUnion_prod', sUnion_range]
   rw [this]
-  rw [← Set.countable_coe_iff] at hc
+  rw [← countable_coe_iff] at hc
   refine isSigmaCompact_of_countable_compact _ (countable_range (K.uncurry)) fun s hs ↦ ?_
   obtain ⟨⟨ys, yn⟩, hy⟩ := mem_range.mp hs
   rw [← hy]
   exact hcomp ys yn
 
--- A closed subset of a σ-compact set is σ-compact.
+/-- A closed subset of a σ-compact set is σ-compact. -/
 lemma IsSigmaCompact.of_isClosed_subset {s t : Set X} (ht : IsSigmaCompact t)
     (hs : IsClosed s) (h : s ⊆ t) : IsSigmaCompact s := by
   rcases ht with ⟨K, hcompact, hcov⟩
