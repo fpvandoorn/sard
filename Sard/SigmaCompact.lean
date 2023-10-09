@@ -3,18 +3,11 @@ import Mathlib.Topology.Homeomorph
 We define σ-compact subsets of a topological space, show their elementary properties
 and relate them to σ-compact spaces.
 -/
--- probably, this also should go into `Mathlib.Topology.SubsetPropertes`
+-- this file has been PRed to mathlib
 
 open Set
 set_option autoImplicit false
 variable {X Y : Type*} [TopologicalSpace X] [TopologicalSpace Y]
-
-/-- The preimage of a compact set under an inducing map is a compact set. -/
--- PRed and merged in mathlib; remove when updating mathlib!
-theorem Inducing.isCompact_preimage {f : X → Y} (hf : Inducing f) (hf' : IsClosed (range f)) {K : Set Y}
-    (hK : IsCompact K) : IsCompact (f ⁻¹' K) := by
-  replace hK := hK.inter_right hf'
-  rwa [← hf.isCompact_iff, image_preimage_eq_inter_range]
 
 /-- A subset `s ⊆ X` is called **σ-compact** if it is the union of countably many compact sets. -/
 def IsSigmaCompact (s : Set X) : Prop :=
@@ -152,11 +145,6 @@ lemma isSigmaCompact_of_countable_compact (S : Set (Set X)) (hc : Set.Countable 
       rcases this with ⟨n, hn⟩
       exact ⟨f n, mem_range_self n, (by rw [hn]; exact hxs)⟩
 
--- PRed to mathlib, #7528.
-lemma Set.iUnion_prod' {X Y Z : Type*} (f : X × Y → Set Z) :
-    ⋃ (x : X) (y : Y), (f ⟨x, y⟩) = ⋃ t : X × Y, (f t) := by
-  simp only [iUnion, iSup_eq_iUnion, iSup_prod]
-
 /-- Countable unions of σ-compact sets are σ-compact. -/
 lemma isSigmaCompact_of_countable_sigma_compact (S : Set (Set X)) (hc : Set.Countable S)
     (hcomp : ∀ s : S, IsSigmaCompact s (X := X)) : IsSigmaCompact (⋃₀ S) := by
@@ -169,7 +157,7 @@ lemma isSigmaCompact_of_countable_sigma_compact (S : Set (Set X)) (hc : Set.Coun
       _ = ⋃ s : S, ⋃ n, (K s n) := by simp_rw [hcov]
       _ = ⋃ s : S, ⋃ n, (K.uncurry ⟨s, n⟩) := by rw [Function.uncurry_def]
       _ = ⋃ (s : S) (n : ℕ), (K.uncurry ⟨s, n⟩) := by rw [iUnion_coe_set]
-      _ = ⋃₀ range (K.uncurry) := by rw [iUnion_prod', sUnion_range]
+      _ = ⋃₀ range (K.uncurry) := by rw [← iUnion_prod', sUnion_range]
   rw [this]
   rw [← countable_coe_iff] at hc
   refine isSigmaCompact_of_countable_compact _ (countable_range (K.uncurry)) fun s hs ↦ ?_
@@ -183,4 +171,4 @@ lemma IsSigmaCompact.of_isClosed_subset {s t : Set X} (ht : IsSigmaCompact t)
   rcases ht with ⟨K, hcompact, hcov⟩
   refine ⟨(fun n ↦ s ∩ (K n)), fun n ↦ (hcompact n).inter_left hs, ?_⟩
   rw [← inter_iUnion, hcov]
-  exact inter_eq_left_iff_subset.mpr h
+  exact inter_eq_left.mpr h

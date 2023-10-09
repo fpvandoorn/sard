@@ -3,145 +3,13 @@ import Mathlib.Analysis.Calculus.ContDiff
 import Mathlib.Topology.MetricSpace.Lipschitz
 
 /-!
-## Locally Lipschitz functions
-Define locally Lipschitz functions and show their elementary properties.
-Show that C¹ functions are locally Lipschitz.
+Additional lemmas about locally Lipschitz functions.
 -/
--- STATUS. This file has mostly been PRed to mathlib; refactors there are not merged here.
 
 open Function NNReal Set Topology
 set_option autoImplicit false
 
 variable {X Y Z: Type*}
-
-section EMetric
-variable [EMetricSpace X] [EMetricSpace Y] [EMetricSpace Z]
-
-/-- `f : X → Y` is **locally Lipschitz** iff every point `p ∈ X` has a neighourhood
-on which `f` is Lipschitz. -/
-def LocallyLipschitz (f : X → Y) : Prop := ∀ x : X, ∃ K, ∃ t ∈ 𝓝 x, LipschitzOnWith K f t
-
-namespace LocallyLipschitz
-
-/-- A Lipschitz function is locally Lipschitz. -/
-protected lemma of_Lipschitz {f : X → Y} {K : ℝ≥0} (hf : LipschitzWith K f) : LocallyLipschitz f := by
-  intro x
-  use K, univ
-  rw [lipschitzOn_univ]
-  exact ⟨Filter.univ_mem, hf⟩
-
-/-- The identity function is locally Lipschitz. -/
-protected lemma id : LocallyLipschitz (@id X) := LocallyLipschitz.of_Lipschitz (LipschitzWith.id)
-
-/-- Constant functions are locally Lipschitz. -/
-protected lemma const (b : Y) : LocallyLipschitz (fun _ : X ↦ b) :=
-  LocallyLipschitz.of_Lipschitz (LipschitzWith.const b)
-
-/-- A locally Lipschitz function is continuous. (The converse is false: for example,
-$x ↦ \sqrt{x}$ is continuous, but not locally Lipschitz at 0.) -/
-protected theorem continuous {f : X → Y} (hf : LocallyLipschitz f) : Continuous f := by
-  apply Iff.mpr continuous_iff_continuousAt
-  intro x
-  rcases (hf x) with ⟨K, t, ht, hK⟩
-  exact ContinuousOn.continuousAt (LipschitzOnWith.continuousOn hK) ht
-
--- tweaked version of the result in mathlib, weaker hypotheses -- not just restricting the domain,
--- but also weakening the assumption on the codomain
-theorem comp_lipschitzOnWith' {Kf Kg : ℝ≥0} {f : Y → Z} {g : X → Y} {s : Set X}
-    (hf : LipschitzOnWith Kf f (g '' s)) (hg : LipschitzOnWith Kg g s) :
-    LipschitzOnWith (Kf * Kg) (f ∘ g) s := by
-  intro x hx y hy
-  calc edist ((f ∘ g) x) ((f ∘ g) y)
-    _ ≤ Kf * edist (g x) (g y) := hf (mem_image_of_mem g hx) (mem_image_of_mem g hy)
-    _ ≤ Kf * (Kg * edist x y) := by exact mul_le_mul_left' (hg hx hy) Kf
-    _ = ↑(Kf * Kg) * edist x y := by rw [← mul_assoc, ENNReal.coe_mul]
-
-/-- The composition of locally Lipschitz functions is locally Lipschitz. --/
-protected lemma comp  {f : Y → Z} {g : X → Y}
-    (hf : LocallyLipschitz f) (hg : LocallyLipschitz g) : LocallyLipschitz (f ∘ g) := by
-  intro x
-  -- g is Lipschitz on t ∋ x, f is Lipschitz on u ∋ g(x)
-  rcases hg x with ⟨Kg, t, ht, hgL⟩
-  rcases hf (g x) with ⟨Kf, u, hu, hfL⟩
-  -- idea: shrink u to g(t), then apply `comp_lipschitzOnWith'`
-  -- more precisely: restrict g to t' := t ∩ g⁻¹(u); the preimage of u under g':=g∣t.
-  let g' := t.restrict g
-  let t'' := (g' ⁻¹' u)
-  let t' : Set X := { (x : X) | x ∈ t'' }
-  have h₁ : t' = t ∩ g ⁻¹' u := by
-    apply Set.Subset.antisymm_iff.mpr
-    constructor
-    · intro x hx
-      simp at hx
-      obtain ⟨x, ha1, ha2, rfl⟩ := hx
-      exact ⟨by assumption, by simp only [mem_preimage, ha1]⟩
-    · rintro x ⟨ht, hgu⟩
-      simp only [mem_preimage] at hgu
-      simp says simp only [mem_preimage, restrict_apply, Subtype.exists, exists_and_left, exists_prop, mem_setOf_eq]
-      use x
-  have h₂ : t' ∈ 𝓝 x := by -- FIXME: the following is a tour de force; there must be a nicer proof
-    -- by ht, t contains an open subset U
-    rcases (Iff.mp (mem_nhds_iff) ht) with ⟨U, hUt, hUopen, hxU⟩
-    -- similarly, u contains an open subset V
-    rcases (Iff.mp (mem_nhds_iff) hu) with ⟨V, hVt, hVopen, hgxV⟩
-    -- by continuity, g⁻¹(u) contains the open subset g⁻¹(V)
-    have : ContinuousOn g U := LipschitzOnWith.continuousOn (LipschitzOnWith.mono hgL hUt)
-    have h : IsOpen (U ∩ (g ⁻¹' V)) := ContinuousOn.preimage_open_of_open this hUopen hVopen
-    have : U ∩ (g ⁻¹' V) ⊆ t' := by rw [h₁]; apply inter_subset_inter hUt (preimage_mono hVt)
-    -- now, U ∩ g⁻¹(V) is an open subset contained in t'
-    rw [mem_nhds_iff]
-    use U ∩ (g ⁻¹' V)
-    exact ⟨this, ⟨h, ⟨hxU, hgxV⟩⟩⟩
-  have : g '' t' ⊆ u := by calc g '' t'
-    _ = g '' (t ∩ g ⁻¹' u) := by rw [h₁]
-    _ ⊆ g '' t ∩ g '' (g ⁻¹' u) := by apply image_inter_subset
-    _ ⊆ g '' t ∩ u := by gcongr; apply image_preimage_subset
-    _ ⊆ u := by apply inter_subset_right
-  use Kf * Kg, t'
-  have h: t' ⊆ t := by rw [h₁]; exact inter_subset_left t (g ⁻¹' u)
-  exact ⟨h₂, comp_lipschitzOnWith'
-    (LipschitzOnWith.mono hfL this) (LipschitzOnWith.mono hgL h)⟩
-
-/-- If `f` and `g` are locally Lipschitz, so is the induced map `f × g` to the product type. -/
-protected lemma prod {f : X → Y} (hf : LocallyLipschitz f) {g : X → Z} (hg : LocallyLipschitz g) :
-    LocallyLipschitz fun x => (f x, g x) := by
-  intro x
-  rcases hf x with ⟨Kf, t₁, h₁t, hfL⟩
-  rcases hg x with ⟨Kg, t₂, h₂t, hgL⟩
-  use max Kf Kg, t₁ ∩ t₂
-  constructor
-  · exact Filter.inter_mem h₁t h₂t
-  · intro y hy z hz
-    have h₁ : edist (f y) (f z) ≤ Kf * edist y z := by
-      exact LipschitzOnWith.mono hfL (inter_subset_left t₁ t₂) hy hz
-    have h₂ : edist (g y) (g z) ≤ Kg * edist y z := by
-      exact LipschitzOnWith.mono hgL (inter_subset_right t₁ t₂) hy hz
-    rw [ENNReal.coe_mono.map_max, Prod.edist_eq, ENNReal.max_mul]
-    exact max_le_max h₁ h₂
-
-protected theorem prod_mk_left (a : X) : LocallyLipschitz (Prod.mk a : Y → X × Y) :=
-  LocallyLipschitz.of_Lipschitz (LipschitzWith.prod_mk_left a)
-
-protected theorem prod_mk_right (b : Y) : LocallyLipschitz (fun a : X => (a, b)) :=
-  LocallyLipschitz.of_Lipschitz (LipschitzWith.prod_mk_right b)
-
-protected theorem iterate {f : X → X} (hf : LocallyLipschitz f) : ∀ n, LocallyLipschitz f^[n]
-  | 0 => by simpa only [pow_zero] using LocallyLipschitz.id
-  | n + 1 => by rw [iterate_add, iterate_one]; exact (LocallyLipschitz.iterate hf n).comp hf
-
-protected theorem mul {f g : Function.End X} (hf : LocallyLipschitz f)
-    (hg : LocallyLipschitz g) : LocallyLipschitz (f * g : Function.End X) := hf.comp hg
-
-protected theorem pow {f : Function.End X} (h : LocallyLipschitz f) :
-    ∀ n : ℕ, LocallyLipschitz (f ^ n : Function.End X)
-  | 0 => by simpa only [pow_zero] using LocallyLipschitz.id
-  | n + 1 => by
-    rw [pow_succ]
-    exact h.mul (LocallyLipschitz.pow h n)
-end LocallyLipschitz
-end EMetric
-
---------- everything above here has been PRed
 
 section Metric
 variable [MetricSpace X] [MetricSpace Y] [MetricSpace Z]
@@ -164,7 +32,7 @@ protected lemma ToSubset.compatible_with_nhds_within (t U: Set X) {x : U} (hU : 
     constructor
     · calc a ∩ U
         _ ⊆ b ∩ U := inter_subset_inter_left U ha
-        _ = b ∩ (U' ∩ U) := by congr; rw [(Iff.mpr inter_eq_right_iff_subset hU')]
+        _ = b ∩ (U' ∩ U) := by congr; apply (Set.inter_eq_right.mpr hU').symm
         _ ⊆ (b ∩ U') ∩ U := by rw [inter_assoc]
         _ = t ∩ U := by rw [htaU]
     · exact ⟨IsOpen.inter haopen hU, ⟨hxa, Subtype.mem x⟩⟩
@@ -208,40 +76,6 @@ lemma of_C1_on_open {E F: Type*} {f : E → F} [NormedAddCommGroup E] [NormedSpa
   exact ⟨ToSubset.compatible_with_nhds_within t U h₁U ht, LipschitzOnWith.restrict_subtype U t hf⟩
 end LocallyLipschitz
 end Metric
-
-section EMetric
-namespace LocallyLipschitz
----------------------------------
--- all of this section has been PRed, except for the sum and smul lemmas
----------------------------------
-variable [MetricSpace X] [MetricSpace Y] [MetricSpace Z] {f g : X → ℝ}
-/-- The minimum of locally Lipschitz functions is locally Lipschitz. -/
-protected lemma min (hf : LocallyLipschitz f) (hg : LocallyLipschitz g) :
-    LocallyLipschitz (fun x => min (f x) (g x)) := by
-  let m : ℝ × ℝ → ℝ := fun p ↦ min p.1 p.2
-  have h : LocallyLipschitz m := LocallyLipschitz.of_Lipschitz lipschitzWith_min
-  exact LocallyLipschitz.comp h (LocallyLipschitz.prod hf hg)
-
-/-- The maximum of locally Lipschitz functions is locally Lipschitz. -/
-protected lemma max (hf : LocallyLipschitz f) (hg : LocallyLipschitz g) :
-    LocallyLipschitz (fun x => max (f x) (g x)) := by
-  let m : ℝ × ℝ → ℝ := fun p ↦ max p.1 p.2
-  have h : LocallyLipschitz m := LocallyLipschitz.of_Lipschitz lipschitzWith_max
-  exact LocallyLipschitz.comp h (LocallyLipschitz.prod hf hg)
-
-theorem max_const (hf : LocallyLipschitz f) (a : ℝ) : LocallyLipschitz fun x => max (f x) a :=
-  LocallyLipschitz.max hf (LocallyLipschitz.const a)
-
-theorem const_max (hf : LocallyLipschitz f) (a : ℝ) : LocallyLipschitz fun x => max a (f x) :=
-  LocallyLipschitz.max (LocallyLipschitz.const a) hf
-
-theorem min_const (hf : LocallyLipschitz f) (a : ℝ) : LocallyLipschitz fun x => min (f x) a :=
-  LocallyLipschitz.min hf (LocallyLipschitz.const a)
-
-theorem const_min (hf : LocallyLipschitz f) (a : ℝ) : LocallyLipschitz fun x => min a (f x) :=
-  LocallyLipschitz.min (LocallyLipschitz.const a) hf
-end LocallyLipschitz
-end EMetric
 
 section Normed
 variable [MetricSpace X] [NormedAddCommGroup Y] [NormedSpace ℝ Y] {f g : X → Y}

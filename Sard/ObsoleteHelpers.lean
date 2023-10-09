@@ -40,7 +40,7 @@ lemma local_homeo_preserves_empty_interior {α β : Type}
   -- xxx clean up these partial steps
   -- restrict to domain and target: mathematically trivial
   have h₁ : s = s ∩ f.source := by
-    rw [← @inter_eq_left_iff_subset α s f.source] at hs
+    rw [← @inter_eq_left α s f.source] at hs
     symm
     exact hs
   have h₂ : interior s = interior (s ∩ f.source) := by

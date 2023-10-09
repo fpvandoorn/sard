@@ -14,7 +14,7 @@ lemma null_set_from_countable_cover {t : Set X} (μ : Measure X)
   have h : μ t ≤ 0 := by
     have : ∀ n, μ (s n ∩ t) = 0 := fun n => measure_inter_null_of_null_left t (hnull n)
     calc μ t
-      _ = μ ((⋃ (n : ℕ), s n) ∩ t) := by simp only [inter_eq_right_iff_subset.mpr hcov]
+      _ = μ ((⋃ (n : ℕ), s n) ∩ t) := by simp only [inter_eq_right.mpr hcov]
       _ = μ (⋃ (n : ℕ), (s n ∩ t)) := by rw [iUnion_inter]
       _ ≤ ∑' (n : ℕ), μ (s n ∩ t) := by apply OuterMeasure.iUnion_nat
       _ = ∑' (n : ℕ), 0 := by simp_rw [this]
