@@ -204,11 +204,12 @@ lemma nowhere_dense_of_closed_null {s : Set X} (h₁s : IsClosed s) (h₂s : μ 
 
 /-- A compact measure zero set is nowhere dense. -/
 -- FIXME: is this lemma useful to have?
-lemma nowhere_dense_of_compact_null [T2Space X] {s : Set X} (h₁s : IsCompact s) (h₂s : μ s = 0) : IsNowhereDense s :=
-  nowhere_dense_of_closed_null h₁s.isClosed h₂s
+lemma nowhere_dense_of_compact_null [T2Space X] {s : Set X} (h₁s : IsCompact s) (h₂s : μ s = 0) :
+    IsNowhereDense s := nowhere_dense_of_closed_null h₁s.isClosed h₂s
 
 /-- A σ-compact measure zero subset is meagre. -/
-lemma meagre_of_sigma_compact_null [T2Space X] {s : Set X} (h₁s : IsSigmaCompact s) (h₂s : μ s = 0) : IsMeagre s := by
+lemma meagre_of_sigma_compact_null [T2Space X] {s : Set X} (h₁s : IsSigmaCompact s) (h₂s : μ s = 0) :
+    IsMeagre s := by
   rcases h₁s with ⟨K, hcompact, hcover⟩
   have h : ∀ (n : ℕ), IsNowhereDense (K n) := by
     intro n
