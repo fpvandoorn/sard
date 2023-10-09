@@ -1,6 +1,7 @@
 import Sard.LocallyLipschitz
 import Sard.MeasureZero
 import Mathlib.Geometry.Manifold.MFDeriv
+import Mathlib.Topology.MetricSpace.HausdorffDimension
 
 open ENNReal NNReal FiniteDimensional Function Manifold MeasureTheory Measure Set TopologicalSpace Topology LocallyLipschitz
 set_option autoImplicit false
@@ -23,8 +24,24 @@ variable {m n r : ℕ} (hm : finrank ℝ E = m) (hn : finrank ℝ F = n) (hr : r
 /-- If $U ⊆ ℝ^m$ is open and $f : U → ℝ^n$ is a $C^1$ map with `m < n`, $f(U)$ has measure zero. -/
 lemma image_measure_zero_of_C1_dimension_increase' {g : E → F} {U : Set E} (hU : IsOpen U)
     [MeasurableSpace F] [BorelSpace F] (ν : Measure F) [IsAddHaarMeasure ν]
-    (hg : ContDiffOn ℝ 1 g U) (hmn : m < n) : ν (g '' U) = 0 := by sorry
--- mostly in mathlib already; `Stuff.lean` contains a proof "by hand".
+    (hg : ContDiffOn ℝ 1 g U) (hmn : m < n) : ν (g '' U) = 0 := by
+  -- FIXME: once MeasureZero is refactored, replace the Haar measure ν
+  -- by the Hausdorff (or Lebesgue) measure, and this step solves itself.
+  have h : ν = μH[n] := sorry
+  rw [h]
+  -- TODO: remove convexity hypothesis from `dimH_image_le`; split into many small pieces.)
+  have : Convex ℝ U := sorry
+  -- This seems to be missing from mathlib.
+  have h : dimH (univ : Set E) = m := sorry
+  -- Also missing: IsOpenPosMeasure µH[m] on E.
+  have h : dimH U ≤ m := by
+    rw [← h]
+    exact dimH_mono (subset_univ U)
+  apply measure_zero_of_dimH_lt (d := n) rfl.absolutelyContinuous
+  calc dimH (g '' U)
+    _ ≤ dimH U := ContDiffOn.dimH_image_le hg this rfl.subset
+    _ ≤ m := h
+    _ < n := Nat.cast_lt.mpr hmn
 
 /-- Local version of Sard's theorem. If $W ⊆ ℝ^m$ is open and $f: W → ℝ^n$ is $C^r$,
 the set of critical values has measure zero. -/
