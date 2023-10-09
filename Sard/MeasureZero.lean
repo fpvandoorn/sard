@@ -39,14 +39,14 @@ set_option autoImplicit false
 
 variable
   -- Let `M` be a finite-dimensional (topological) manifold without boundary over the pair `(E, H)`.
-  {E : Type*} {𝕂 : Type*} [IsROrC 𝕂] [NormedAddCommGroup E] [NormedSpace 𝕂 E] {H : Type*} [TopologicalSpace H]
-  (I : ModelWithCorners 𝕂 E H) {M : Type*} [TopologicalSpace M] [ChartedSpace H M] [I.Boundaryless]
-  [FiniteDimensional 𝕂 E] [MeasurableSpace E] [BorelSpace E]
+  {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] {H : Type*} [TopologicalSpace H]
+  (I : ModelWithCorners ℝ E H) {M : Type*} [TopologicalSpace M] [ChartedSpace H M] [I.Boundaryless]
+  [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
 variable {I}
 
 variable (I) in
 /-- A measure zero subset of an n-dimensional manifold $M$ is a subset $S ⊆ M$ such that
-for all charts $(φ, U)$ of $M$, $φ(U ∩ S) ⊆ 𝕂^n$ has measure zero. -/
+for all charts $(φ, U)$ of $M$, $φ(U ∩ S) ⊆ ℝ^n$ has measure zero. -/
 def MeasureZero (s : Set M) : Prop :=
   ∀ (μ : Measure E) [IsAddHaarMeasure μ], ∀ e ∈ atlas H M, μ (I ∘ e '' (e.source ∩ s)) = 0
 
@@ -91,8 +91,8 @@ protected lemma union {s t : Set M} (hs : MeasureZero I s) (ht : MeasureZero I t
 
 /-- The “almost everywhere” filter of co-measure zero sets in a manifold. -/
 def ModelWithCorners.ae
-    {E : Type*} [NormedAddCommGroup E] [NormedSpace 𝕂 E]
-    {F : Type*} [TopologicalSpace F] (I : ModelWithCorners 𝕂 E F)
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    {F : Type*} [TopologicalSpace F] (I : ModelWithCorners ℝ E F)
     {M : Type*} [TopologicalSpace M] [ChartedSpace F M] [MeasurableSpace E] : Filter M where
   sets := { s | MeasureZero I sᶜ }
   univ_sets := by
@@ -118,7 +118,6 @@ protected lemma open_implies_empty {s : Set M} (h₁s : IsOpen s) (h₂s : Measu
 
   intro e he
   -- choose any Haar measure μ
-  have : WeaklyLocallyCompactSpace E := sorry -- TODO: over ℝ, this instance is found, but not over 𝕂
   obtain ⟨K''⟩ : Nonempty (PositiveCompacts E) := PositiveCompacts.nonempty'
   let μ : Measure E := addHaarMeasure K''
   -- by h₂s μ e, we have μ (I∘e '' s) = 0
@@ -153,15 +152,15 @@ end MeasureZero
 namespace MeasureZero
 variable
   -- declare a smooth manifold `M` over the pair `(E, H)`.
-  {E : Type*} {𝕂 : Type*} [IsROrC 𝕂]
-  [NormedAddCommGroup E] [NormedSpace 𝕂 E] {H : Type*} [TopologicalSpace H]
-  (I : ModelWithCorners 𝕂 E H) {M : Type*} [TopologicalSpace M] [ChartedSpace H M]
-  [SmoothManifoldWithCorners I M] [FiniteDimensional 𝕂 E] [SecondCountableTopology M]
+  {E : Type*}
+  [NormedAddCommGroup E] [NormedSpace ℝ E] {H : Type*} [TopologicalSpace H]
+  (I : ModelWithCorners ℝ E H) {M : Type*} [TopologicalSpace M] [ChartedSpace H M]
+  [SmoothManifoldWithCorners I M] [FiniteDimensional ℝ E] [SecondCountableTopology M]
   -- declare a smooth manifold `N` over the pair `(F, G)`.
   {F : Type*}
-  [NormedAddCommGroup F] [NormedSpace 𝕂 F] {G : Type*} [TopologicalSpace G]
-  (J : ModelWithCorners 𝕂 F G) {N : Type*} [TopologicalSpace N] [ChartedSpace G N] [J.Boundaryless]
-  [SmoothManifoldWithCorners J N] [FiniteDimensional 𝕂 F]
+  [NormedAddCommGroup F] [NormedSpace ℝ F] {G : Type*} [TopologicalSpace G]
+  (J : ModelWithCorners ℝ F G) {N : Type*} [TopologicalSpace N] [ChartedSpace G N] [J.Boundaryless]
+  [SmoothManifoldWithCorners J N] [FiniteDimensional ℝ F]
   [MeasurableSpace F] [BorelSpace F]
 
 /-- The image `f(s)` of a set `s ⊆ M` under a C¹ map `f : M → N` has measure zero
