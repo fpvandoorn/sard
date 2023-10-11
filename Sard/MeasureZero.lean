@@ -204,7 +204,7 @@ lemma measure_zero_image_iff_chart_domains {f : M → N} {s : Set M}
 /-- A closed measure zero set is nowhere dense. -/
 lemma MeasureZero.closed_implies_nowhere_dense {s : Set N} (h₁ : MeasureZero J s)
     (h₂ : IsClosed s) : IsNowhereDense s :=
-  Iff.mpr (closed_nowhere_dense_iff h₂) (MeasureZero.MeasureZero_implies_empty_interior h₁)
+  h₂.isNowhereDense_iff.mpr (MeasureZero.MeasureZero_implies_empty_interior h₁)
 
 /-- A σ-compact measure zero set is meagre (the countable union of nowhere dense sets). -/
 lemma meagre_if_sigma_compact [T2Space N] {s : Set N} (h₁s : MeasureZero J s) (h₂s : IsSigmaCompact s) : IsMeagre s := by
@@ -212,7 +212,7 @@ lemma meagre_if_sigma_compact [T2Space N] {s : Set N} (h₁s : MeasureZero J s) 
   obtain ⟨K, ⟨hcompact, hcover⟩⟩ := h₂s
   -- The countable union of nowhere dense sets is meagre.
   suffices ∀ n : ℕ, IsNowhereDense (K n) by
-    rw [← hcover]
+    rw [meagre_iff_countable_union_nowhereDense, ← hcover]
     use range K
     constructor
     · rintro t ⟨n, hn⟩

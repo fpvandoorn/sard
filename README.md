@@ -28,8 +28,8 @@ The **Sard-Smale** theorem is a generalisation to infinite-dimensional Banach ma
 - show: locally Lipschitz maps preserve null sets (done; want a slightly more general version later)
 
 - meager sets and relation to measure zero
-  - define nowhere dense and meagre sets: complete, [PRed](https://github.com/leanprover-community/mathlib4/pull/7180)
-  - define $\sigma$-compact subsets, relate to $\sigma$-compact spaces, show basic properties (done)
+  - define nowhere dense and meagre sets: complete, [PRed](https://github.com/leanprover-community/mathlib4/pull/7180) and merged
+  - define $\sigma$-compact subsets, relate to $\sigma$-compact spaces, show basic properties (done and [PRed](https://github.com/leanprover-community/mathlib4/pull/7576))
   - $\sigma$-compact measure zero sets are meagre (done)
 - finite-dimensional manifolds are locally compact: missing
 
