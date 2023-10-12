@@ -100,6 +100,26 @@ theorem ModelWithCorners.openEmbedding : OpenEmbedding I := by
   have : Embedding I := LeftInverse.embedding I.leftInverse I.continuous_invFun I.continuous_toFun
   exact { toEmbedding := this, open_range := h }
 
+-- XXX: this should exist somewhere!
+lemma chart_inverse {t : Set M} {e : LocalHomeomorph M H} (_ : e ∈ atlas H M) (ht: t ⊆ e.source) :
+    (e.invFun ∘ I.invFun) ∘ (I ∘ e) '' t = t := by
+  have : e.invFun ∘ e '' t = t := funext_on (fun ⟨x, hxt⟩ ↦ e.left_inv' (ht hxt))
+  calc (e.invFun ∘ I.invFun) ∘ (I ∘ e) '' t
+    _ = e.invFun ∘ (I.invFun ∘ I) ∘ e '' t := by simp only [comp.assoc]
+    _ = e.invFun '' ((I.invFun ∘ I) '' (e '' t)) := by simp only [image_comp]
+    _ = e.invFun ∘ e '' t := by rw [I.leftInverse', image_id, image_comp]
+    _ = t := by rw [this]
+
+-- I'm sure this exists somewhere!!
+lemma chart_inverse_point {e : LocalHomeomorph M H} (_ : e ∈ atlas H M) {x : M} (hx: x ∈ e.source) :
+    (e.invFun ∘ I.invFun ∘ I ∘ e) x = x := by sorry -- apply chart_inverse at e.source and specialise
+
+lemma chart_open_on_source {e : LocalHomeomorph M H} (_ : e ∈ atlas H M) {s : Set M}
+  (hs : IsOpen s) (hs' : s ⊆ e.source) : IsOpen (e '' s) := sorry
+
+lemma chart_open_on_target {e : LocalHomeomorph M H} (_ : e ∈ atlas H M) {t : Set H}
+  (hs : IsOpen t) (hs' : t ⊆ e.target) : IsOpen (e.invFun '' t) := sorry
+
 /-- **Sard's theorem**. Let $M$ and $N$ be real $C^r$ manifolds of dimensions
 $m$ and $n$, and $f : M → N$ a $C^r$ map. If $r>\max{0, m-n}$,
 the set of regular values of `f` has full measure.
@@ -126,18 +146,11 @@ theorem sard {f : M → N} (hf : ContMDiff I J r f)
   let f_local := (J ∘ e') ∘ f ∘ (e.invFun ∘ I.invFun)
   let f'_local : E → E →L[ℝ] F := fun x ↦ f' ((e.invFun ∘ I.invFun) x)
 
-  have inv_fixed : ∀ t : Set M, t ⊆ e.source → (e.invFun ∘ I.invFun) ∘ (I ∘ e) '' t = t := by
-    intro t ht
-    have : e.invFun ∘ e '' t = t := funext_on (fun ⟨x, hxt⟩ ↦ e.left_inv' (ht hxt))
-    calc (e.invFun ∘ I.invFun) ∘ (I ∘ e) '' t
-      _ = e.invFun ∘ (I.invFun ∘ I) ∘ e '' t := by simp only [comp.assoc]
-      _ = e.invFun '' ((I.invFun ∘ I) '' (e '' t)) := by simp only [image_comp]
-      _ = e.invFun ∘ e '' t := by rw [I.leftInverse', image_id, image_comp]
-      _ = t := by rw [this]
   have cor : (e.invFun ∘ I.invFun) ∘ (I ∘ e) '' (s ∩ e.source ∩ f ⁻¹' e'.source) = s ∩ e.source ∩ f ⁻¹' e'.source := by
-    rw [inv_fixed]
-    rw [inter_comm s, inter_assoc]
-    apply inter_subset_left
+    rw [chart_inverse]
+    · exact he
+    · rw [inter_comm s, inter_assoc]
+      apply inter_subset_left
   have : J ∘ e' '' (e'.source ∩ f '' (e.source ∩ s)) = f_local '' s_better := by
     symm
     calc f_local '' s_better
@@ -150,7 +163,7 @@ theorem sard {f : M → N} (hf : ContMDiff I J r f)
       _ = J ∘ e' '' (e'.source ∩ f '' (e.source ∩ s)) := by rw [inter_comm]
   rw [this]
   apply sard_local hr (w := w) (s := s_better) (f := f_local) (f' := f'_local) (μ := μ)
-  · have : IsOpen (e.source ∩ f ⁻¹' e'.source) :=
+  · have : IsOpen ((e.source ∩ f ⁻¹' e'.source) : Set M):=
       IsOpen.inter e.open_source (e'.open_source.preimage hf.continuous)
     have : IsOpen (e '' (e.source ∩ f ⁻¹' e'.source)) := by
       have h : e '' (e.source ∩ f ⁻¹' e'.source) = e.invFun ⁻¹' (e.source ∩ f ⁻¹' e'.source) :=
@@ -211,33 +224,57 @@ theorem sard' {f : M → N} (hf : ContMDiff I J r f) [T2Space N]
       -- Apply the chart to obtain a neighbourhood of (I∘e)(x) ∈ E.
       let x' : E := (I ∘ chart) x
       let n' : Set E := (I ∘ chart) '' (n ∩ chart.source)
-      have hn' : n' ∈ 𝓝 x' := sorry -- argue with openness etc.
+      have hn' : n' ∈ 𝓝 x' := by
+        have : IsOpenMap I := OpenEmbedding.isOpenMap (ModelWithCorners.openEmbedding I)
+        -- Not fully true: need a version on an open subset.
+        have scifi : IsOpenMap chart := sorry
+        exact IsOpenMap.image_mem_nhds (this.comp scifi) hn
       -- Since E is locally compact, x' has a compact neighbourhood s' ⊆ n'.
       have h : LocallyCompactSpace E := by infer_instance
       rcases h.local_compact_nhds x' n' hn' with ⟨s', hs', hsn', hscompact⟩
       -- Transport back: s := (I∘e)⁻¹ (s') is a compact neighbourhood of x.
       let s := chart.invFun ∘ I.invFun '' s'
+
+      have : s' ⊆ (I ∘ chart) '' chart.source :=
+        calc s'
+          _ ⊆ n' := hsn'
+          _ = (I ∘ chart) '' (n ∩ chart.source) := rfl
+          _ ⊆ (I ∘ chart) '' (chart.source) :=
+            image_subset (↑I ∘ ↑chart) (inter_subset_right n chart.source)
+      have hs'small : I.invFun '' s' ⊆ chart.target := calc I.invFun '' s'
+          _ ⊆ I.invFun '' n' := image_subset I.invFun hsn'
+          _ = I.invFun '' ((I ∘ chart) '' (n ∩ chart.source)) := rfl
+          _ = (I.invFun ∘ I ∘ chart) '' (n ∩ chart.source) := by rw [← image_comp]
+          _ = chart '' (n ∩ chart.source) := by rw [← comp.assoc, ModelWithCorners.leftInverse', left_id]
+          _ ⊆ chart.target := sorry -- TODO: shrink n to make this true!!
+
       refine ⟨s, ?_, ?_, ?_⟩
-      have aux : ContinuousOn (chart.invFun ∘ I.invFun) s' := sorry
       · rcases mem_nhds_iff.mp hs' with ⟨t', ht's', ht'open, hxt'⟩
         rw [mem_nhds_iff]
         refine ⟨(chart.invFun ∘ I.invFun) '' t', image_subset _ ht's', ?_, ?_⟩
-        · sorry -- same argument as above: chart.invFun ∘ I.invFun is open, and use ht'open
-        · calc x
-            _ = (chart.invFun ∘ I.invFun ∘ I ∘ chart) x := sorry -- same as above
-            _ = (chart.invFun ∘ I.invFun) ((I ∘ chart) x) := by sorry --simp only [comp]
-            _ = (chart.invFun ∘ I.invFun) x' := rfl
-          exact mem_image_of_mem (chart.invFun ∘ I.invFun) hxt'
-      · calc
-        s = chart.invFun ∘ I.invFun '' s' := rfl
-        _ ⊆ chart.invFun ∘ I.invFun '' n' := sorry -- use hsn'
-        _ = chart.invFun ∘ I.invFun '' ((I ∘ chart) '' (n ∩ chart.source)) := rfl
+        · let t := I.invFun '' t'
+          have : IsOpen t := sorry
+          rw [image_comp]
+          apply chart_open_on_target ?_ this
+          calc t
+            _ = I.invFun '' t' := rfl
+            _ ⊆ I.invFun '' s' := image_subset (I.invFun) ht's'
+            _ ⊆ chart.target := hs'small
+          exact chart_mem_atlas H x
+        · have h := calc (chart.invFun ∘ I.invFun) x'
+            _ = (chart.invFun ∘ I.invFun ∘ I ∘ chart) x := rfl
+            _ = x := chart_inverse_point _ (chart_mem_atlas H x) (mem_chart_source H x)
+          exact h ▸ mem_image_of_mem (chart.invFun ∘ I.invFun) hxt'
+      · calc s
+        _ ⊆ chart.invFun ∘ I.invFun '' n' := image_subset (chart.invFun ∘ I.invFun) hsn'
         _ = (chart.invFun ∘ I.invFun ∘ I ∘ chart) '' (n ∩ chart.source) := by simp only [image_comp, comp.assoc]
-        _ = n ∩ chart.source := sorry -- shown above
+        _ = n ∩ chart.source :=
+          chart_inverse _ (chart_mem_atlas H x) (inter_subset_right n chart.source)
         _ ⊆ n := inter_subset_left n chart.source
-      · refine IsCompact.image_of_continuousOn hscompact ?h.refine_3.hf
-        -- chart.invFun is continuous on the target, I is continuous because no boundary (or so)
-        sorry
+      · apply IsCompact.image_of_continuousOn hscompact
+        have : ContinuousOn chart.invFun (I.invFun '' s') :=
+          chart.continuous_invFun.mono hs'small
+        apply ContinuousOn.comp this I.continuous_invFun.continuousOn (mapsTo_image I.invFun s')
     exact sigmaCompactSpace_of_locally_compact_second_countable
   have : IsSigmaCompact s := isSigmaCompact_univ.of_isClosed_subset hs (subset_univ s)
   exact MeasureZero.meagre_if_sigma_compact J (sard _ hr hf hf' h'f') (this.image (hf.continuous))
