@@ -200,12 +200,44 @@ theorem sard' {f : M → N} (hf : ContMDiff I J r f) [T2Space N]
       suffices aux : ∀ (x : M), ∀ n ∈ 𝓝 x, ∃ s ∈ 𝓝 x, s ⊆ n ∧ IsCompact s from
         { local_compact_nhds := aux }
       intro x n hn
-      -- Choose a chart around x; e.g. the chart at x.
+      -- Assume `n` is contained in some chart at x. (Choose the distinguished chart from our atlas.)
       let chart := ChartedSpace.chartAt (H := H) x
-      -- Intersecting n with the chart source yields a nbhd of x; applying the chart
-      -- yields a neighbourhood on E. Then use local compactness of E to find a nbhd,
-      -- and transport it back using the chart.
-      sorry
+
+      have hn : n ∩ chart.source ∈ 𝓝 x := by -- FIXME: this should be known/extract to lemma!
+        rcases mem_nhds_iff.mp hn with ⟨t, htn, htopen, hxt⟩
+        rw [mem_nhds_iff]
+        exact ⟨t ∩ chart.source, inter_subset_inter_left chart.source htn,
+          htopen.inter chart.open_source, mem_inter hxt (mem_chart_source H x)⟩
+      -- Apply the chart to obtain a neighbourhood of (I∘e)(x) ∈ E.
+      let x' : E := (I ∘ chart) x
+      let n' : Set E := (I ∘ chart) '' (n ∩ chart.source)
+      have hn' : n' ∈ 𝓝 x' := sorry -- argue with openness etc.
+      -- Since E is locally compact, x' has a compact neighbourhood s' ⊆ n'.
+      have h : LocallyCompactSpace E := by infer_instance
+      rcases h.local_compact_nhds x' n' hn' with ⟨s', hs', hsn', hscompact⟩
+      -- Transport back: s := (I∘e)⁻¹ (s') is a compact neighbourhood of x.
+      let s := chart.invFun ∘ I.invFun '' s'
+      refine ⟨s, ?_, ?_, ?_⟩
+      have aux : ContinuousOn (chart.invFun ∘ I.invFun) s' := sorry
+      · rcases mem_nhds_iff.mp hs' with ⟨t', ht's', ht'open, hxt'⟩
+        rw [mem_nhds_iff]
+        refine ⟨(chart.invFun ∘ I.invFun) '' t', image_subset _ ht's', ?_, ?_⟩
+        · sorry -- same argument as above: chart.invFun ∘ I.invFun is open, and use ht'open
+        · calc x
+            _ = (chart.invFun ∘ I.invFun ∘ I ∘ chart) x := sorry -- same as above
+            _ = (chart.invFun ∘ I.invFun) ((I ∘ chart) x) := by sorry --simp only [comp]
+            _ = (chart.invFun ∘ I.invFun) x' := rfl
+          exact mem_image_of_mem (chart.invFun ∘ I.invFun) hxt'
+      · calc
+        s = chart.invFun ∘ I.invFun '' s' := rfl
+        _ ⊆ chart.invFun ∘ I.invFun '' n' := sorry -- use hsn'
+        _ = chart.invFun ∘ I.invFun '' ((I ∘ chart) '' (n ∩ chart.source)) := rfl
+        _ = (chart.invFun ∘ I.invFun ∘ I ∘ chart) '' (n ∩ chart.source) := by simp only [image_comp, comp.assoc]
+        _ = n ∩ chart.source := sorry -- shown above
+        _ ⊆ n := inter_subset_left n chart.source
+      · refine IsCompact.image_of_continuousOn hscompact ?h.refine_3.hf
+        -- chart.invFun is continuous on the target, I is continuous because no boundary (or so)
+        sorry
     exact sigmaCompactSpace_of_locally_compact_second_countable
   have : IsSigmaCompact s := isSigmaCompact_univ.of_isClosed_subset hs (subset_univ s)
   exact MeasureZero.meagre_if_sigma_compact J (sard _ hr hf hf' h'f') (this.image (hf.continuous))
