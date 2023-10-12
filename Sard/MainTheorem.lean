@@ -33,14 +33,10 @@ lemma image_measure_zero_of_C1_dimension_increase' {g : E → F} {U : Set E} (hU
   have : Convex ℝ U := sorry
   -- This seems to be missing from mathlib.
   have h : dimH (univ : Set E) = m := sorry
-  -- Also missing: IsOpenPosMeasure µH[m] on E.
-  have h : dimH U ≤ m := by
-    rw [← h]
-    exact dimH_mono (subset_univ U)
   apply measure_zero_of_dimH_lt (d := n) rfl.absolutelyContinuous
   calc dimH (g '' U)
-    _ ≤ dimH U := ContDiffOn.dimH_image_le hg this rfl.subset
-    _ ≤ m := h
+    _ ≤ dimH U := hg.dimH_image_le this rfl.subset
+    _ ≤ m := h ▸ dimH_mono (subset_univ U) -- should this be a separate lemma?
     _ < n := Nat.cast_lt.mpr hmn
 
 /-- Local version of Sard's theorem. If $W ⊆ ℝ^m$ is open and $f: W → ℝ^n$ is $C^r$,
@@ -50,11 +46,11 @@ theorem sard_local {s w : Set E} {f : E → F} (hw : IsOpen w) (hsw : s ⊆ w)
     (h'f' : ∀ x ∈ s, ¬ Surjective (f' x)) (μ : Measure F) [IsAddHaarMeasure μ] :
     μ (f '' s) = 0 := by
   by_cases hyp: m < n
-  · have hr : 1 ≤ (r : ℕ∞) := Iff.mpr Nat.one_le_cast (Nat.one_le_of_lt hr)
-    have : ContDiffOn ℝ 1 f w := by apply ContDiffOn.of_le hf hr
-    have hless: μ (f '' s) ≤ 0 := by calc
-      μ (f '' s) ≤ μ (f '' w) := measure_mono (image_subset f hsw)
-      _ = 0 := image_measure_zero_of_C1_dimension_increase' hw μ this hyp
+  · have hr : 1 ≤ (r : ℕ∞) := Nat.one_le_cast.mpr (Nat.one_le_of_lt hr)
+    have hless: μ (f '' s) ≤ 0 := calc
+      μ (f '' s)
+      _ ≤ μ (f '' w) := measure_mono (image_subset f hsw)
+      _ = 0 := image_measure_zero_of_C1_dimension_increase' hw μ (hf.of_le hr) hyp
     simp only [nonpos_iff_eq_zero, zero_le] at hless ⊢
     exact hless
   · sorry
@@ -94,6 +90,7 @@ theorem funext_on {α β : Type*} {f : α → β} {g : β → α} {s : Set α} (
     : g ∘ f '' s = s := by
   simp_all only [comp_apply, Subtype.forall, image_id']
 
+-- add to SmoothManifoldWithCorners.lean
 theorem ModelWithCorners.leftInverse' : I.invFun ∘ I = id := funext I.leftInverse
 
 -- If I is boundaryless, it is an open embedding.
@@ -152,9 +149,8 @@ theorem sard {f : M → N} (hf : ContMDiff I J r f)
       _ = J ∘ e' '' (f '' (e.source ∩ s) ∩ e'.source) := by rw [image_inter_preimage f _ _]
       _ = J ∘ e' '' (e'.source ∩ f '' (e.source ∩ s)) := by rw [inter_comm]
   rw [this]
-  apply sard_local hr (w := w) (s := s_better) (f := f_local) (f' := f'_local) ?_ ?_ ?_ ?_ ?_ μ
-  · -- goal: IsOpen w
-    have : IsOpen (e.source ∩ f ⁻¹' e'.source) :=
+  apply sard_local hr (w := w) (s := s_better) (f := f_local) (f' := f'_local) (μ := μ)
+  · have : IsOpen (e.source ∩ f ⁻¹' e'.source) :=
       IsOpen.inter e.open_source (e'.open_source.preimage hf.continuous)
     have : IsOpen (e '' (e.source ∩ f ⁻¹' e'.source)) := by
       have h : e '' (e.source ∩ f ⁻¹' e'.source) = e.invFun ⁻¹' (e.source ∩ f ⁻¹' e'.source) :=
@@ -164,7 +160,7 @@ theorem sard {f : M → N} (hf : ContMDiff I J r f)
       have : e '' e.source ⊆ e.target := by sorry -- is essentially map_source'
       calc e.invFun ⁻¹' (e.source ∩ f ⁻¹' e'.source)
         _ = e '' (e.source ∩ f ⁻¹' e'.source) := by rw [← h]
-        _ ⊆ e '' (e.source) := by apply image_subset ; exact inter_subset_left e.source _
+        _ ⊆ e '' (e.source) := by apply image_subset; exact inter_subset_left e.source _
         _ ⊆ e.target := this
     -- As M has no boundary, I is a homeomorphism from H to E, hence an open embedding.
     simp only [image_comp I e]
@@ -184,10 +180,9 @@ theorem sard {f : M → N} (hf : ContMDiff I J r f)
         _ = e.invFun ∘ I.invFun '' (I ∘ e '' (s ∩ e.source ∩ f ⁻¹' e'.source)) := rfl
         _ = (e.invFun ∘ I.invFun) ∘ I ∘ e '' (s ∩ e.source ∩ f ⁻¹' e'.source) := by
           simp only [comp.assoc, image_comp]
-        _ = s ∩ e.source ∩ f ⁻¹' e'.source := by apply cor
-    have : (e.invFun ∘ I.invFun) x ∈ s ∩ e.source ∩ f ⁻¹' e'.source := by
-      rw [← this]
-      exact mem_image_of_mem (e.invFun ∘ I.invFun) hx
+        _ = s ∩ e.source ∩ f ⁻¹' e'.source := cor
+    have : (e.invFun ∘ I.invFun) x ∈ s ∩ e.source ∩ f ⁻¹' e'.source :=
+      this ▸ mem_image_of_mem (e.invFun ∘ I.invFun) hx
     rw [inter_assoc] at this
     exact mem_of_mem_inter_left this
 
