@@ -3,7 +3,6 @@ import Sard.LocallyLipschitzMeasureZero
 import Sard.MainTheorem
 import Sard.Meagre
 import Sard.MeasureZero
-import Sard.SigmaCompact
 import Sard.Stuff
 import Sard.ToSubset
 import Sard.ObsoleteHelpers

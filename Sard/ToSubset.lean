@@ -1,5 +1,5 @@
 import Mathlib.Data.Set.Functor
-import Mathlib.Topology.SubsetProperties
+import Mathlib.Topology.Compactness.Compact
 -- Coercion of sets and subsets.
 -- Solutions taken from zulip: https://leanprover.zulipchat.com/#narrow/stream/113489-new-members/topic/Cast.20to.20a.20subset.2C.20given.20proof.20of.20inclusion
 
