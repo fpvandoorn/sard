@@ -171,11 +171,9 @@ lemma measure_zero_image_iff_chart_domains {f : M → N} {s : Set M}
   -- The charts of M form an open cover.
   let U : M → Set M := fun x ↦ (ChartedSpace.chartAt x : LocalHomeomorph M H).source
   have hcovering : univ ⊆ ⋃ (x : M), U x := by
-    intro x
-    have : x ∈ U x := mem_chart_source H x
+    intro x _
     rw [mem_iUnion]
-    intro _
-    use x
+    exact ⟨x, mem_chart_source H x⟩
   have hopen : ∀ x : M, IsOpen (U x) := fun x => (ChartedSpace.chartAt x).open_source
   -- Since M is second countable, it is Lindelöf: there is a countable subcover U_n of M.
   let ⟨T, ⟨hTCountable, hTcover⟩⟩ := TopologicalSpace.isOpen_iUnion_countable U hopen
@@ -213,17 +211,9 @@ lemma meagre_if_sigma_compact [T2Space N] {s : Set N} (h₁s : MeasureZero J s) 
   -- The countable union of nowhere dense sets is meagre.
   suffices ∀ n : ℕ, IsNowhereDense (K n) by
     rw [meagre_iff_countable_union_nowhereDense, ← hcover]
-    use range K
-    constructor
-    · rintro t ⟨n, hn⟩
-      rw [← hn]
-      exact this n
-    · simp [IsMeagre]
-      exact ⟨countable_range K, fun i ↦ subset_iUnion K i⟩
+    simp [IsMeagre]
+    exact ⟨range K, fun t ⟨n, hn⟩ ↦ hn ▸ this n, countable_range K, fun i ↦ subset_iUnion K i⟩
   intro n
-  have : K n ⊆ s := by
-    rw [← hcover]
-    exact subset_iUnion K n
-  have h : MeasureZero J (K n) := h₁s.mono this
+  have h : MeasureZero J (K n) := h₁s.mono (hcover ▸ subset_iUnion K n)
   exact MeasureZero.closed_implies_nowhere_dense J h (IsCompact.isClosed (hcompact n))
 end MeasureZero

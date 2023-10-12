@@ -47,7 +47,7 @@ lemma meagre_of_sigma_compact_null [T2Space X] {s : Set X} (h₁s : IsSigmaCompa
   rcases h₁s with ⟨K, hcompact, hcover⟩
   have h : ∀ (n : ℕ), IsNowhereDense (K n) := by
     intro n
-    have : μ (K n) = 0 := measure_mono_null (by rw [← hcover]; exact subset_iUnion K n) h₂s
+    have : μ (K n) = 0 := measure_mono_null (hcover ▸ subset_iUnion K n) h₂s
     exact nowhere_dense_of_compact_null (hcompact n) this
   rw [meagre_iff_countable_union_nowhereDense]
   exact ⟨range K, fun t ⟨n, hn⟩ ↦ (by rw [← hn]; exact h n), countable_range K, hcover.symm.subset⟩
