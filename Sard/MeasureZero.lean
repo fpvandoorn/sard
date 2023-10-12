@@ -3,7 +3,6 @@ Copyright (c) 2023 Michael Rothgang. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Michael Rothgang.
 -/
-import Sard.Meagre
 import Mathlib.Geometry.Manifold.SmoothManifoldWithCorners
 import Mathlib.MeasureTheory.Measure.Haar.Basic
 

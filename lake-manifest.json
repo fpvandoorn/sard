@@ -4,10 +4,10 @@
  [{"git":
    {"url": "https://github.com/leanprover-community/mathlib4.git",
     "subDir?": null,
-    "rev": "c5594244d6b6e5e0c0a479a4501c34b0ea194fce",
+    "rev": "8d784df8582a8aecb0fc1402663ba7934e19c4d5",
     "opts": {},
     "name": "mathlib",
-    "inputRev?": null,
+    "inputRev?": "MR-sigma-compact-measure-zero",
     "inherited": false}},
   {"git":
    {"url": "https://github.com/gebner/quote4",

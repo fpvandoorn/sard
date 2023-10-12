@@ -27,8 +27,8 @@ That said, help is very welcome! Feel free to make a PR filling in some sorry, o
      [mostly](https://github.com/leanprover-community/mathlib4/pull/7314) PRed and merged
   - [x] locally Lipschitz maps preserve null sets (done; mathlib mostly has this already)
   - [x] nowhere dense and meagre sets: [PRed](https://github.com/leanprover-community/mathlib4/pull/7180) and merged
-  - [x] $\sigma$-compact subsets, relation to $\sigma$-compact spaces and basic: [PRed](https://github.com/leanprover-community/mathlib4/pull/7576), almost merged
-  - [x] $\sigma$-compact measure zero sets are meagre: [PRed](https://github.com/leanprover-community/mathlib4/pull/7640)
+  - [x] $\sigma$-compact subsets, relation to $\sigma$-compact spaces and basic: [PRed](https://github.com/leanprover-community/mathlib4/pull/7576) and merged
+  - [x] $\sigma$-compact measure zero sets are meagre: [PRed](https://github.com/leanprover-community/mathlib4/pull/7640) and merged
   - [ ] finite-dimensional manifolds are locally compact: outline; not done yet (short project)
 
   - [ ] define measure zero subsets of a manifold: first version complete [and PRed](https://github.com/leanprover-community/mathlib4/pull/7076). Needs rework to a more conceptual approach:
@@ -53,7 +53,6 @@ That said, help is very welcome! Feel free to make a PR filling in some sorry, o
 **File organisation**
 - `MainTheorem.lean` contains the statement of Sard's theorem and the reduction to the local case.
 - `MeasureZero.lean` contains the definition of measure zero subsets of a manifold (not reworked yet) and shows a $\sigma$-compact measure zero set is meagre.
-- `Meagre.lean`: shows a $\sigma$-compact measure zero set is meagre
 
 - `LocallyLipschitz.lean` contains additional material on locally Lipschitz functions
 - `LocallyLipschitzMeasureZero.lean` shows that locally Lipschitz functions preserve measure zero sets. Not PRed yet; a few sorries remain. This is essentially in mathlib (though phrased differently).
