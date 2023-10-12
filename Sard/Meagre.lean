@@ -3,21 +3,23 @@ Copyright (c) 2023 Michael Rothgang. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Michael Rothgang
 -/
-
 import Mathlib.MeasureTheory.Measure.OpenPos
 import Mathlib.Topology.GDelta
 
 set_option autoImplicit false
 
+-- PRed to mathlib
+
 section MeasureZero
 /-! ## Meagre sets and measure zero
 In general, neither of meagre and measure zero implies the other.
 - for all $α ∈ (0,1)$, there is a generalised Cantor set $C ⊆ [0,1]$ of measure `α`.
-Cantor sets are nowhere dense. (Taking a countable union of fat Cantor sets whose measure approaches 1,
-we obtain a meagre set of measure 1.)
+Cantor sets are nowhere dense. (Taking a countable union of fat Cantor sets whose
+measure approaches 1 yields a meagre set of measure 1.)
 - ℚ ⊆ ℝ has measure zero, but is dense (in particular, not meagre).
 
-However, a **closed** measure zero set is nowhere dense.
+However, **closed** measure zero sets are nowhere dense,
+and σ-compact measure zero sets in a Hausdorff space are meagre.
 -/
 open Function TopologicalSpace Set MeasureTheory Measure
 
@@ -42,8 +44,8 @@ lemma nowhere_dense_of_compact_null [T2Space X] {s : Set X} (h₁s : IsCompact s
     IsNowhereDense s := nowhere_dense_of_closed_null h₁s.isClosed h₂s
 
 /-- A σ-compact measure zero subset is meagre. -/
-lemma meagre_of_sigma_compact_null [T2Space X] {s : Set X} (h₁s : IsSigmaCompact s) (h₂s : μ s = 0) :
-    IsMeagre s := by
+lemma meagre_of_sigma_compact_null [T2Space X] {s : Set X}
+    (h₁s : IsSigmaCompact s) (h₂s : μ s = 0) : IsMeagre s := by
   rcases h₁s with ⟨K, hcompact, hcover⟩
   have h : ∀ (n : ℕ), IsNowhereDense (K n) := by
     intro n
