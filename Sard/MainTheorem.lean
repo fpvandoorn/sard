@@ -247,13 +247,15 @@ theorem sard' {f : M → N} (hf : ContMDiff I J r f) [T2Space N]
           _ = (I.invFun ∘ I ∘ chart) '' (n ∩ chart.source) := by rw [← image_comp]
           _ = chart '' (n ∩ chart.source) := by rw [← comp.assoc, ModelWithCorners.leftInverse', left_id]
           _ ⊆ chart.target := sorry -- TODO: shrink n to make this true!!
-
       refine ⟨s, ?_, ?_, ?_⟩
       · rcases mem_nhds_iff.mp hs' with ⟨t', ht's', ht'open, hxt'⟩
         rw [mem_nhds_iff]
         refine ⟨(chart.invFun ∘ I.invFun) '' t', image_subset _ ht's', ?_, ?_⟩
         · let t := I.invFun '' t'
-          have : IsOpen t := sorry
+          have : IsOpen (I.invFun '' t') := by
+            have : I.invFun '' t' = I ⁻¹' t' := by sorry -- use I.leftInverse; details skipped
+            rw [this]
+            exact ht'open.preimage I.continuous
           rw [image_comp]
           apply chart_open_on_target ?_ this
           calc t
