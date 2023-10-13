@@ -45,33 +45,16 @@ lemma chart_inverse_point {e : LocalHomeomorph M H} {x : M} (hx: x ∈ e.source)
   simp_all only [LocalEquiv.invFun_as_coe, LocalHomeomorph.coe_coe_symm,
     ModelWithCorners.toLocalEquiv_coe_symm, comp_apply, ModelWithCorners.left_inv, LocalHomeomorph.left_inv]
 
--- generalises statements in Data.Set.Image.lean
-theorem image_subset_preimage_of_inverseOn {α β : Type*} {f : α → β} {g : β → α} (s : Set α)
-    (I : LeftInvOn g f s) : f '' s ⊆ g ⁻¹' s := by
-  sorry -- mathlib proof: fun _ ⟨a, h, e⟩ => e ▸ ((I a).symm ▸ h : g (f a) ∈ s)
-
-theorem preimage_subset_image_of_inverseOn {α β : Type*} {f : α → β} {g : β → α} (t : Set β) (I : RightInvOn g f t)  :
-    f ⁻¹' t ⊆ g '' t := sorry -- mathlib proof: fun b h => ⟨f b, h, I b⟩
-
-theorem image_eq_preimage_of_inverseOn {α β : Type*} {f : α → β} {g : β → α} {s : Set α}
-  (h₁ : LeftInvOn g f s) /-(h₂ : RightInvOn g f (f '' s))-/ : f '' s = g ⁻¹' s := by
-  apply Subset.antisymm (image_subset_preimage_of_inverseOn s h₁)
-  · sorry -- apply preimage_subset_image_of_inverseOn h₂ s almost works
-
 -- like `e.map_source'`, but stated in terms of images
 lemma LocalHomeomorph.map_source_image {e : LocalHomeomorph M H} : e '' e.source ⊆ e.target :=
   fun _ ⟨_, hx, hex⟩ ↦ mem_of_eq_of_mem (id hex.symm) (e.map_source' hx)
 
+
 lemma LocalHomeomorph.isOpenMapOn_source {e : LocalHomeomorph M H} {s : Set M}
     (hopen : IsOpen s) (hs : s ⊆ e.source) : IsOpen (e '' s) := by
-  have h : e '' s = e.invFun ⁻¹' s :=
-    image_eq_preimage_of_inverseOn (LeftInvOn.mono (fun x ↦ e.left_inv) hs)
-  rw [h]
-  refine e.continuous_invFun.isOpen_preimage e.open_target ?_ hopen
-  calc e.invFun ⁻¹' s
-    _ = e '' s := by rw [← h]
-    _ ⊆ e '' (e.source) := image_subset _ hs
-    _ ⊆ e.target := e.map_source_image
+  have r : e '' s = e.target ∩ e.invFun ⁻¹' s := image_eq_target_inter_inv_preimage (e := e) hs
+  rw [r]
+  exact e.continuous_invFun.preimage_open_of_open e.open_target hopen
 
 -- xxx need a better name!
 lemma chartFull_isOpenMapOn_source [I.Boundaryless] {e : LocalHomeomorph M H}
@@ -95,13 +78,9 @@ lemma chartFull_image_nhds_on [I.Boundaryless] {e : LocalHomeomorph M H} {x : M}
 
 lemma LocalHomeomorph.inverse_isOpenMapOn_target {e : LocalHomeomorph M H} {t : Set H}
     (hopen : IsOpen t) (ht : t ⊆ e.target) : IsOpen (e.invFun '' t) := by
-  sorry -- caution: the following is WRONG as-is!
-  -- have : e.invFun '' t = e ⁻¹' t := sorry -- by lemma above, somehow
-  -- rw [this]
-  -- refine ContinuousOn.isOpen_preimage e.continuousOn e.open_source ?hp hopen
-  -- calc e ⁻¹' t
-  --   _ ⊆ e ⁻¹' e.target := preimage_mono ht
-  --   _ ⊆ e.source := map_target_preimage -- WRONG: junk values could map into source!
+  have r : e.invFun '' t = e.source ∩ ↑e ⁻¹' t := symm_image_eq_source_inter_preimage (e := e) ht
+  rw [r]
+  exact e.continuous_toFun.preimage_open_of_open e.open_source hopen
 
 lemma chartFull_isOpenMapOn_target [I.Boundaryless] {e : LocalHomeomorph M H} {t : Set E}
     (hopen : IsOpen t) (ht : t ⊆ I '' (e.target)) : IsOpen (e.invFun ∘ I.invFun '' t) := by
