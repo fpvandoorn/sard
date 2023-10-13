@@ -132,14 +132,13 @@ lemma localCompactness_aux [FiniteDimensional ℝ E] (hI : ModelWithCorners.Boun
     ∃ s : Set M, s∈ 𝓝 x ∧ s ⊆ n ∧ IsCompact s  := by
   -- Assume `n` is contained in some chart at x. (Choose the distinguished chart from our atlas.)
   let chart := ChartedSpace.chartAt (H := H) x
-  have hn : n ∩ chart.source ∈ 𝓝 x := by -- FIXME: this should be known/extract to lemma!
-    rcases mem_nhds_iff.mp hn with ⟨t, htn, htopen, hxt⟩
+  have hn : n ∩ chart.source ∈ 𝓝 x := by
+    apply Filter.inter_mem hn
     rw [mem_nhds_iff]
-    exact ⟨t ∩ chart.source, inter_subset_inter_left chart.source htn,
-          htopen.inter chart.open_source, mem_inter hxt (mem_chart_source H x)⟩
+    exact ⟨chart.source, rfl.subset, chart.open_source, mem_chart_source H x⟩
   -- Apply the chart to obtain a neighbourhood of (I∘e)(x) ∈ E.
   let x' : E := (I ∘ chart) x
-  let n' : Set E := (I ∘ chart) '' (n ∩ chart.source)
+  let n' := (I ∘ chart) '' (n ∩ chart.source)
   have hn' : n' ∈ 𝓝 x' := chartFull_image_nhds_on _ hn (inter_subset_right n chart.source)
   -- Since E is locally compact, x' has a compact neighbourhood s' ⊆ n'.
   have h : LocallyCompactSpace E := by infer_instance
