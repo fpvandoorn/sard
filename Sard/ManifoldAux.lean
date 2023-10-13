@@ -7,6 +7,12 @@ import Mathlib.Geometry.Manifold.MFDeriv
 open ENNReal NNReal FiniteDimensional Function Manifold Set TopologicalSpace Topology LocallyLipschitz
 set_option autoImplicit false
 
+/-- Analogous to the funext tactic, but only on a set. -/
+-- add to Data.Set.Image
+theorem funext_on {α β : Type*} {f : α → β} {g : β → α} {s : Set α} (h : ∀ x : s, (g ∘ f) x = x)
+    : g ∘ f '' s = s := by
+  simp_all only [comp_apply, Subtype.forall, image_id']
+
 variable
   -- Let `M` be a smooth manifold over the pair `(E, H)`.
   {E : Type*}
@@ -14,22 +20,42 @@ variable
   (I : ModelWithCorners ℝ E H) {M : Type*} [TopologicalSpace M] [ChartedSpace H M]
   [SmoothManifoldWithCorners I M]
 
--- add to SmoothManifoldWithCorners.lean
+section LocalHomeomorph -- add to `LocalHomeomorph.lean`
+-- like `e.map_source'`, but stated in terms of images
+lemma LocalHomeomorph.map_source_image {e : LocalHomeomorph M H} : e '' e.source ⊆ e.target :=
+  fun _ ⟨_, hx, hex⟩ ↦ mem_of_eq_of_mem (id hex.symm) (e.map_source' hx)
+
+lemma LocalHomeomorph.isOpenMapOn_source {e : LocalHomeomorph M H} {s : Set M}
+    (hopen : IsOpen s) (hs : s ⊆ e.source) : IsOpen (e '' s) := by
+  have r : e '' s = e.target ∩ e.invFun ⁻¹' s := image_eq_target_inter_inv_preimage (e := e) hs
+  rw [r]
+  exact e.continuous_invFun.preimage_open_of_open e.open_target hopen
+
+-- xxx: can this be simplified?
+lemma LocalHomeomorph.image_mem_nhds_on {e : LocalHomeomorph M H} {x : M} {n : Set M}
+    (hn : n ∈ 𝓝 x) (hn₂ : n ⊆ e.source) : e '' n ∈ 𝓝 (e x) := by
+  rcases mem_nhds_iff.mp hn with ⟨t, htn, htopen, hxt⟩
+  rw [mem_nhds_iff]
+  exact ⟨e '' t, image_subset e htn, e.isOpenMapOn_source htopen (Subset.trans htn hn₂),
+    mem_image_of_mem _ hxt⟩
+
+lemma LocalHomeomorph.inverse_isOpenMapOn_target {e : LocalHomeomorph M H} {t : Set H}
+    (hopen : IsOpen t) (ht : t ⊆ e.target) : IsOpen (e.invFun '' t) := by
+  have r : e.invFun '' t = e.source ∩ ↑e ⁻¹' t := symm_image_eq_source_inter_preimage (e := e) ht
+  rw [r]
+  exact e.continuous_toFun.preimage_open_of_open e.open_source hopen
+end LocalHomeomorph
+
+section ModelsWithCorners -- add to `SmoothManifoldWithCorners.lean`
 theorem ModelWithCorners.leftInverse' : I.invFun ∘ I = id := funext I.leftInverse
 
 /-- If I is boundaryless, it is an open embedding. -/
--- add to SmoothManifoldWithCorners.lean
 theorem ModelWithCorners.openEmbedding [I.Boundaryless] : OpenEmbedding I :=
   I.toHomeomorph.openEmbedding
 
 theorem ModelWithCorners.openEmbedding_symm [I.Boundaryless] : OpenEmbedding I.symm :=
   I.toHomeomorph.symm.openEmbedding
-
-/-- Analogous to the funext tactic, but only on a set. -/
--- move to Data.Set.Image
-theorem funext_on {α β : Type*} {f : α → β} {g : β → α} {s : Set α} (h : ∀ x : s, (g ∘ f) x = x)
-    : g ∘ f '' s = s := by
-  simp_all only [comp_apply, Subtype.forall, image_id']
+end ModelsWithCorners
 
 -- XXX: this should exist somewhere!
 lemma chart_inverse {t : Set M} {e : LocalHomeomorph M H} (ht: t ⊆ e.source) :
@@ -45,17 +71,6 @@ lemma chart_inverse_point {e : LocalHomeomorph M H} {x : M} (hx: x ∈ e.source)
   simp_all only [LocalEquiv.invFun_as_coe, LocalHomeomorph.coe_coe_symm,
     ModelWithCorners.toLocalEquiv_coe_symm, comp_apply, ModelWithCorners.left_inv, LocalHomeomorph.left_inv]
 
--- like `e.map_source'`, but stated in terms of images
-lemma LocalHomeomorph.map_source_image {e : LocalHomeomorph M H} : e '' e.source ⊆ e.target :=
-  fun _ ⟨_, hx, hex⟩ ↦ mem_of_eq_of_mem (id hex.symm) (e.map_source' hx)
-
-
-lemma LocalHomeomorph.isOpenMapOn_source {e : LocalHomeomorph M H} {s : Set M}
-    (hopen : IsOpen s) (hs : s ⊆ e.source) : IsOpen (e '' s) := by
-  have r : e '' s = e.target ∩ e.invFun ⁻¹' s := image_eq_target_inter_inv_preimage (e := e) hs
-  rw [r]
-  exact e.continuous_invFun.preimage_open_of_open e.open_target hopen
-
 -- xxx need a better name!
 lemma chartFull_isOpenMapOn_source [I.Boundaryless] {e : LocalHomeomorph M H}
     {s : Set M} (hopen : IsOpen s) (hs : s ⊆ e.source) : IsOpen (I ∘ e '' s) := by
@@ -63,24 +78,10 @@ lemma chartFull_isOpenMapOn_source [I.Boundaryless] {e : LocalHomeomorph M H}
   simp only [image_comp I e]
   apply (I.openEmbedding.open_iff_image_open).mp (e.isOpenMapOn_source hopen hs)
 
--- xxx: does this already exist?
-lemma LocalHomeomorph.image_mem_nhds_on {e : LocalHomeomorph M H} {x : M} {n : Set M}
-    (hn : n ∈ 𝓝 x) (hn₂ : n ⊆ e.source) : e '' n ∈ 𝓝 (e x) := by
-  rcases mem_nhds_iff.mp hn with ⟨t, htn, htopen, hxt⟩
-  rw [mem_nhds_iff]
-  exact ⟨e '' t, image_subset e htn, e.isOpenMapOn_source htopen (Subset.trans htn hn₂),
-    mem_image_of_mem _ hxt⟩
-
 lemma chartFull_image_nhds_on [I.Boundaryless] {e : LocalHomeomorph M H} {x : M} {n : Set M}
     (hn : n ∈ 𝓝 x) (hn₂ : n ⊆ e.source) : I ∘ e '' n ∈ 𝓝 ((I ∘ e) x) := by
   rw [image_comp]
   exact IsOpenMap.image_mem_nhds I.openEmbedding.isOpenMap (e.image_mem_nhds_on hn hn₂)
-
-lemma LocalHomeomorph.inverse_isOpenMapOn_target {e : LocalHomeomorph M H} {t : Set H}
-    (hopen : IsOpen t) (ht : t ⊆ e.target) : IsOpen (e.invFun '' t) := by
-  have r : e.invFun '' t = e.source ∩ ↑e ⁻¹' t := symm_image_eq_source_inter_preimage (e := e) ht
-  rw [r]
-  exact e.continuous_toFun.preimage_open_of_open e.open_source hopen
 
 lemma chartFull_isOpenMapOn_target [I.Boundaryless] {e : LocalHomeomorph M H} {t : Set E}
     (hopen : IsOpen t) (ht : t ⊆ I '' (e.target)) : IsOpen (e.invFun ∘ I.invFun '' t) := by
