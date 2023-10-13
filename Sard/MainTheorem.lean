@@ -97,11 +97,18 @@ theorem sard {f : M → N} (hf : ContMDiff I J r f)
   let s_better := I ∘ e '' (s ∩ e.source ∩ f ⁻¹' e'.source)
   let f_local := (J ∘ e') ∘ f ∘ (e.invFun ∘ I.invFun)
   let f'_local : E → E →L[ℝ] F := fun x ↦ f' ((e.invFun ∘ I.invFun) x)
-
+  -- "Obvious" computations from my data.
   have cor : (e.invFun ∘ I.invFun ∘ I ∘ e) '' (s ∩ e.source ∩ f ⁻¹' e'.source) = s ∩ e.source ∩ f ⁻¹' e'.source := by
     rw [chart_inverse]
     rw [inter_comm s, inter_assoc]
     apply inter_subset_left
+  have hsbetter : e.invFun ∘ I.invFun '' s_better = s ∩ e.source ∩ f ⁻¹' e'.source := by
+    calc e.invFun ∘ I.invFun '' s_better
+      _ = (e.invFun ∘ I.invFun) ∘ I ∘ e '' (s ∩ e.source ∩ f ⁻¹' e'.source) := by
+        simp only [comp.assoc, image_comp]
+      _ = (e.invFun ∘ I.invFun ∘ I ∘ e) '' (s ∩ e.source ∩ f ⁻¹' e'.source) := by simp only [comp.assoc, image_comp]
+      _ = s ∩ e.source ∩ f ⁻¹' e'.source := cor
+
   have : J ∘ e' '' (e'.source ∩ f '' (e.source ∩ s)) = f_local '' s_better := by
     symm
     calc f_local '' s_better
@@ -131,14 +138,8 @@ theorem sard {f : M → N} (hf : ContMDiff I J r f)
   · -- ∀ x ∈ s_better, ¬Surjective ↑(f'_local x)
     intro x hx
     apply h'f' ((e.invFun ∘ I.invFun) x)
-    have : e.invFun ∘ I.invFun '' s_better = s ∩ e.source ∩ f ⁻¹' e'.source := by
-      calc e.invFun ∘ I.invFun '' s_better
-        _ = (e.invFun ∘ I.invFun) ∘ I ∘ e '' (s ∩ e.source ∩ f ⁻¹' e'.source) := by
-          simp only [comp.assoc, image_comp]
-        _ = (e.invFun ∘ I.invFun ∘ I ∘ e) '' (s ∩ e.source ∩ f ⁻¹' e'.source) := by simp only [comp.assoc, image_comp]
-        _ = s ∩ e.source ∩ f ⁻¹' e'.source := cor
     have : (e.invFun ∘ I.invFun) x ∈ s ∩ e.source ∩ f ⁻¹' e'.source :=
-      this ▸ mem_image_of_mem (e.invFun ∘ I.invFun) hx
+      hsbetter ▸ mem_image_of_mem (e.invFun ∘ I.invFun) hx
     rw [inter_assoc] at this
     exact mem_of_mem_inter_left this
 
