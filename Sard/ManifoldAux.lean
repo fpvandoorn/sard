@@ -58,7 +58,7 @@ theorem image_eq_preimage_of_inverseOn {α β : Type*} {f : α → β} {g : β �
   apply Subset.antisymm (image_subset_preimage_of_inverseOn s h₁)
   · sorry -- apply preimage_subset_image_of_inverseOn h₂ s almost works
 
-lemma chart_isOpenMapOn_source {e : LocalHomeomorph M H} {s : Set M}
+lemma LocalHomeomorph.isOpenMapOn_source {e : LocalHomeomorph M H} {s : Set M}
     (hopen : IsOpen s) (hs : s ⊆ e.source) : IsOpen (e '' s) := by
   have h : e '' s = e.invFun ⁻¹' s :=
     image_eq_preimage_of_inverseOn (LeftInvOn.mono (fun x ↦ e.left_inv) hs)
@@ -70,15 +70,31 @@ lemma chart_isOpenMapOn_source {e : LocalHomeomorph M H} {s : Set M}
     _ ⊆ e '' (e.source) := image_subset _ hs
     _ ⊆ e.target := this
 
-lemma chartInverse_isOpenMapOn_target {e : LocalHomeomorph M H} {t : Set H}
-  (hopen : IsOpen t) (ht : t ⊆ e.target) : IsOpen (e.invFun '' t) := sorry
-
 -- xxx need a better name!
 lemma chartFull_isOpenMapOn_source [I.Boundaryless] {e : LocalHomeomorph M H}
     {s : Set M} (hopen : IsOpen s) (hs : s ⊆ e.source) : IsOpen (I ∘ e '' s) := by
   -- As M has no boundary, I is a homeomorphism from H to E, hence an open embedding.
   simp only [image_comp I e]
-  apply (I.openEmbedding.open_iff_image_open).mp (chart_isOpenMapOn_source hopen hs)
+  apply (I.openEmbedding.open_iff_image_open).mp (e.isOpenMapOn_source hopen hs)
+
+-- xxx: does this already exist?
+lemma LocalHomeomorph.image_mem_nhds_on {e : LocalHomeomorph M H} {x : M} {n : Set M}
+    (hn : n ∈ 𝓝 x) (hn₂ : n ⊆ e.source) : e '' n ∈ 𝓝 (e x) := by
+  rcases mem_nhds_iff.mp hn with ⟨t, htn, htopen, hxt⟩
+  rw [mem_nhds_iff]
+  exact ⟨e '' t, image_subset e htn, e.isOpenMapOn_source htopen (Subset.trans htn hn₂),
+    mem_image_of_mem _ hxt⟩
+
+lemma chartFull_image_nhds_on [I.Boundaryless] {e : LocalHomeomorph M H} {x : M} {n : Set M}
+    (hn : n ∈ 𝓝 x) (hn₂ : n ⊆ e.source) : I ∘ e '' n ∈ 𝓝 ((I ∘ e) x) := by
+  rw [image_comp]
+  exact IsOpenMap.image_mem_nhds I.openEmbedding.isOpenMap (e.image_mem_nhds_on hn hn₂)
+
+lemma LocalHomeomorph.inverse_isOpenMapOn_target {e : LocalHomeomorph M H} {t : Set H}
+  (hopen : IsOpen t) (ht : t ⊆ e.target) : IsOpen (e.invFun '' t) := sorry
+
+lemma chartFull_isOpenMapOn_target {e : LocalHomeomorph M H} {t : Set E}
+  (hopen : IsOpen t) (ht : t ⊆ I '' (e.target)) : IsOpen (e.invFun ∘ I.invFun '' t) := sorry
 
 lemma localCompactness_aux [FiniteDimensional ℝ E] (hI : ModelWithCorners.Boundaryless I) {x : M} {n : Set M} (hn : n ∈ 𝓝 x) :
     ∃ s : Set M, s∈ 𝓝 x ∧ s ⊆ n ∧ IsCompact s  := by
@@ -92,10 +108,7 @@ lemma localCompactness_aux [FiniteDimensional ℝ E] (hI : ModelWithCorners.Boun
   -- Apply the chart to obtain a neighbourhood of (I∘e)(x) ∈ E.
   let x' : E := (I ∘ chart) x
   let n' : Set E := (I ∘ chart) '' (n ∩ chart.source)
-  have hn' : n' ∈ 𝓝 x' := by
-    -- Not fully true: need a version on an open subset.
-    have scifi : IsOpenMap chart := sorry
-    exact IsOpenMap.image_mem_nhds (I.openEmbedding.isOpenMap.comp scifi) hn
+  have hn' : n' ∈ 𝓝 x' := chartFull_image_nhds_on _ hn (inter_subset_right n chart.source)
   -- Since E is locally compact, x' has a compact neighbourhood s' ⊆ n'.
   have h : LocallyCompactSpace E := by infer_instance
   rcases h.local_compact_nhds x' n' hn' with ⟨s', hs', hsn', hscompact⟩
