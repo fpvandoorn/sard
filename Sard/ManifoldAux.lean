@@ -72,17 +72,20 @@ theorem image_eq_preimage_of_inverseOn {α β : Type*} {f : α → β} {g : β �
   apply Subset.antisymm (image_subset_preimage_of_inverseOn s h₁)
   · sorry -- apply preimage_subset_image_of_inverseOn h₂ s almost works
 
+-- like `e.map_source'`, but stated in terms of images
+lemma LocalHomeomorph.map_source_image {e : LocalHomeomorph M H} : e '' e.source ⊆ e.target :=
+  fun _ ⟨_, hx, hex⟩ ↦ mem_of_eq_of_mem (id hex.symm) (e.map_source' hx)
+
 lemma LocalHomeomorph.isOpenMapOn_source {e : LocalHomeomorph M H} {s : Set M}
     (hopen : IsOpen s) (hs : s ⊆ e.source) : IsOpen (e '' s) := by
   have h : e '' s = e.invFun ⁻¹' s :=
     image_eq_preimage_of_inverseOn (LeftInvOn.mono (fun x ↦ e.left_inv) hs)
   rw [h]
   refine e.continuous_invFun.isOpen_preimage e.open_target ?_ hopen
-  have : e '' e.source ⊆ e.target := by sorry -- this is essentially map_source'; omitted
   calc e.invFun ⁻¹' s
     _ = e '' s := by rw [← h]
     _ ⊆ e '' (e.source) := image_subset _ hs
-    _ ⊆ e.target := this
+    _ ⊆ e.target := e.map_source_image
 
 -- xxx need a better name!
 lemma chartFull_isOpenMapOn_source [I.Boundaryless] {e : LocalHomeomorph M H}
@@ -105,7 +108,14 @@ lemma chartFull_image_nhds_on [I.Boundaryless] {e : LocalHomeomorph M H} {x : M}
   exact IsOpenMap.image_mem_nhds I.openEmbedding.isOpenMap (e.image_mem_nhds_on hn hn₂)
 
 lemma LocalHomeomorph.inverse_isOpenMapOn_target {e : LocalHomeomorph M H} {t : Set H}
-    (hopen : IsOpen t) (ht : t ⊆ e.target) : IsOpen (e.invFun '' t) := by sorry
+    (hopen : IsOpen t) (ht : t ⊆ e.target) : IsOpen (e.invFun '' t) := by
+  sorry -- caution: the following is WRONG as-is!
+  -- have : e.invFun '' t = e ⁻¹' t := sorry -- by lemma above, somehow
+  -- rw [this]
+  -- refine ContinuousOn.isOpen_preimage e.continuousOn e.open_source ?hp hopen
+  -- calc e ⁻¹' t
+  --   _ ⊆ e ⁻¹' e.target := preimage_mono ht
+  --   _ ⊆ e.source := map_target_preimage -- WRONG: junk values could map into source!
 
 lemma chartFull_isOpenMapOn_target [I.Boundaryless] {e : LocalHomeomorph M H} {t : Set E}
     (hopen : IsOpen t) (ht : t ⊆ I '' (e.target)) : IsOpen (e.invFun ∘ I.invFun '' t) := by
