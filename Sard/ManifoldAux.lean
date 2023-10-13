@@ -34,7 +34,7 @@ theorem funext_on {α β : Type*} {f : α → β} {g : β → α} {s : Set α} (
 
 -- XXX: this should exist somewhere!
 lemma chart_inverse {t : Set M} {e : LocalHomeomorph M H} (ht: t ⊆ e.source) :
-    (e.invFun ∘ I.invFun) ∘ (I ∘ e) '' t = t := by
+    (e.invFun ∘ I.invFun ∘ I ∘ e) '' t = t := by
   have : e.invFun ∘ e '' t = t := funext_on (fun ⟨x, hxt⟩ ↦ e.left_inv' (ht hxt))
   calc (e.invFun ∘ I.invFun) ∘ (I ∘ e) '' t
     _ = e.invFun ∘ (I.invFun ∘ I) ∘ e '' t := by simp only [comp.assoc]
