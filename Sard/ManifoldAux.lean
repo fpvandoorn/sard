@@ -25,6 +25,20 @@ theorem ModelWithCorners.openEmbedding [I.Boundaryless] : OpenEmbedding I := by
   have : Embedding I := LeftInverse.embedding I.leftInverse I.continuous_invFun I.continuous_toFun
   exact { toEmbedding := this, open_range := h }
 
+theorem ModelWithCorners.openEmbedding_symm [I.Boundaryless] : OpenEmbedding I.symm := by
+  have : range I.symm = univ := by
+    have : I.symm.target = I.source := by rfl
+    have : I.symm.target = univ := by rw [this, I.source_eq]
+    rw [← this]
+    -- now, range contains the target, so done
+    sorry
+  have h : IsOpen (range I.symm) := by rw [this]; exact isOpen_univ
+  have : Embedding I.symm := by
+    have : Continuous I.symm := I.continuous_symm
+    sorry
+    --refine LeftInverse.embedding ?h ?hf this--apply LeftInverse.embedding I.symm.leftInverse aux aux2--I.continuous_invFun
+  exact { toEmbedding := this, open_range := h }
+
 /-- Analogous to the funext tactic, but only on a set. -/
 -- move to Data.Set.Image
 theorem funext_on {α β : Type*} {f : α → β} {g : β → α} {s : Set α} (h : ∀ x : s, (g ∘ f) x = x)
@@ -91,10 +105,18 @@ lemma chartFull_image_nhds_on [I.Boundaryless] {e : LocalHomeomorph M H} {x : M}
   exact IsOpenMap.image_mem_nhds I.openEmbedding.isOpenMap (e.image_mem_nhds_on hn hn₂)
 
 lemma LocalHomeomorph.inverse_isOpenMapOn_target {e : LocalHomeomorph M H} {t : Set H}
-  (hopen : IsOpen t) (ht : t ⊆ e.target) : IsOpen (e.invFun '' t) := sorry
+    (hopen : IsOpen t) (ht : t ⊆ e.target) : IsOpen (e.invFun '' t) := by sorry
 
-lemma chartFull_isOpenMapOn_target {e : LocalHomeomorph M H} {t : Set E}
-  (hopen : IsOpen t) (ht : t ⊆ I '' (e.target)) : IsOpen (e.invFun ∘ I.invFun '' t) := sorry
+lemma chartFull_isOpenMapOn_target [I.Boundaryless] {e : LocalHomeomorph M H} {t : Set E}
+    (hopen : IsOpen t) (ht : t ⊆ I '' (e.target)) : IsOpen (e.invFun ∘ I.invFun '' t) := by
+  have h : IsOpen (I.invFun '' t) := I.openEmbedding_symm.open_iff_image_open.mp hopen
+  have : I.invFun '' t ⊆ e.target := by
+    calc I.invFun '' t
+      _ ⊆ I.invFun '' (I '' (e.target)) := by apply image_subset _ ht
+      _ = (I.invFun ∘ I) '' e.target := by rw [image_comp]
+      _ = e.target := by rw [I.leftInverse', image_id]
+  rw [image_comp]
+  exact e.inverse_isOpenMapOn_target h this
 
 lemma localCompactness_aux [FiniteDimensional ℝ E] (hI : ModelWithCorners.Boundaryless I) {x : M} {n : Set M} (hn : n ∈ 𝓝 x) :
     ∃ s : Set M, s∈ 𝓝 x ∧ s ⊆ n ∧ IsCompact s  := by
@@ -137,7 +159,7 @@ lemma localCompactness_aux [FiniteDimensional ℝ E] (hI : ModelWithCorners.Boun
         rw [this]
         exact ht'open.preimage I.continuous
       rw [image_comp]
-      apply chartInverse_isOpenMapOn_target this
+      apply chart.inverse_isOpenMapOn_target this
       calc t
         _ = I.invFun '' t' := rfl
         _ ⊆ I.invFun '' s' := image_subset (I.invFun) ht's'
