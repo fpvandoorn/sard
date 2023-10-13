@@ -3,7 +3,8 @@ import Sard.ManifoldAux
 import Sard.MeasureZero
 import Mathlib.Topology.MetricSpace.HausdorffDimension
 
-open ENNReal NNReal FiniteDimensional Function Manifold MeasureTheory Measure Set TopologicalSpace Topology LocallyLipschitz
+open ENNReal NNReal FiniteDimensional Function Manifold MeasureTheory Measure Set
+  SmoothManifoldWithCorners TopologicalSpace Topology LocallyLipschitz
 set_option autoImplicit false
 
 variable
@@ -118,8 +119,13 @@ theorem sard {f : M → N} (hf : ContMDiff I J r f)
   · apply image_subset (↑I ∘ ↑e)
     rw [inter_assoc]
     exact inter_subset_right s (e.source ∩ f ⁻¹' e'.source)
-  · sorry -- ContDiffOn ℝ (↑r) f_local w
-    -- should follow by definition, of ContDiff f in charts
+  · -- ContDiffOn ℝ (↑r) f_local w follows by definition, of ContMDiff f in charts
+    have he : e ∈ maximalAtlas I M := by apply subset_maximalAtlas; exact he
+    have he' : e' ∈ maximalAtlas J N := by apply subset_maximalAtlas; exact he'
+    have hs : e.source ∩ f ⁻¹' e'.source ⊆ e.source := inter_subset_left _ _
+    have h2s : MapsTo f (e.source ∩ f ⁻¹' e'.source) e'.source :=
+      (mapsTo_preimage f e'.source).mono_left (inter_subset_right _ _)
+    exact (contMDiffOn_iff_of_mem_maximalAtlas' (n := r) he he' hs h2s).mp hf.contMDiffOn
   · sorry -- ∀ x ∈ s_better, HasFDerivWithinAt f_local (f'_local x) s_better x
     -- should follow almost by definition
   · -- ∀ x ∈ s_better, ¬Surjective ↑(f'_local x)
