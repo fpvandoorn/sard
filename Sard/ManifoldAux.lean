@@ -34,17 +34,16 @@ theorem funext_on {α β : Type*} {f : α → β} {g : β → α} {s : Set α} (
 -- XXX: this should exist somewhere!
 lemma chart_inverse {t : Set M} {e : LocalHomeomorph M H} (ht: t ⊆ e.source) :
     (e.invFun ∘ I.invFun ∘ I ∘ e) '' t = t := by
-  have : e.invFun ∘ e '' t = t := funext_on (fun ⟨x, hxt⟩ ↦ e.left_inv' (ht hxt))
-  calc (e.invFun ∘ I.invFun) ∘ (I ∘ e) '' t
+  calc (e.invFun ∘ I.invFun ∘ I ∘ e) '' t
     _ = e.invFun ∘ (I.invFun ∘ I) ∘ e '' t := by simp only [comp.assoc]
-    _ = e.invFun '' ((I.invFun ∘ I) '' (e '' t)) := by simp only [image_comp]
-    _ = e.invFun ∘ e '' t := by rw [I.leftInverse', image_id, image_comp]
-    _ = t := by rw [this]
+    _ = (e.invFun ∘ e) '' t := by rw [I.leftInverse', left_id]
+    _ = t := funext_on (fun ⟨x, hxt⟩ ↦ e.left_inv' (ht hxt))
 
--- I'm sure this exists somewhere!!
 lemma chart_inverse_point {e : LocalHomeomorph M H} {x : M} (hx: x ∈ e.source) :
-    (e.invFun ∘ I.invFun ∘ I ∘ e) x = x := by sorry -- apply chart_inverse at e.source and specialise
-
+    (e.invFun ∘ I.invFun ∘ I ∘ e) x = x := by
+  -- xxx: can I golf this?
+  simp_all only [LocalEquiv.invFun_as_coe, LocalHomeomorph.coe_coe_symm,
+    ModelWithCorners.toLocalEquiv_coe_symm, comp_apply, ModelWithCorners.left_inv, LocalHomeomorph.left_inv]
 
 -- generalises statements in Data.Set.Image.lean
 theorem image_subset_preimage_of_inverseOn {α β : Type*} {f : α → β} {g : β → α} (s : Set α)
