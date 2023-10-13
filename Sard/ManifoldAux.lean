@@ -19,25 +19,11 @@ theorem ModelWithCorners.leftInverse' : I.invFun ∘ I = id := funext I.leftInve
 
 /-- If I is boundaryless, it is an open embedding. -/
 -- add to SmoothManifoldWithCorners.lean
--- XXX. there should be a shorter proof, using I.toHomeomorph
-theorem ModelWithCorners.openEmbedding [I.Boundaryless] : OpenEmbedding I := by
-  have h : IsOpen (range I) := by rw [I.range_eq_univ] ; exact isOpen_univ
-  have : Embedding I := LeftInverse.embedding I.leftInverse I.continuous_invFun I.continuous_toFun
-  exact { toEmbedding := this, open_range := h }
+theorem ModelWithCorners.openEmbedding [I.Boundaryless] : OpenEmbedding I :=
+  I.toHomeomorph.openEmbedding
 
-theorem ModelWithCorners.openEmbedding_symm [I.Boundaryless] : OpenEmbedding I.symm := by
-  have : range I.symm = univ := by
-    have : I.symm.target = I.source := by rfl
-    have : I.symm.target = univ := by rw [this, I.source_eq]
-    rw [← this]
-    -- now, range contains the target, so done
-    sorry
-  have h : IsOpen (range I.symm) := by rw [this]; exact isOpen_univ
-  have : Embedding I.symm := by
-    have : Continuous I.symm := I.continuous_symm
-    sorry
-    --refine LeftInverse.embedding ?h ?hf this--apply LeftInverse.embedding I.symm.leftInverse aux aux2--I.continuous_invFun
-  exact { toEmbedding := this, open_range := h }
+theorem ModelWithCorners.openEmbedding_symm [I.Boundaryless] : OpenEmbedding I.symm :=
+  I.toHomeomorph.symm.openEmbedding
 
 /-- Analogous to the funext tactic, but only on a set. -/
 -- move to Data.Set.Image
