@@ -199,20 +199,18 @@ theorem sard' {f : M → N} (hf : ContMDiff I J r f) [T2Space N]
             _ = I.invFun '' t' := rfl
             _ ⊆ I.invFun '' s' := image_subset (I.invFun) ht's'
             _ ⊆ chart.target := hs'small
-        · have h := calc (chart.invFun ∘ I.invFun) x'
-            _ = (chart.invFun ∘ I.invFun ∘ I ∘ chart) x := rfl
-            _ = x := chart_inverse_point _ (mem_chart_source H x)
-          exact h ▸ mem_image_of_mem (chart.invFun ∘ I.invFun) hxt'
+        · have : (chart.invFun ∘ I.invFun) x' = x := chart_inverse_point _ (mem_chart_source H x)
+          exact this ▸ mem_image_of_mem (chart.invFun ∘ I.invFun) hxt'
       · calc s
-        _ ⊆ chart.invFun ∘ I.invFun '' n' := image_subset (chart.invFun ∘ I.invFun) hsn'
-        _ = (chart.invFun ∘ I.invFun ∘ I ∘ chart) '' (n ∩ chart.source) := by simp only [image_comp, comp.assoc]
-        _ = n ∩ chart.source :=
-          chart_inverse _ (inter_subset_right n chart.source)
-        _ ⊆ n := inter_subset_left n chart.source
+          _ ⊆ chart.invFun ∘ I.invFun '' n' := image_subset (chart.invFun ∘ I.invFun) hsn'
+          _ = (chart.invFun ∘ I.invFun ∘ I ∘ chart) '' (n ∩ chart.source) := by
+            simp only [image_comp, comp.assoc]
+          _ = n ∩ chart.source := chart_inverse _ (inter_subset_right n chart.source)
+          _ ⊆ n := inter_subset_left n chart.source
       · apply IsCompact.image_of_continuousOn hscompact
         have : ContinuousOn chart.invFun (I.invFun '' s') :=
           chart.continuous_invFun.mono hs'small
-        apply ContinuousOn.comp this I.continuous_invFun.continuousOn (mapsTo_image I.invFun s')
+        apply this.comp I.continuous_invFun.continuousOn (mapsTo_image I.invFun s')
     exact sigmaCompactSpace_of_locally_compact_second_countable
   have : IsSigmaCompact s := isSigmaCompact_univ.of_isClosed_subset hs (subset_univ s)
   exact MeasureZero.meagre_if_sigma_compact J (sard _ hr hf hf' h'f') (this.image (hf.continuous))
