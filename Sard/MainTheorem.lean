@@ -86,12 +86,15 @@ theorem sard {f : M → N} (hf : ContMDiff I J r f)
     {f' : ∀x, TangentSpace I x →L[ℝ] TangentSpace J (f x)} {s : Set M}
     (hf' : ∀ x ∈ s, HasMFDerivWithinAt I J f s x (f' x))
     (h'f' : ∀ x ∈ s, ¬ Surjective (f' x)) : MeasureZero J (f '' s) := by
-  suffices hyp: ∀ e ∈ atlas H M, MeasureZero J (f '' (e.source ∩ s)) from
+  suffices hyp : ∀ x : M, MeasureZero J (f '' ((chartAt H x).source ∩ s)) from
     MeasureZero.measure_zero_image_iff_chart_domains (J := J) hyp
-  intro e he
+  intro x
+  let e := chartAt H x
+
   -- Reduce to images of chart domains, then apply `sard_local`.
   -- Tedious part: check that all hypotheses transfer to their local counterparts.
-  intro μ hμ e' he'
+  intro μ hμ y
+  let e' := chartAt G y
   -- Data for the reduction to local coordinates.
   let w := I ∘ e '' (e.source ∩ f ⁻¹' e'.source)
   let s_better := I ∘ e '' (s ∩ e.source ∩ f ⁻¹' e'.source)
@@ -127,8 +130,8 @@ theorem sard {f : M → N} (hf : ContMDiff I J r f)
     rw [inter_assoc]
     exact inter_subset_right s (e.source ∩ f ⁻¹' e'.source)
   · -- ContDiffOn ℝ (↑r) f_local w follows by definition, of ContMDiff f in charts
-    have he : e ∈ maximalAtlas I M := by apply subset_maximalAtlas; exact he
-    have he' : e' ∈ maximalAtlas J N := by apply subset_maximalAtlas; exact he'
+    have he : e ∈ maximalAtlas I M := by apply subset_maximalAtlas; exact chart_mem_atlas H x
+    have he' : e' ∈ maximalAtlas J N := by apply subset_maximalAtlas; exact chart_mem_atlas G y
     have hs : e.source ∩ f ⁻¹' e'.source ⊆ e.source := inter_subset_left _ _
     have h2s : MapsTo f (e.source ∩ f ⁻¹' e'.source) e'.source :=
       (mapsTo_preimage f e'.source).mono_left (inter_subset_right _ _)

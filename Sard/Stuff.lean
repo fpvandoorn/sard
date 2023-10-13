@@ -95,10 +95,12 @@ lemma image_measure_zero_of_C1_dimension_increase {g : E → F} {U : Set E} (hU 
 lemma image_null_of_C1_of_dimension_increase {f : M → N} (hf : ContMDiff I J r f)
     (hdim : m < n) : MeasureZero J (Set.range f) := by
   rw [← image_univ]
-  suffices hyp : ∀ e ∈ atlas H M, MeasureZero J (f '' (e.source ∩ univ)) by
+  suffices hyp : ∀ x : M, MeasureZero J (f '' ((chartAt H x).source ∩ univ)) by
     apply MeasureZero.measure_zero_image_iff_chart_domains (J := J) hyp
   -- Fix a chart; we want to show f(U ∩ M) has measure zero.
-  intro e he μ hμ e' he'
+  intro x μ hμ y
+  let e := chartAt H x
+  let e' := chartAt G y
   -- FIXME. This looks a bit sketchy... adapt proof if necessary!
   have aux : J ∘ e' '' (e'.source ∩ f '' e.source) = (J ∘ e' ∘ f) '' e.source := by sorry
   rw [inter_univ, aux]

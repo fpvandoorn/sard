@@ -46,28 +46,31 @@ variable {I}
 variable (I) in
 /-- A measure zero subset of an n-dimensional manifold $M$ is a subset $S ⊆ M$ such that
 for all charts $(φ, U)$ of $M$, $φ(U ∩ S) ⊆ ℝ^n$ has measure zero. -/
+-- xxx: show that my spelling implies the same for all charts!
 def MeasureZero (s : Set M) : Prop :=
-  ∀ (μ : Measure E) [IsAddHaarMeasure μ], ∀ e ∈ atlas H M, μ (I ∘ e '' (e.source ∩ s)) = 0
+  ∀ (μ : Measure E) [IsAddHaarMeasure μ] (x : M), μ (I ∘ (chartAt H x) '' ((chartAt H x).source ∩ s)) = 0
 
 namespace MeasureZero
 /-- Having measure zero is monotone: a subset of a set with measure zero has measure zero. -/
 protected lemma mono {s t : Set M} (hst : s ⊆ t) (ht : MeasureZero I t) :
     (MeasureZero I s) := by
-  intro μ hμ e he
+  intro μ hμ x
+  let e := chartAt H x
   have : I ∘ e '' (e.source ∩ s) ⊆  I ∘ e '' (e.source ∩ t) := by
     apply image_subset
     exact inter_subset_inter_right e.source hst
-  exact measure_mono_null this (ht μ e he)
+  exact measure_mono_null this (ht μ x)
 
 /-- The empty set has measure zero. -/
 protected lemma empty : MeasureZero I (∅: Set M) := by
-  intro μ _ e _
+  intro μ _ x
   simp only [comp_apply, inter_empty, image_empty, OuterMeasure.empty']
 
 /-- The countable index union of measure zero sets has measure zero. -/
 protected lemma iUnion {ι : Type*} [Encodable ι] {s : ι → Set M}
-  (hs : ∀ n : ι, MeasureZero I (s n)) : MeasureZero I (⋃ (n : ι),  s n) := by
-  intro μ hμ e he
+    (hs : ∀ n : ι, MeasureZero I (s n)) : MeasureZero I (⋃ (n : ι),  s n) := by
+  intro μ hμ x
+  let e := chartAt H x
   have : I ∘ e '' (e.source ∩ (⋃ (n : ι),  s n)) = ⋃ (n : ι), I ∘ e '' (e.source ∩ s n) := by
     rw [inter_iUnion]
     exact image_iUnion
@@ -75,7 +78,6 @@ protected lemma iUnion {ι : Type*} [Encodable ι] {s : ι → Set M}
   simp_all only [comp_apply, OuterMeasure.iUnion_null_iff]
   intro i
   apply hs
-  exact he
 
 /-- The finite union of measure zero sets has measure zero. -/
 protected lemma union {s t : Set M} (hs : MeasureZero I s) (ht : MeasureZero I t) : MeasureZero I (s ∪ t) := by
@@ -105,22 +107,23 @@ def ModelWithCorners.ae
 
 /-- An open set of measure zero is empty. -/
 protected lemma open_implies_empty {s : Set M} (h₁s : IsOpen s) (h₂s : MeasureZero I s): s = ∅ := by
-  suffices ∀ e ∈ atlas H M, (e.source ∩ s) = ∅ by
+  suffices ∀ x : M, ((chartAt H x).source ∩ s) = ∅ by
     by_contra h
     obtain ⟨x, hx⟩ : Set.Nonempty s := Iff.mp nmem_singleton_empty h
-    specialize this (chartAt H x) (chart_mem_atlas H x)
+    specialize this x
     have h₂: x ∈ (chartAt H x).toLocalEquiv.source ∩ s := by
       simp
       exact hx
     rw [this] at h₂
     contradiction
 
-  intro e he
+  intro x
+  let e := chartAt H x
   -- choose any Haar measure μ
   obtain ⟨K''⟩ : Nonempty (PositiveCompacts E) := PositiveCompacts.nonempty'
   let μ : Measure E := addHaarMeasure K''
-  -- by h₂s μ e, we have μ (I∘e '' s) = 0
-  specialize h₂s μ e he
+  -- by h₂s μ x, we have μ (I∘e '' s) = 0
+  specialize h₂s μ x
   by_contra h
   -- in particular, e.source ∩ s is an open subset contained in that, hence has measure zero
   have h' : Set.Nonempty (interior (I ∘ e '' (e.source ∩ s))) := by
@@ -163,10 +166,11 @@ variable
   [MeasurableSpace F] [BorelSpace F]
 
 /-- The image `f(s)` of a set `s ⊆ M` under a C¹ map `f : M → N` has measure zero
-iff for each chart $(φ, U)$ of $M$, the image $f(U ∩ s)$ has measure zero. -/
+iff for each preferred chart of $M$, the image $f(U ∩ s)$ has measure zero. -/
 -- is the converse useful or just busywork?
+-- TODO: also state a version using all charts, not just the preferred ones?
 lemma measure_zero_image_iff_chart_domains {f : M → N} {s : Set M}
-    (hs : ∀ e ∈ atlas H M, MeasureZero J (f '' (e.source ∩ s))) : MeasureZero J (f '' s) := by
+    (hs : ∀ x : M, MeasureZero J (f '' ((chartAt H x).source ∩ s))) : MeasureZero J (f '' s) := by
   -- The charts of M form an open cover.
   let U : M → Set M := fun x ↦ (ChartedSpace.chartAt x : LocalHomeomorph M H).source
   have hcovering : univ ⊆ ⋃ (x : M), U x := by
@@ -180,7 +184,7 @@ lemma measure_zero_image_iff_chart_domains {f : M → N} {s : Set M}
   have : ∀ i : T, MeasureZero J (f '' ((U i) ∩ s)) := by
     intro i
     let e : LocalHomeomorph M H := ChartedSpace.chartAt i
-    have h : MeasureZero J (f '' (e.source ∩ s)) := hs e (chart_mem_atlas H _)
+    have h : MeasureZero J (f '' (e.source ∩ s)) := hs i
     have h₃ : U i = e.source := by rw [← Filter.principal_eq_iff_eq]
     apply h.mono _
     apply image_subset
