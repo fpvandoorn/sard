@@ -33,7 +33,7 @@ theorem funext_on {α β : Type*} {f : α → β} {g : β → α} {s : Set α} (
   simp_all only [comp_apply, Subtype.forall, image_id']
 
 -- XXX: this should exist somewhere!
-lemma chart_inverse {t : Set M} {e : LocalHomeomorph M H} (_ : e ∈ atlas H M) (ht: t ⊆ e.source) :
+lemma chart_inverse {t : Set M} {e : LocalHomeomorph M H} (ht: t ⊆ e.source) :
     (e.invFun ∘ I.invFun) ∘ (I ∘ e) '' t = t := by
   have : e.invFun ∘ e '' t = t := funext_on (fun ⟨x, hxt⟩ ↦ e.left_inv' (ht hxt))
   calc (e.invFun ∘ I.invFun) ∘ (I ∘ e) '' t
@@ -43,11 +43,12 @@ lemma chart_inverse {t : Set M} {e : LocalHomeomorph M H} (_ : e ∈ atlas H M) 
     _ = t := by rw [this]
 
 -- I'm sure this exists somewhere!!
-lemma chart_inverse_point {e : LocalHomeomorph M H} (_ : e ∈ atlas H M) {x : M} (hx: x ∈ e.source) :
+lemma chart_inverse_point {e : LocalHomeomorph M H} {x : M} (hx: x ∈ e.source) :
     (e.invFun ∘ I.invFun ∘ I ∘ e) x = x := by sorry -- apply chart_inverse at e.source and specialise
 
-lemma chart_open_on_source {e : LocalHomeomorph M H} (_ : e ∈ atlas H M) {s : Set M}
+lemma chart_isOpenMapOn_source {e : LocalHomeomorph M H} {s : Set M}
   (hs : IsOpen s) (hs : s ⊆ e.source) : IsOpen (e '' s) := sorry
 
-lemma chart_open_on_target {e : LocalHomeomorph M H} (_ : e ∈ atlas H M) {t : Set H}
+lemma chartInverse_isOpenMapOn_target {e : LocalHomeomorph M H} {t : Set H}
   (ht : IsOpen t) (ht : t ⊆ e.target) : IsOpen (e.invFun '' t) := sorry
+

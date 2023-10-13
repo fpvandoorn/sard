@@ -112,9 +112,8 @@ theorem sard {f : M → N} (hf : ContMDiff I J r f)
 
   have cor : (e.invFun ∘ I.invFun) ∘ (I ∘ e) '' (s ∩ e.source ∩ f ⁻¹' e'.source) = s ∩ e.source ∩ f ⁻¹' e'.source := by
     rw [chart_inverse]
-    · exact he
-    · rw [inter_comm s, inter_assoc]
-      apply inter_subset_left
+    rw [inter_comm s, inter_assoc]
+    apply inter_subset_left
   have : J ∘ e' '' (e'.source ∩ f '' (e.source ∩ s)) = f_local '' s_better := by
     symm
     calc f_local '' s_better
@@ -221,21 +220,20 @@ theorem sard' {f : M → N} (hf : ContMDiff I J r f) [T2Space N]
             rw [this]
             exact ht'open.preimage I.continuous
           rw [image_comp]
-          apply chart_open_on_target ?_ this
+          apply chartInverse_isOpenMapOn_target this
           calc t
             _ = I.invFun '' t' := rfl
             _ ⊆ I.invFun '' s' := image_subset (I.invFun) ht's'
             _ ⊆ chart.target := hs'small
-          exact chart_mem_atlas H x
         · have h := calc (chart.invFun ∘ I.invFun) x'
             _ = (chart.invFun ∘ I.invFun ∘ I ∘ chart) x := rfl
-            _ = x := chart_inverse_point _ (chart_mem_atlas H x) (mem_chart_source H x)
+            _ = x := chart_inverse_point _ (mem_chart_source H x)
           exact h ▸ mem_image_of_mem (chart.invFun ∘ I.invFun) hxt'
       · calc s
         _ ⊆ chart.invFun ∘ I.invFun '' n' := image_subset (chart.invFun ∘ I.invFun) hsn'
         _ = (chart.invFun ∘ I.invFun ∘ I ∘ chart) '' (n ∩ chart.source) := by simp only [image_comp, comp.assoc]
         _ = n ∩ chart.source :=
-          chart_inverse _ (chart_mem_atlas H x) (inter_subset_right n chart.source)
+          chart_inverse _ (inter_subset_right n chart.source)
         _ ⊆ n := inter_subset_left n chart.source
       · apply IsCompact.image_of_continuousOn hscompact
         have : ContinuousOn chart.invFun (I.invFun '' s') :=
