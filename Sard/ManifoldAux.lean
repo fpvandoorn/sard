@@ -46,9 +46,38 @@ lemma chart_inverse {t : Set M} {e : LocalHomeomorph M H} (ht: t ⊆ e.source) :
 lemma chart_inverse_point {e : LocalHomeomorph M H} {x : M} (hx: x ∈ e.source) :
     (e.invFun ∘ I.invFun ∘ I ∘ e) x = x := by sorry -- apply chart_inverse at e.source and specialise
 
+
+-- generalises statements in Data.Set.Image.lean
+theorem image_subset_preimage_of_inverseOn {α β : Type*} {f : α → β} {g : β → α} (s : Set α)
+    (I : LeftInvOn g f s) : f '' s ⊆ g ⁻¹' s := by
+  sorry -- mathlib proof: fun _ ⟨a, h, e⟩ => e ▸ ((I a).symm ▸ h : g (f a) ∈ s)
+
+theorem preimage_subset_image_of_inverseOn {α β : Type*} {f : α → β} {g : β → α} (t : Set β) (I : RightInvOn g f t)  :
+    f ⁻¹' t ⊆ g '' t := sorry -- mathlib proof: fun b h => ⟨f b, h, I b⟩
+
+theorem image_eq_preimage_of_inverseOn {α β : Type*} {f : α → β} {g : β → α} {s : Set α}
+  (h₁ : LeftInvOn g f s) /-(h₂ : RightInvOn g f (f '' s))-/ : f '' s = g ⁻¹' s := by
+  apply Subset.antisymm (image_subset_preimage_of_inverseOn s h₁)
+  · sorry -- apply preimage_subset_image_of_inverseOn h₂ s almost works
+
 lemma chart_isOpenMapOn_source {e : LocalHomeomorph M H} {s : Set M}
-  (hs : IsOpen s) (hs : s ⊆ e.source) : IsOpen (e '' s) := sorry
+    (hopen : IsOpen s) (hs : s ⊆ e.source) : IsOpen (e '' s) := by
+  have h : e '' s = e.invFun ⁻¹' s :=
+    image_eq_preimage_of_inverseOn (LeftInvOn.mono (fun x ↦ e.left_inv) hs)
+  rw [h]
+  refine e.continuous_invFun.isOpen_preimage e.open_target ?_ hopen
+  have : e '' e.source ⊆ e.target := by sorry -- this is essentially map_source'; omitted
+  calc e.invFun ⁻¹' s
+    _ = e '' s := by rw [← h]
+    _ ⊆ e '' (e.source) := image_subset _ hs
+    _ ⊆ e.target := this
 
 lemma chartInverse_isOpenMapOn_target {e : LocalHomeomorph M H} {t : Set H}
-  (ht : IsOpen t) (ht : t ⊆ e.target) : IsOpen (e.invFun '' t) := sorry
+  (hopen : IsOpen t) (ht : t ⊆ e.target) : IsOpen (e.invFun '' t) := sorry
 
+-- xxx need a better name!
+lemma chartFull_isOpenMapOn_source [I.Boundaryless] {e : LocalHomeomorph M H}
+    {s : Set M} (hopen : IsOpen s) (hs : s ⊆ e.source) : IsOpen (I ∘ e '' s) := by
+  -- As M has no boundary, I is a homeomorphism from H to E, hence an open embedding.
+  simp only [image_comp I e]
+  apply (I.openEmbedding.open_iff_image_open).mp (chart_isOpenMapOn_source hopen hs)

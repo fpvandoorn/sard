@@ -71,19 +71,6 @@ theorem sard_local' {s w : Set E} {f : E → F} (hw : IsOpen w) (hs : IsClosed s
   have : IsSigmaCompact (f '' s) := this.image_of_continuousOn (hf.continuousOn.mono hsw)
   exact meagre_of_sigma_compact_null this ass
 
--- generalises statements in Data.Set.Image.lean
-theorem image_subset_preimage_of_inverseOn {α β : Type*} {f : α → β} {g : β → α} (s : Set α)
-    (I : LeftInvOn g f s) : f '' s ⊆ g ⁻¹' s := by
-  sorry -- mathlib proof: fun _ ⟨a, h, e⟩ => e ▸ ((I a).symm ▸ h : g (f a) ∈ s)
-
-theorem preimage_subset_image_of_inverseOn {α β : Type*} {f : α → β} {g : β → α} (t : Set β) (I : RightInvOn g f t)  :
-    f ⁻¹' t ⊆ g '' t := sorry -- mathlib proof: fun b h => ⟨f b, h, I b⟩
-
-theorem image_eq_preimage_of_inverseOn {α β : Type*} {f : α → β} {g : β → α} {s : Set α}
-  (h₁ : LeftInvOn g f s) /-(h₂ : RightInvOn g f (f '' s))-/ : f '' s = g ⁻¹' s := by
-  apply Subset.antisymm (image_subset_preimage_of_inverseOn s h₁)
-  · sorry -- apply preimage_subset_image_of_inverseOn h₂ s almost works
-
 /-- **Sard's theorem**. Let $M$ and $N$ be real $C^r$ manifolds of dimensions
 $m$ and $n$, and $f : M → N$ a $C^r$ map. If $r>\max{0, m-n}$,
 the set of regular values of `f` has full measure.
@@ -126,21 +113,9 @@ theorem sard {f : M → N} (hf : ContMDiff I J r f)
       _ = J ∘ e' '' (e'.source ∩ f '' (e.source ∩ s)) := by rw [inter_comm]
   rw [this]
   apply sard_local hr (w := w) (s := s_better) (f := f_local) (f' := f'_local) (μ := μ)
-  · have : IsOpen ((e.source ∩ f ⁻¹' e'.source) : Set M):=
+  · have : IsOpen (e.source ∩ f ⁻¹' e'.source) :=
       IsOpen.inter e.open_source (e'.open_source.preimage hf.continuous)
-    have : IsOpen (e '' (e.source ∩ f ⁻¹' e'.source)) := by
-      have h : e '' (e.source ∩ f ⁻¹' e'.source) = e.invFun ⁻¹' (e.source ∩ f ⁻¹' e'.source) :=
-        image_eq_preimage_of_inverseOn (LeftInvOn.mono (fun x ↦ e.left_inv) (inter_subset_left _ _))
-      rw [h]
-      refine e.continuous_invFun.isOpen_preimage e.open_target ?_ this
-      have : e '' e.source ⊆ e.target := by sorry -- is essentially map_source'
-      calc e.invFun ⁻¹' (e.source ∩ f ⁻¹' e'.source)
-        _ = e '' (e.source ∩ f ⁻¹' e'.source) := by rw [← h]
-        _ ⊆ e '' (e.source) := by apply image_subset; exact inter_subset_left e.source _
-        _ ⊆ e.target := this
-    -- As M has no boundary, I is a homeomorphism from H to E, hence an open embedding.
-    simp only [image_comp I e]
-    apply (I.openEmbedding.open_iff_image_open).mp this
+    apply chartFull_isOpenMapOn_source _ this (inter_subset_left e.source _)
   · apply image_subset (↑I ∘ ↑e)
     rw [inter_assoc]
     exact inter_subset_right s (e.source ∩ f ⁻¹' e'.source)
