@@ -146,34 +146,17 @@ lemma localCompactness_aux [FiniteDimensional ℝ E] (hI : ModelWithCorners.Boun
   rcases h.local_compact_nhds x' n' hn' with ⟨s', hs', hsn', hscompact⟩
   -- Transport back: s := (I∘e)⁻¹ (s') is a compact neighbourhood of x.
   let s := chart.invFun ∘ I.invFun '' s'
-
-  have : s' ⊆ (I ∘ chart) '' chart.source :=
-        calc s'
-          _ ⊆ n' := hsn'
-          _ = (I ∘ chart) '' (n ∩ chart.source) := rfl
-          _ ⊆ (I ∘ chart) '' (chart.source) :=
-            image_subset (↑I ∘ ↑chart) (inter_subset_right n chart.source)
-  have hs'small : I.invFun '' s' ⊆ chart.target := calc I.invFun '' s'
-          _ ⊆ I.invFun '' n' := image_subset I.invFun hsn'
-          _ = I.invFun '' ((I ∘ chart) '' (n ∩ chart.source)) := rfl
-          _ = (I.invFun ∘ I ∘ chart) '' (n ∩ chart.source) := by rw [← image_comp]
-          _ = chart '' (n ∩ chart.source) := by rw [← comp.assoc, ModelWithCorners.leftInverse', left_id]
-          _ ⊆ chart.target := sorry -- TODO: shrink n to make this true!!
+  have hsmall : s' ⊆ I '' chart.target := by calc s'
+    _ ⊆ n' := hsn'
+    _ = (I ∘ chart) '' (n ∩ chart.source) := rfl
+    _ ⊆ (I ∘ chart) '' (chart.source) := image_subset _ (inter_subset_right _ _)
+    _ ⊆ I '' (chart '' chart.source) := by rw [image_comp]
+    _ ⊆ I '' (chart.target) := image_subset _ chart.map_source_image
   refine ⟨s, ?_, ?_, ?_⟩
   · rcases mem_nhds_iff.mp hs' with ⟨t', ht's', ht'open, hxt'⟩
     rw [mem_nhds_iff]
     refine ⟨(chart.invFun ∘ I.invFun) '' t', image_subset _ ht's', ?_, ?_⟩
-    · let t := I.invFun '' t'
-      have : IsOpen (I.invFun '' t') := by
-        have : I.invFun '' t' = I ⁻¹' t' := by sorry -- use I.leftInverse; details skipped
-        rw [this]
-        exact ht'open.preimage I.continuous
-      rw [image_comp]
-      apply chart.inverse_isOpenMapOn_target this
-      calc t
-        _ = I.invFun '' t' := rfl
-        _ ⊆ I.invFun '' s' := image_subset (I.invFun) ht's'
-        _ ⊆ chart.target := hs'small
+    · apply chartFull_isOpenMapOn_target _ ht'open (Subset.trans ht's' hsmall)
     · have : (chart.invFun ∘ I.invFun) x' = x := chart_inverse_point _ (mem_chart_source H x)
       exact this ▸ mem_image_of_mem (chart.invFun ∘ I.invFun) hxt'
   · calc s
@@ -182,8 +165,12 @@ lemma localCompactness_aux [FiniteDimensional ℝ E] (hI : ModelWithCorners.Boun
       _ = n ∩ chart.source := chart_inverse _ (inter_subset_right n chart.source)
       _ ⊆ n := inter_subset_left n chart.source
   · apply IsCompact.image_of_continuousOn hscompact
-    have : ContinuousOn chart.invFun (I.invFun '' s') :=
-          chart.continuous_invFun.mono hs'small
+    have : ContinuousOn chart.invFun (I.invFun '' s') := by
+      apply chart.continuous_invFun.mono
+      calc I.invFun '' s'
+        _ ⊆ I.invFun '' (I '' chart.target) := image_subset I.invFun hsmall
+        _ = (I.invFun ∘ I) '' chart.target := by rw [image_comp]
+        _ = chart.target := by rw [I.leftInverse', image_id]
     apply this.comp I.continuous_invFun.continuousOn (mapsTo_image I.invFun s')
 
 -- TODO: what's the right way to make this an instance?
