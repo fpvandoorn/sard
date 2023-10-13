@@ -133,8 +133,19 @@ theorem sard {f : M → N} (hf : ContMDiff I J r f)
     have h2s : MapsTo f (e.source ∩ f ⁻¹' e'.source) e'.source :=
       (mapsTo_preimage f e'.source).mono_left (inter_subset_right _ _)
     exact (contMDiffOn_iff_of_mem_maximalAtlas' (n := r) he he' hs h2s).mp hf.contMDiffOn
-  · sorry -- ∀ x ∈ s_better, HasFDerivWithinAt f_local (f'_local x) s_better x
+  · -- ∀ x ∈ s_better, HasFDerivWithinAt f_local (f'_local x) s_better x
     -- should follow almost by definition
+    intro x hx
+    let x' := (e.invFun ∘ I.invFun) x
+    have : x' ∈ s := by
+      have : (e.invFun ∘ I.invFun) '' s_better ⊆ s := by
+        rw [hsbetter, inter_assoc]
+        exact inter_subset_left s _
+      refine this (mem_image_of_mem (e.invFun ∘ I.invFun) hx)
+    specialize hf' x' this
+    -- TODO: missing API in mathlib, want something like
+    -- HasFDerivWithAt_iff_of_mem_maximalAtlas'; only have mdifferentiableWithinAt_iff_of_mem_source
+    sorry
   · -- ∀ x ∈ s_better, ¬Surjective ↑(f'_local x)
     intro x hx
     apply h'f' ((e.invFun ∘ I.invFun) x)
