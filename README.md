@@ -29,7 +29,7 @@ That said, help is very welcome! Feel free to make a PR filling in some sorry, o
   - [x] nowhere dense and meagre sets: [PRed](https://github.com/leanprover-community/mathlib4/pull/7180) and merged
   - [x] $\sigma$-compact subsets, relation to $\sigma$-compact spaces and basic: [PRed](https://github.com/leanprover-community/mathlib4/pull/7576) and merged
   - [x] $\sigma$-compact measure zero sets are meagre: [PRed](https://github.com/leanprover-community/mathlib4/pull/7640) and merged
-  - [ ] finite-dimensional manifolds are locally compact: almost done; needs clean-up (relatively small)
+  - [x] finite-dimensional manifolds are locally compact: done (need messaging to produce instances)
 
   - [ ] define measure zero subsets of a manifold: first version complete [and PRed](https://github.com/leanprover-community/mathlib4/pull/7076). Needs rework to a more conceptual approach:
     - [ ] define Lebesgue measure on a C¹ manifold (pull back Lebesgue measure on each chart, use a partition of unity)

@@ -39,7 +39,7 @@ lemma LocalHomeomorph.image_mem_nhds_on {e : LocalHomeomorph M H} {x : M} {n : S
   exact ⟨e '' t, image_subset e htn, e.isOpenMapOn_source htopen (Subset.trans htn hn₂),
     mem_image_of_mem _ hxt⟩
 
-lemma LocalHomeomorph.inverse_isOpenMapOn_target {e : LocalHomeomorph M H} {t : Set H}
+lemma LocalHomeomorph.symm_isOpenMapOn_target {e : LocalHomeomorph M H} {t : Set H}
     (hopen : IsOpen t) (ht : t ⊆ e.target) : IsOpen (e.invFun '' t) := by
   have r : e.invFun '' t = e.source ∩ ↑e ⁻¹' t := symm_image_eq_source_inter_preimage (e := e) ht
   rw [r]
@@ -57,7 +57,7 @@ theorem ModelWithCorners.openEmbedding_symm [I.Boundaryless] : OpenEmbedding I.s
   I.toHomeomorph.symm.openEmbedding
 end ModelsWithCorners
 
--- XXX: this should exist somewhere!
+-- XXX: can this be golfed?
 lemma chart_inverse {t : Set M} {e : LocalHomeomorph M H} (ht: t ⊆ e.source) :
     (e.invFun ∘ I.invFun ∘ I ∘ e) '' t = t := by
   calc (e.invFun ∘ I.invFun ∘ I ∘ e) '' t
@@ -65,9 +65,14 @@ lemma chart_inverse {t : Set M} {e : LocalHomeomorph M H} (ht: t ⊆ e.source) :
     _ = (e.invFun ∘ e) '' t := by rw [I.leftInverse', left_id]
     _ = t := funext_on (fun ⟨x, hxt⟩ ↦ e.left_inv' (ht hxt))
 
-lemma chart_inverse_point {e : LocalHomeomorph M H} {x : M} (hx: x ∈ e.source) :
+lemma chart_inverse_pointwise {e : LocalHomeomorph M H} {x : M} (hx: x ∈ e.source) :
     (e.invFun ∘ I.invFun ∘ I ∘ e) x = x := by
-  -- xxx: can I golf this?
+  -- what's the best proof? I know two options!
+  -- have : e.invFun ∘ I.invFun ∘ I ∘ e = e.invFun ∘ e := by calc
+  --   e.invFun ∘ I.invFun ∘ I ∘ e = e.invFun ∘ (I.invFun ∘ I) ∘ e := by simp only [comp.assoc]
+  --     _ = e.invFun ∘ e := by rw [I.leftInverse', left_id]
+  -- rw [this]
+  -- exact LocalHomeomorph.left_inv e hx
   simp_all only [LocalEquiv.invFun_as_coe, LocalHomeomorph.coe_coe_symm,
     ModelWithCorners.toLocalEquiv_coe_symm, comp_apply, ModelWithCorners.left_inv, LocalHomeomorph.left_inv]
 
@@ -92,10 +97,11 @@ lemma chartFull_isOpenMapOn_target [I.Boundaryless] {e : LocalHomeomorph M H} {t
       _ = (I.invFun ∘ I) '' e.target := by rw [image_comp]
       _ = e.target := by rw [I.leftInverse', image_id]
   rw [image_comp]
-  exact e.inverse_isOpenMapOn_target h this
+  exact e.symm_isOpenMapOn_target h this
 
-lemma localCompactness_aux [FiniteDimensional ℝ E] (hI : ModelWithCorners.Boundaryless I) {x : M} {n : Set M} (hn : n ∈ 𝓝 x) :
-    ∃ s : Set M, s∈ 𝓝 x ∧ s ⊆ n ∧ IsCompact s  := by
+/-- Auxiliary lemma for local compactness of `M`. -/
+lemma localCompactness_aux [FiniteDimensional ℝ E] (hI : ModelWithCorners.Boundaryless I)
+    {x : M} {n : Set M} (hn : n ∈ 𝓝 x) : ∃ s : Set M, s∈ 𝓝 x ∧ s ⊆ n ∧ IsCompact s  := by
   -- Assume `n` is contained in some chart at x. (Choose the distinguished chart from our atlas.)
   let chart := ChartedSpace.chartAt (H := H) x
   have hn : n ∩ chart.source ∈ 𝓝 x := by
@@ -122,11 +128,12 @@ lemma localCompactness_aux [FiniteDimensional ℝ E] (hI : ModelWithCorners.Boun
     rw [mem_nhds_iff]
     refine ⟨(chart.invFun ∘ I.invFun) '' t', image_subset _ ht's', ?_, ?_⟩
     · apply chartFull_isOpenMapOn_target _ ht'open (Subset.trans ht's' hsmall)
-    · have : (chart.invFun ∘ I.invFun) x' = x := chart_inverse_point _ (mem_chart_source H x)
+    · have : (chart.invFun ∘ I.invFun) x' = x := chart_inverse_pointwise _ (mem_chart_source H x)
       exact this ▸ mem_image_of_mem (chart.invFun ∘ I.invFun) hxt'
   · calc s
       _ ⊆ chart.invFun ∘ I.invFun '' n' := image_subset (chart.invFun ∘ I.invFun) hsn'
-      _ = (chart.invFun ∘ I.invFun ∘ I ∘ chart) '' (n ∩ chart.source) := by simp only [image_comp, comp.assoc]
+      _ = (chart.invFun ∘ I.invFun ∘ I ∘ chart) '' (n ∩ chart.source) := by
+        simp only [image_comp, comp.assoc]
       _ = n ∩ chart.source := chart_inverse _ (inter_subset_right n chart.source)
       _ ⊆ n := inter_subset_left n chart.source
   · apply IsCompact.image_of_continuousOn hscompact
