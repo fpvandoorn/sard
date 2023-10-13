@@ -138,17 +138,58 @@ theorem sard {f : M → N} (hf : ContMDiff I J r f)
     exact (contMDiffOn_iff_of_mem_maximalAtlas' (n := r) he he' hs h2s).mp hf.contMDiffOn
   · -- ∀ x ∈ s_better, HasFDerivWithinAt f_local (f'_local x) s_better x
     -- should follow almost by definition
-    intro x hx
-    let x' := (e.invFun ∘ I.invFun) x
+    intro xnew hx
+    let x' := (e.invFun ∘ I.invFun) xnew
     have : x' ∈ s := by
       have : (e.invFun ∘ I.invFun) '' s_better ⊆ s := by
         rw [hsbetter, inter_assoc]
         exact inter_subset_left s _
       refine this (mem_image_of_mem (e.invFun ∘ I.invFun) hx)
+    have haux : x' ∈ e.source := by
+      have : (e.invFun ∘ I.invFun) '' s_better ⊆ e.source := by
+        rw [hsbetter]
+        rw [inter_comm s, inter_assoc]
+        exact inter_subset_left _ _
+      refine this (mem_image_of_mem _ hx)
+
     specialize hf' x' this
-    -- TODO: missing API in mathlib, want something like
-    -- HasFDerivWithAt_iff_of_mem_maximalAtlas'; only have mdifferentiableWithinAt_iff_of_mem_source
-    sorry
+    have : HasMFDerivWithinAt I J f s x' (f' x') := hf'
+    -- TODO: would like something like HasFDerivWithAt_iff_of_mem_maximalAtlas';
+    -- TODO: upstream this to mathlib, only have mdifferentiableWithinAt_iff_of_mem_source
+
+    -- (0) f is differentiable (obvious; that derivative is even f')
+    have : MDifferentiableWithinAt I J f s x' := HasMFDerivWithinAt.mdifferentiableWithinAt hf'
+    -- (1) f_local is differentiable: use charts (after upgrading them to be preferred)
+    have h2 : f x' ∈ e'.source := by -- FIXME: all these argument can surely be consolidated!
+      have : f '' ((e.invFun ∘ I.invFun) '' s_better) ⊆ e'.source := calc
+        f '' ((e.invFun ∘ I.invFun) '' s_better)
+        _ = f '' (s ∩ e.source ∩ f ⁻¹' e'.source) := by rw [hsbetter]
+        _ ⊆ f '' (f ⁻¹' e'.source) := by
+          apply image_subset
+          exact inter_subset_right _ _
+        _ ⊆ e'.source := by exact image_preimage_subset f e'.source
+      refine this (mem_image_of_mem _ ?_)
+      exact mem_image_of_mem (e.invFun ∘ I.invFun) hx
+    obtain ⟨_, real⟩ := (mdifferentiableWithinAt_iff_of_mem_source (M := M) (M' := N) (f := f) haux h2).mp this
+    -- By defeq, we really have the following statement.
+    have : DifferentiableWithinAt ℝ f_local ((e.invFun ∘ I.invFun) ⁻¹' s ∩ range I) ((I ∘ e) x') := real
+    -- Let's rewrite to make more palatable.
+    have h1 : (I ∘ e) x' = xnew := by
+      calc (I ∘ e) x'
+        _ = (I ∘ e ∘ e.invFun ∘ I.invFun) xnew := rfl
+        _ = xnew := by sorry -- similar to chart_inverse_pointwise; xnew ∈ I∘e'(e.source) by def
+    have h3 : ((e.invFun ∘ I.invFun) ⁻¹' s) = (I ∘ e) '' s := sorry -- see ManifoldAux.lean, uses that s is contained in the source.
+    have : DifferentiableWithinAt ℝ f_local ((I ∘ e) '' ((s ∩ e.source ∩ f ⁻¹' e'.source))) xnew := by
+      rw [I.range_eq_univ, inter_univ, h1, h3] at this
+      apply this.mono
+      apply image_subset
+      rw [inter_assoc]
+      apply inter_subset_left _ _
+    -- (2) recover the differential, using fderiv
+    -- TODO: I don't see how to do this right now!
+    have goal : fderivWithin ℝ f_local (I ∘ e '' (s ∩ e.source ∩ f ⁻¹' e'.source)) xnew = f'_local xnew := by sorry
+    rw [← goal]
+    exact DifferentiableWithinAt.hasFDerivWithinAt this
   · -- ∀ x ∈ s_better, ¬Surjective ↑(f'_local x)
     intro x hx
     apply h'f' ((e.invFun ∘ I.invFun) x)
