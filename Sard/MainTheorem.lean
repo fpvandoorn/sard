@@ -235,26 +235,39 @@ theorem sard {f : M → N} (hf : ContMDiff I J r f)
     intro x hx
     have : f'_local = fderiv ℝ f_local := rfl -- reminder; can simplify previous section!
     rw [this]
-    -- f_local is a map from E to F, hence its fderiv equals its mfderiv
-    have : mfderiv (modelWithCornersSelf ℝ E) (modelWithCornersSelf ℝ F) f_local x = fderiv ℝ f_local x := mfderiv_eq_fderiv
-    let D := mfderiv (modelWithCornersSelf ℝ E) (modelWithCornersSelf ℝ F) f_local x
-    -- by definition, f_local is the composition (J ∘ e') ∘ f ∘ e.invFun ∘ I.invFun
-    -- hence, by the chain rule, its mfderiv is the composition of those
+    -- f_local is a map from E to F, hence its fderiv equals its mfderiv.
+    rw [← mfderiv_eq_fderiv]
+    set D := mfderiv (modelWithCornersSelf ℝ E) (modelWithCornersSelf ℝ F) f_local x
+    -- By definition, f_local is the composition (J ∘ e') ∘ f ∘ e.invFun ∘ I.invFun.
+    -- Hence, by the chain rule, its mfderiv is the composition of those.
     let A := mfderiv (modelWithCornersSelf ℝ E) I (e.invFun ∘ I.invFun) x
     let B := mfderiv I J f ((e.invFun ∘ I.invFun) x)
-    -- TODO: argue B is f', hy hypothesis
     let C := mfderiv J (modelWithCornersSelf ℝ F) (J ∘ e') ((f ∘ e.invFun ∘ I.invFun) x)
-    have : ((↑J ∘ ↑e') ((f ∘ e.invFun ∘ I.invFun) x)) = f_local x := sorry
-    let comp := C ∘ B ∘ A
-    -- this is essentially the same; just rewrite by this or so
-    let comp' : TangentSpace 𝓘(ℝ, E) x → TangentSpace 𝓘(ℝ, F) (f_local x) := sorry
-    -- have : D = C ∘ B ∘ A := sorry, except for this equality; use chain rule
 
-    -- the charts I ∘ e and J ∘ e' are diffeos, hences its differentials are isos
-    have : Bijective C := sorry
-    have : Bijective A := sorry
-    have : Surjective B ↔ Surjective comp := sorry -- apply
-    -- thus, we're done except for Lean issues
+    -- by the chain rule, D is essentially this composition
+    let comp := C ∘ B ∘ A
+    have : ((↑J ∘ ↑e') ((f ∘ e.invFun ∘ I.invFun) x)) = f_local x := sorry
+    -- have : D = comp := sorry -- not quite, though; not 100% sure why
+    --let comp' : TangentSpace 𝓘(ℝ, E) x → TangentSpace 𝓘(ℝ, F) (f_local x) := sorry
+
+    -- By hypothesis, B is not surjective.
+    let x' := (e.invFun ∘ I.invFun) x
+    have aux : x' ∈ s := by sorry -- shown above also
+    have : f' ((e.invFun ∘ I.invFun) x) = B := by rw [← (hf' x' aux).mfderiv]
+    have hBsurj : ¬ Surjective B := this ▸ h'f' _ aux
+
+    -- The charts I ∘ e and J ∘ e' are diffeos, hences their differentials are isomorphisms.
+    have hC : Bijective C := sorry
+    have hA : Bijective A := sorry
+    -- Thus, B is surjective iff `comp` is.
+    -- FUTURE: extract as lemma: df' is {injective,surjective} iff its composition in charts is.
+    have : Surjective B ↔ Surjective comp := by
+      have : comp = (C ∘ B) ∘ A := rfl
+      rw [this]
+      rw [hA.surjective.of_comp_iff (C ∘ B)]
+      rw [Surjective.of_comp_iff' hC B]
+    -- Thus, we're done except for Lean issues.
+    have : ¬Surjective comp := by rw [← this]; exact hBsurj
     sorry
 
 /-- **Sard's theorem**: let $M$ and $N$ be real $C^r$ manifolds of dimensions $m$ and $n$,
