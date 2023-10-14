@@ -105,6 +105,14 @@ theorem sard {f : M → N} (hf : ContMDiff I J r f)
   let f_local := (J ∘ e') ∘ f ∘ (e.invFun ∘ I.invFun)
   let f'_local := fun xnew ↦ fderiv ℝ f_local xnew
   -- "Obvious" computations from my data.
+  have hwopen : IsOpen w := by
+    refine extendedChart_isOpenMapOn_source I ?_ (inter_subset_left _ _)
+    exact e.open_source.inter (e'.open_source.preimage hf.continuous)
+  have hsw : s_better ⊆ w := by
+    apply image_subset
+    rw [inter_assoc]
+    apply inter_subset_right s _
+
   have cor : (e.invFun ∘ I.invFun ∘ I ∘ e) '' (s ∩ e.source ∩ f ⁻¹' e'.source) = s ∩ e.source ∩ f ⁻¹' e'.source := by
     rw [extendedChart_symm_leftInverse']
     rw [inter_comm s, inter_assoc]
@@ -115,6 +123,20 @@ theorem sard {f : M → N} (hf : ContMDiff I J r f)
         simp only [comp.assoc, image_comp]
       _ = (e.invFun ∘ I.invFun ∘ I ∘ e) '' (s ∩ e.source ∩ f ⁻¹' e'.source) := by simp only [comp.assoc, image_comp]
       _ = s ∩ e.source ∩ f ⁻¹' e'.source := cor
+  have hsbetter₁ : (e.invFun ∘ I.invFun) '' s_better ⊆ s := by
+    rw [hsbetter, inter_assoc]
+    exact inter_subset_left s _
+  have hsbetter₂ : (e.invFun ∘ I.invFun) '' s_better ⊆ e.source := by
+    rw [hsbetter]
+    rw [inter_comm s, inter_assoc]
+    exact inter_subset_left _ _
+  have hsbetter₃ : f '' ((e.invFun ∘ I.invFun) '' s_better) ⊆ e'.source := calc
+    f '' ((e.invFun ∘ I.invFun) '' s_better)
+    _ = f '' (s ∩ e.source ∩ f ⁻¹' e'.source) := by rw [hsbetter]
+    _ ⊆ f '' (f ⁻¹' e'.source) := by
+      apply image_subset
+      exact inter_subset_right _ _
+    _ ⊆ e'.source := by exact image_preimage_subset f e'.source
 
   have : J ∘ e' '' (e'.source ∩ f '' (e.source ∩ s)) = f_local '' s_better := by
     symm
@@ -145,26 +167,9 @@ theorem sard {f : M → N} (hf : ContMDiff I J r f)
     -- XXX: something like HasFDerivWithAt_iff_of_mem_maximalAtlas' would be super convenient
     intro xnew hx
     let x' := (e.invFun ∘ I.invFun) xnew
-    have hx'1 : x' ∈ s := by
-      have : (e.invFun ∘ I.invFun) '' s_better ⊆ s := by
-        rw [hsbetter, inter_assoc]
-        exact inter_subset_left s _
-      refine this (mem_image_of_mem (e.invFun ∘ I.invFun) hx)
-    have hx'2 : x' ∈ e.source := by
-      have : (e.invFun ∘ I.invFun) '' s_better ⊆ e.source := by
-        rw [hsbetter]
-        rw [inter_comm s, inter_assoc]
-        exact inter_subset_left _ _
-      refine this (mem_image_of_mem _ hx)
-    have hx'3 : f x' ∈ e'.source := by
-      have : f '' ((e.invFun ∘ I.invFun) '' s_better) ⊆ e'.source := calc
-        f '' ((e.invFun ∘ I.invFun) '' s_better)
-        _ = f '' (s ∩ e.source ∩ f ⁻¹' e'.source) := by rw [hsbetter]
-        _ ⊆ f '' (f ⁻¹' e'.source) := by
-          apply image_subset
-          exact inter_subset_right _ _
-        _ ⊆ e'.source := by exact image_preimage_subset f e'.source
-      exact this (mem_image_of_mem _ (mem_image_of_mem (e.invFun ∘ I.invFun) hx))
+    have hx'1 : x' ∈ s := hsbetter₁ (mem_image_of_mem _ hx)
+    have hx'2 : x' ∈ e.source := hsbetter₂ (mem_image_of_mem _ hx)
+    have hx'3 : f x' ∈ e'.source := hsbetter₃ (mem_image_of_mem _ (mem_image_of_mem _ hx))
     specialize hf' x' hx'1
     have : mfderiv I J f x' = f' x' := hf'.mfderiv
     rw [MDifferentiableAt.mfderiv, I.range_eq_univ] at this
@@ -176,22 +181,11 @@ theorem sard {f : M → N} (hf : ContMDiff I J r f)
       calc (I ∘ e) x'
         _ = (I ∘ e ∘ e.invFun ∘ I.invFun) xnew := rfl
         _ = xnew := by sorry -- similar to chart_inverse_pointwise; xnew ∈ I∘e'(e.source) by def
-    have : DifferentiableWithinAt ℝ f_local univ xnew := by
-      rw [I.range_eq_univ, h] at this
-      exact this
+    rw [I.range_eq_univ, h] at this
     have : HasFDerivWithinAt f_local (fderivWithin ℝ f_local univ xnew) univ xnew :=
       this.hasFDerivWithinAt
     rw [(fderivWithin_of_open isOpen_univ trivial)] at this
-    have h1 : IsOpen w := by
-      refine extendedChart_isOpenMapOn_source I ?_ (inter_subset_left _ _)
-      exact e.open_source.inter (e'.open_source.preimage hf.continuous)
-    have h2 : xnew ∈ w := by
-      have : s_better ⊆ w := by
-        apply image_subset
-        rw [inter_assoc]
-        apply inter_subset_right s _
-      exact this hx
-    exact (hasFDerivWithinAt_of_open h1 h2).mpr this
+    exact (hasFDerivWithinAt_of_open hwopen (hsw hx)).mpr this
     exact hf'.mdifferentiableAt
   · -- ∀ x ∈ s_better, ¬Surjective ↑(f'_local x)
     intro x hx
@@ -214,7 +208,7 @@ theorem sard {f : M → N} (hf : ContMDiff I J r f)
 
     -- By hypothesis, B is not surjective.
     let x' := (e.invFun ∘ I.invFun) x
-    have aux : x' ∈ s := by sorry -- shown above also
+    have aux : x' ∈ s := hsbetter₁ (mem_image_of_mem _ hx)
     have : f' ((e.invFun ∘ I.invFun) x) = B := by rw [← (hf' x' aux).mfderiv]
     have hBsurj : ¬ Surjective B := this ▸ h'f' _ aux
 
