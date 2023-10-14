@@ -72,6 +72,10 @@ theorem sard_local' {s w : Set E} {f : E → F} (hw : IsOpen w) (hs : IsClosed s
   have : IsSigmaCompact (f '' s) := this.image_of_continuousOn (hf.continuousOn.mono hsw)
   exact meagre_of_sigma_compact_null this ass
 
+-- morally similar to fderivWithin_of_open; either obvious or missing API
+lemma hasFDerivWithinAt_of_open {s : Set E} {x : E} (h : IsOpen s) (hx : x ∈ s) {f : E → F} {f' : E →L[ℝ] F}:
+    HasFDerivWithinAt f f' s x ↔ HasFDerivWithinAt f f' univ x := sorry
+
 /-- **Sard's theorem**. Let $M$ and $N$ be real $C^r$ manifolds of dimensions
 $m$ and $n$, and $f : M → N$ a $C^r$ map. If $r>\max{0, m-n}$,
 the set of regular values of `f` has full measure.
@@ -99,7 +103,7 @@ theorem sard {f : M → N} (hf : ContMDiff I J r f)
   let w := I ∘ e '' (e.source ∩ f ⁻¹' e'.source)
   let s_better := I ∘ e '' (s ∩ e.source ∩ f ⁻¹' e'.source)
   let f_local := (J ∘ e') ∘ f ∘ (e.invFun ∘ I.invFun)
-  let f'_local : E → E →L[ℝ] F := fun x ↦ f' ((e.invFun ∘ I.invFun) x)
+  let f'_local := fun xnew ↦ fderiv ℝ f_local xnew
   -- "Obvious" computations from my data.
   have cor : (e.invFun ∘ I.invFun ∘ I ∘ e) '' (s ∩ e.source ∩ f ⁻¹' e'.source) = s ∩ e.source ∩ f ⁻¹' e'.source := by
     rw [extendedChart_symm_leftInverse']
@@ -136,34 +140,63 @@ theorem sard {f : M → N} (hf : ContMDiff I J r f)
     have h2s : MapsTo f (e.source ∩ f ⁻¹' e'.source) e'.source :=
       (mapsTo_preimage f e'.source).mono_left (inter_subset_right _ _)
     exact (contMDiffOn_iff_of_mem_maximalAtlas' (n := r) he he' hs h2s).mp hf.contMDiffOn
-  · -- ∀ x ∈ s_better, HasFDerivWithinAt f_local (f'_local x) s_better x
-    -- should be easy, **once** I have the right definition!
-    -- seems I've found an API hole (or I'm doing it wrong)
-    -- TODO: something like HasFDerivWithAt_iff_of_mem_maximalAtlas' would be super convenient
+  · -- ∀ x ∈ s_better, HasFDerivWithinAt f_local (f'_local_new x) s_better x
+    -- XXX: there is not much happening here, can this be simplified??
     intro xnew hx
     let x' := (e.invFun ∘ I.invFun) xnew
-    have : x' ∈ s := by
-      have : (e.invFun ∘ I.invFun) '' s_better ⊆ s := by
-        rw [hsbetter, inter_assoc]
-        exact inter_subset_left s _
-      refine this (mem_image_of_mem (e.invFun ∘ I.invFun) hx)
-    have haux : x' ∈ e.source := by
-      have : (e.invFun ∘ I.invFun) '' s_better ⊆ e.source := by
-        rw [hsbetter]
-        rw [inter_comm s, inter_assoc]
-        exact inter_subset_left _ _
-      refine this (mem_image_of_mem _ hx)
+    have hx'1 : x' ∈ s := by sorry -- doable, see below
+    have hx'2 : x' ∈ e.source := sorry -- doable, see below
+    have hx'3 : f x' ∈ e'.source := sorry -- doable, see below
+    specialize hf' x' hx'1
+    have : mfderiv I J f x' = f' x' := hf'.mfderiv
+    rw [MDifferentiableAt.mfderiv, I.range_eq_univ] at this
+    -- (1) f_local is differentiable as f is: use charts
+    obtain ⟨_, real⟩ := (mdifferentiableAt_iff_of_mem_source hx'2 hx'3).mp hf'.mdifferentiableAt
+    -- (2) recover the differential, using fderiv
+    have : DifferentiableWithinAt ℝ f_local (range I) ((I ∘ e) x') := real
+    have h : (I ∘ e) x' = xnew := sorry -- doable, see below
+    have : DifferentiableWithinAt ℝ f_local univ xnew := by
+      rw [I.range_eq_univ, h] at this
+      exact this
+    have : HasFDerivWithinAt f_local (fderivWithin ℝ f_local univ xnew) univ xnew :=
+      this.hasFDerivWithinAt
+    rw [(fderivWithin_of_open isOpen_univ trivial)] at this
+    have h1 : IsOpen w := sorry
+    have h2 : xnew ∈ w := sorry
+    exact (hasFDerivWithinAt_of_open h1 h2).mpr this
+    exact hf'.mdifferentiableAt
+    -- XXX: something like HasFDerivWithAt_iff_of_mem_maximalAtlas' would be super convenient
+    -- have : x' ∈ s := by
+    --   have : (e.invFun ∘ I.invFun) '' s_better ⊆ s := by
+    --     rw [hsbetter, inter_assoc]
+    --     exact inter_subset_left s _
+    --   refine this (mem_image_of_mem (e.invFun ∘ I.invFun) hx)
+    -- have haux : x' ∈ e.source := by
+    --   have : (e.invFun ∘ I.invFun) '' s_better ⊆ e.source := by
+    --     rw [hsbetter]
+    --     rw [inter_comm s, inter_assoc]
+    --     exact inter_subset_left _ _
+    --   refine this (mem_image_of_mem _ hx)
 
-    specialize hf' x' this
-    have : mfderiv I J f x' = f' x' := HasMFDerivAt.mfderiv hf'
-    -- Rewrite using local charts.
-    have h : extChartAt I x' = I ∘ (chartAt H x') := rfl
-    rw [MDifferentiableAt.mfderiv, h, I.range_eq_univ] at this
-    let mye := chartAt H x'
-    have this' : fderivWithin ℝ (writtenInExtChartAt I J x' f) univ ((I ∘ chartAt H x') x') = f' x' := this
-    -- This is *almost* what we want: except that we'd like to have chart e instead of mye.
-    sorry
-    sorry
+    -- -- Rewrite using local charts.
+    -- have h : extChartAt I x' = I ∘ (chartAt H x') := rfl
+    -- rw [MDifferentiableAt.mfderiv, h, I.range_eq_univ] at this
+    -- let mye := chartAt H x'
+    -- have this' : fderivWithin ℝ (writtenInExtChartAt I J x' f) univ ((I ∘ chartAt H x') x') = f' x' := this
+    -- -- This is *almost* what we want: except that we'd like to have chart e instead of mye.
+    -- sorry
+    -- sorry
+    -- specialize hf' x' this
+    -- have : UniqueMDiffWithinAt I s x' := sorry -- obvious, **once** I've found the right setup
+    -- have : mfderivWithin I J f s x' = f' x' := HasMFDerivWithinAt.mfderivWithin hf' this
+    -- -- Rewrite using local charts.
+    -- have h : extChartAt I x' = I ∘ (chartAt H x') := rfl
+    -- rw [MDifferentiableWithinAt.mfderivWithin, h, I.range_eq_univ, inter_univ] at this
+    -- let mye := chartAt H x'
+    -- have this' : fderivWithin ℝ (writtenInExtChartAt I J x' f) (mye.invFun ∘ I.invFun ⁻¹' s) ((I ∘ chartAt H x') x') = f' x' := this
+    -- -- This is *almost* what we want: except that we'd like to have chart e instead of mye.
+    -- sorry
+    -- sorry
     -- -- All the boilerplate: things reduce to a statement about Fréchet derivatives.
     -- -- (0) f is differentiable (obvious; that derivative is even f')
     -- have : MDifferentiableWithinAt I J f s x' := HasMFDerivWithinAt.mdifferentiableWithinAt hf'
@@ -199,13 +232,30 @@ theorem sard {f : M → N} (hf : ContMDiff I J r f)
     -- rw [← goal]
     -- exact DifferentiableWithinAt.hasFDerivWithinAt this
   · -- ∀ x ∈ s_better, ¬Surjective ↑(f'_local x)
+    intro x hx
+    have : f'_local = fderiv ℝ f_local := rfl -- reminder; can simplify previous section!
+    rw [this]
+    -- f_local is a map from E to F, hence its fderiv equals its mfderiv
+    have : mfderiv (modelWithCornersSelf ℝ E) (modelWithCornersSelf ℝ F) f_local x = fderiv ℝ f_local x := mfderiv_eq_fderiv
+    let D := mfderiv (modelWithCornersSelf ℝ E) (modelWithCornersSelf ℝ F) f_local x
+    -- by definition, f_local is the composition (J ∘ e') ∘ f ∘ e.invFun ∘ I.invFun
+    -- hence, by the chain rule, its mfderiv is the composition of those
+    let A := mfderiv (modelWithCornersSelf ℝ E) I (e.invFun ∘ I.invFun) x
+    let B := mfderiv I J f ((e.invFun ∘ I.invFun) x)
+    -- TODO: argue B is f', hy hypothesis
+    let C := mfderiv J (modelWithCornersSelf ℝ F) (J ∘ e') ((f ∘ e.invFun ∘ I.invFun) x)
+    have : ((↑J ∘ ↑e') ((f ∘ e.invFun ∘ I.invFun) x)) = f_local x := sorry
+    let comp := C ∘ B ∘ A
+    -- this is essentially the same; just rewrite by this or so
+    let comp' : TangentSpace 𝓘(ℝ, E) x → TangentSpace 𝓘(ℝ, F) (f_local x) := sorry
+    -- have : D = C ∘ B ∘ A := sorry, except for this equality; use chain rule
+
+    -- the charts I ∘ e and J ∘ e' are diffeos, hences its differentials are isos
+    have : Bijective C := sorry
+    have : Bijective A := sorry
+    have : Surjective B ↔ Surjective comp := sorry -- apply
+    -- thus, we're done except for Lean issues
     sorry
-    -- intro x hx
-    -- apply h'f' ((e.invFun ∘ I.invFun) x)
-    -- have : (e.invFun ∘ I.invFun) x ∈ s ∩ e.source ∩ f ⁻¹' e'.source :=
-    --   hsbetter ▸ mem_image_of_mem (e.invFun ∘ I.invFun) hx
-    -- rw [inter_assoc] at this
-    -- exact mem_of_mem_inter_left this
 
 /-- **Sard's theorem**: let $M$ and $N$ be real $C^r$ manifolds of dimensions $m$ and $n$,
 and $f:M→N$ a $C^r$ map. If $r>\max{0, m-n}$, the critical set is meagre. -/
