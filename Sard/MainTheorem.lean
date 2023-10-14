@@ -43,7 +43,7 @@ lemma image_measure_zero_of_C1_dimension_increase' {g : E → F} {U : Set E} (hU
 /-- Local version of Sard's theorem. If $W ⊆ ℝ^m$ is open and $f: W → ℝ^n$ is $C^r$,
 the set of critical values has measure zero. -/
 theorem sard_local {s w : Set E} {f : E → F} (hw : IsOpen w) (hsw : s ⊆ w)
-    (hf : ContDiffOn ℝ r f w) {f' : E → E →L[ℝ] F} (hf' : ∀ x ∈ s, HasFDerivWithinAt f (f' x) s x)
+    (hf : ContDiffOn ℝ r f w) {f' : E → E →L[ℝ] F} (hf' : ∀ x ∈ s, HasFDerivWithinAt f (f' x) w x)
     (h'f' : ∀ x ∈ s, ¬ Surjective (f' x)) (μ : Measure F) [IsAddHaarMeasure μ] :
     μ (f '' s) = 0 := by
   by_cases hyp: m < n
@@ -61,7 +61,7 @@ the set of critical values of `f` is a meagre set.
 We phrase this for any closed set `s` of critical points of `f`; this is fine
 as the critical set of `f` is closed. -/
 theorem sard_local' {s w : Set E} {f : E → F} (hw : IsOpen w) (hs : IsClosed s) (hsw : s ⊆ w)
-    (hf : ContDiffOn ℝ r f w) {f' : E → E →L[ℝ] F} (hf' : ∀ x ∈ s, HasFDerivWithinAt f (f' x) s x)
+    (hf : ContDiffOn ℝ r f w) {f' : E → E →L[ℝ] F} (hf' : ∀ x ∈ s, HasFDerivWithinAt f (f' x) w x)
     (h'f' : ∀ x ∈ s, ¬ Surjective (f' x)) : IsMeagre (f '' s) := by
   obtain ⟨K''⟩ : Nonempty (PositiveCompacts F) := PositiveCompacts.nonempty'
   let μ : Measure F := addHaarMeasure K''
@@ -84,7 +84,7 @@ $f\in C^1$ is not sufficient any more: Whitney (1957) constructed a C¹ function
 $$f : ℝ² → ℝ$$ whose set of critical values contains an open set, thus has positive measure. -/
 theorem sard {f : M → N} (hf : ContMDiff I J r f)
     {f' : ∀x, TangentSpace I x →L[ℝ] TangentSpace J (f x)} {s : Set M}
-    (hf' : ∀ x ∈ s, HasMFDerivWithinAt I J f s x (f' x))
+    (hf' : ∀ x ∈ s, HasMFDerivAt I J f x (f' x))
     (h'f' : ∀ x ∈ s, ¬ Surjective (f' x)) : MeasureZero J (f '' s) := by
   suffices hyp : ∀ x : M, MeasureZero J (f '' ((chartAt H x).source ∩ s)) from
     MeasureZero.measure_zero_image_iff_chart_domains (J := J) hyp
@@ -155,13 +155,12 @@ theorem sard {f : M → N} (hf : ContMDiff I J r f)
       refine this (mem_image_of_mem _ hx)
 
     specialize hf' x' this
-    have : UniqueMDiffWithinAt I s x' := sorry -- obvious, **once** I've found the right setup
-    have : mfderivWithin I J f s x' = f' x' := HasMFDerivWithinAt.mfderivWithin hf' this
+    have : mfderiv I J f x' = f' x' := HasMFDerivAt.mfderiv hf'
     -- Rewrite using local charts.
     have h : extChartAt I x' = I ∘ (chartAt H x') := rfl
-    rw [MDifferentiableWithinAt.mfderivWithin, h, I.range_eq_univ, inter_univ] at this
+    rw [MDifferentiableAt.mfderiv, h, I.range_eq_univ] at this
     let mye := chartAt H x'
-    have this' : fderivWithin ℝ (writtenInExtChartAt I J x' f) (mye.invFun ∘ I.invFun ⁻¹' s) ((I ∘ chartAt H x') x') = f' x' := this
+    have this' : fderivWithin ℝ (writtenInExtChartAt I J x' f) univ ((I ∘ chartAt H x') x') = f' x' := this
     -- This is *almost* what we want: except that we'd like to have chart e instead of mye.
     sorry
     sorry
@@ -200,19 +199,20 @@ theorem sard {f : M → N} (hf : ContMDiff I J r f)
     -- rw [← goal]
     -- exact DifferentiableWithinAt.hasFDerivWithinAt this
   · -- ∀ x ∈ s_better, ¬Surjective ↑(f'_local x)
-    intro x hx
-    apply h'f' ((e.invFun ∘ I.invFun) x)
-    have : (e.invFun ∘ I.invFun) x ∈ s ∩ e.source ∩ f ⁻¹' e'.source :=
-      hsbetter ▸ mem_image_of_mem (e.invFun ∘ I.invFun) hx
-    rw [inter_assoc] at this
-    exact mem_of_mem_inter_left this
+    sorry
+    -- intro x hx
+    -- apply h'f' ((e.invFun ∘ I.invFun) x)
+    -- have : (e.invFun ∘ I.invFun) x ∈ s ∩ e.source ∩ f ⁻¹' e'.source :=
+    --   hsbetter ▸ mem_image_of_mem (e.invFun ∘ I.invFun) hx
+    -- rw [inter_assoc] at this
+    -- exact mem_of_mem_inter_left this
 
 /-- **Sard's theorem**: let $M$ and $N$ be real $C^r$ manifolds of dimensions $m$ and $n$,
 and $f:M→N$ a $C^r$ map. If $r>\max{0, m-n}$, the critical set is meagre. -/
 -- FIXME: do I really need N to be Hausdorff? For the local result, I don't...
 theorem sard' {f : M → N} (hf : ContMDiff I J r f) [T2Space N]
     {f' : ∀x, TangentSpace I x →L[ℝ] TangentSpace J (f x)} {s : Set M} (hs : IsClosed s)
-    (hf' : ∀ x ∈ s, HasMFDerivWithinAt I J f s x (f' x))
+    (hf' : ∀ x ∈ s, HasMFDerivAt I J f x (f' x))
     (h'f' : ∀ x ∈ s, ¬ Surjective (f' x)) : IsMeagre (f '' s) := by
   -- M is second countable and locally compact (as finite-dimensional), hence σ-compact.
   have : IsSigmaCompact s := isSigmaCompact_univ.of_isClosed_subset hs (subset_univ s)
