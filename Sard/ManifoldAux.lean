@@ -50,22 +50,15 @@ section ModelsWithCorners -- add to `SmoothManifoldWithCorners.lean`
 theorem ModelWithCorners.leftInverse' : I.invFun ∘ I = id := funext I.leftInverse
 
 /-- If I is boundaryless, it is an open embedding. -/
-theorem ModelWithCorners.openEmbedding [I.Boundaryless] : OpenEmbedding I :=
+theorem ModelWithCorners.toOpenEmbedding [I.Boundaryless] : OpenEmbedding I :=
   I.toHomeomorph.openEmbedding
 
-theorem ModelWithCorners.openEmbedding_symm [I.Boundaryless] : OpenEmbedding I.symm :=
+theorem ModelWithCorners.toOpenEmbedding_symm [I.Boundaryless] : OpenEmbedding I.symm :=
   I.toHomeomorph.symm.openEmbedding
 end ModelsWithCorners
 
--- XXX: can this be golfed?
-lemma chart_inverse {t : Set M} {e : LocalHomeomorph M H} (ht: t ⊆ e.source) :
-    (e.invFun ∘ I.invFun ∘ I ∘ e) '' t = t := by
-  calc (e.invFun ∘ I.invFun ∘ I ∘ e) '' t
-    _ = e.invFun ∘ (I.invFun ∘ I) ∘ e '' t := by simp only [comp.assoc]
-    _ = (e.invFun ∘ e) '' t := by rw [I.leftInverse', left_id]
-    _ = t := funext_on (fun ⟨x, hxt⟩ ↦ e.left_inv' (ht hxt))
-
-lemma chart_inverse_pointwise {e : LocalHomeomorph M H} {x : M} (hx: x ∈ e.source) :
+/-- If `I ∘ e` is an extended chart, `(I ∘ e).symm` is a left inverse to `I ∘ e` on `e.source`. -/
+lemma extendedChart_symm_leftInverse {e : LocalHomeomorph M H} {x : M} (hx: x ∈ e.source) :
     (e.invFun ∘ I.invFun ∘ I ∘ e) x = x := by
   -- what's the best proof? I know two options!
   -- have : e.invFun ∘ I.invFun ∘ I ∘ e = e.invFun ∘ e := by calc
@@ -74,23 +67,33 @@ lemma chart_inverse_pointwise {e : LocalHomeomorph M H} {x : M} (hx: x ∈ e.sou
   -- rw [this]
   -- exact LocalHomeomorph.left_inv e hx
   simp_all only [LocalEquiv.invFun_as_coe, LocalHomeomorph.coe_coe_symm,
-    ModelWithCorners.toLocalEquiv_coe_symm, comp_apply, ModelWithCorners.left_inv, LocalHomeomorph.left_inv]
+    ModelWithCorners.toLocalEquiv_coe_symm, comp_apply, ModelWithCorners.left_inv,
+    LocalHomeomorph.left_inv]
 
--- xxx need a better name!
-lemma chartFull_isOpenMapOn_source [I.Boundaryless] {e : LocalHomeomorph M H}
+-- XXX: can this be golfed?
+/-- If `I ∘ e` is an extended chart, `(I ∘ e).symm` is a left inverse to `I ∘ e`:
+  stated for subsets of `e.source`. -/
+lemma extendedChart_symm_leftInverse' {t : Set M} {e : LocalHomeomorph M H} (ht: t ⊆ e.source) :
+    (e.invFun ∘ I.invFun ∘ I ∘ e) '' t = t := by
+  calc (e.invFun ∘ I.invFun ∘ I ∘ e) '' t
+    _ = e.invFun ∘ (I.invFun ∘ I) ∘ e '' t := by simp only [comp.assoc]
+    _ = (e.invFun ∘ e) '' t := by rw [I.leftInverse', left_id]
+    _ = t := funext_on (fun ⟨x, hxt⟩ ↦ e.left_inv' (ht hxt))
+
+lemma extendedChart_isOpenMapOn_source [I.Boundaryless] {e : LocalHomeomorph M H}
     {s : Set M} (hopen : IsOpen s) (hs : s ⊆ e.source) : IsOpen (I ∘ e '' s) := by
   -- As M has no boundary, I is a homeomorphism from H to E, hence an open embedding.
   simp only [image_comp I e]
-  apply (I.openEmbedding.open_iff_image_open).mp (e.isOpenMapOn_source hopen hs)
+  apply (I.toOpenEmbedding.open_iff_image_open).mp (e.isOpenMapOn_source hopen hs)
 
-lemma chartFull_image_nhds_on [I.Boundaryless] {e : LocalHomeomorph M H} {x : M} {n : Set M}
+lemma extendedChart_image_nhds_on [I.Boundaryless] {e : LocalHomeomorph M H} {x : M} {n : Set M}
     (hn : n ∈ 𝓝 x) (hn₂ : n ⊆ e.source) : I ∘ e '' n ∈ 𝓝 ((I ∘ e) x) := by
   rw [image_comp]
-  exact IsOpenMap.image_mem_nhds I.openEmbedding.isOpenMap (e.image_mem_nhds_on hn hn₂)
+  exact IsOpenMap.image_mem_nhds I.toOpenEmbedding.isOpenMap (e.image_mem_nhds_on hn hn₂)
 
-lemma chartFull_isOpenMapOn_target [I.Boundaryless] {e : LocalHomeomorph M H} {t : Set E}
+lemma extendedChart_isOpenMapOn_target [I.Boundaryless] {e : LocalHomeomorph M H} {t : Set E}
     (hopen : IsOpen t) (ht : t ⊆ I '' (e.target)) : IsOpen (e.invFun ∘ I.invFun '' t) := by
-  have h : IsOpen (I.invFun '' t) := I.openEmbedding_symm.open_iff_image_open.mp hopen
+  have h : IsOpen (I.invFun '' t) := I.toOpenEmbedding_symm.open_iff_image_open.mp hopen
   have : I.invFun '' t ⊆ e.target := by
     calc I.invFun '' t
       _ ⊆ I.invFun '' (I '' (e.target)) := by apply image_subset _ ht
@@ -111,7 +114,7 @@ lemma localCompactness_aux [FiniteDimensional ℝ E] (hI : ModelWithCorners.Boun
   -- Apply the chart to obtain a neighbourhood of (I∘e)(x) ∈ E.
   let x' : E := (I ∘ chart) x
   let n' := (I ∘ chart) '' (n ∩ chart.source)
-  have hn' : n' ∈ 𝓝 x' := chartFull_image_nhds_on _ hn (inter_subset_right n chart.source)
+  have hn' : n' ∈ 𝓝 x' := extendedChart_image_nhds_on _ hn (inter_subset_right n chart.source)
   -- Since E is locally compact, x' has a compact neighbourhood s' ⊆ n'.
   have h : LocallyCompactSpace E := by infer_instance
   rcases h.local_compact_nhds x' n' hn' with ⟨s', hs', hsn', hscompact⟩
@@ -127,14 +130,14 @@ lemma localCompactness_aux [FiniteDimensional ℝ E] (hI : ModelWithCorners.Boun
   · rcases mem_nhds_iff.mp hs' with ⟨t', ht's', ht'open, hxt'⟩
     rw [mem_nhds_iff]
     refine ⟨(chart.invFun ∘ I.invFun) '' t', image_subset _ ht's', ?_, ?_⟩
-    · apply chartFull_isOpenMapOn_target _ ht'open (Subset.trans ht's' hsmall)
-    · have : (chart.invFun ∘ I.invFun) x' = x := chart_inverse_pointwise _ (mem_chart_source H x)
+    · apply extendedChart_isOpenMapOn_target _ ht'open (Subset.trans ht's' hsmall)
+    · have : (chart.invFun ∘ I.invFun) x' = x := extendedChart_symm_leftInverse _ (mem_chart_source H x)
       exact this ▸ mem_image_of_mem (chart.invFun ∘ I.invFun) hxt'
   · calc s
       _ ⊆ chart.invFun ∘ I.invFun '' n' := image_subset (chart.invFun ∘ I.invFun) hsn'
       _ = (chart.invFun ∘ I.invFun ∘ I ∘ chart) '' (n ∩ chart.source) := by
         simp only [image_comp, comp.assoc]
-      _ = n ∩ chart.source := chart_inverse _ (inter_subset_right n chart.source)
+      _ = n ∩ chart.source := extendedChart_symm_leftInverse' _ (inter_subset_right n chart.source)
       _ ⊆ n := inter_subset_left n chart.source
   · apply IsCompact.image_of_continuousOn hscompact
     have : ContinuousOn chart.invFun (I.invFun '' s') := by
@@ -148,14 +151,15 @@ lemma localCompactness_aux [FiniteDimensional ℝ E] (hI : ModelWithCorners.Boun
 -- TODO: what's the right way to make this an instance?
 /-- A finite-dimensional manifold without boundary is locally compact. -/
 -- TODO: allow boundary; needs a new argument for the boundary points.
-lemma SmoothManifoldWithCorners.locallyCompact_ofFiniteDimensional_boundaryless
+lemma SmoothManifoldWithCorners.locallyCompact_of_finiteDimensional_of_boundaryless
     [FiniteDimensional ℝ E] (hI : ModelWithCorners.Boundaryless I) : LocallyCompactSpace M := by
   exact { local_compact_nhds := fun x n hn ↦ localCompactness_aux I hI hn }
 
 -- TODO: add hypotheses, once I figure out the right incantation to add them!
 /-- A finite-dimensional second-countable manifold without boundary is σ-compact. -/
 instance [SecondCountableTopology M]
+  /- [SmoothManifoldWithCorners I M] and all the other things -/
   /- [FiniteDimensional ℝ E] (hI : ModelWithCorners.Boundaryless I)-/ : SigmaCompactSpace M := by
   have : LocallyCompactSpace M := by
-    sorry -- should be: SmoothManifoldWithCorners.locallyCompact_ofFiniteDimensional_boundaryless I hI
+    sorry -- should be: SmoothManifoldWithCorners.locallyCompact_of_finiteDimensional_of_boundaryless I hI
   apply sigmaCompactSpace_of_locally_compact_second_countable

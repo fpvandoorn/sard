@@ -102,7 +102,7 @@ theorem sard {f : M → N} (hf : ContMDiff I J r f)
   let f'_local : E → E →L[ℝ] F := fun x ↦ f' ((e.invFun ∘ I.invFun) x)
   -- "Obvious" computations from my data.
   have cor : (e.invFun ∘ I.invFun ∘ I ∘ e) '' (s ∩ e.source ∩ f ⁻¹' e'.source) = s ∩ e.source ∩ f ⁻¹' e'.source := by
-    rw [chart_inverse]
+    rw [extendedChart_symm_leftInverse']
     rw [inter_comm s, inter_assoc]
     apply inter_subset_left
   have hsbetter : e.invFun ∘ I.invFun '' s_better = s ∩ e.source ∩ f ⁻¹' e'.source := by
@@ -125,7 +125,7 @@ theorem sard {f : M → N} (hf : ContMDiff I J r f)
   apply sard_local hr (w := w) (s := s_better) (f := f_local) (f' := f'_local) (μ := μ)
   · have : IsOpen (e.source ∩ f ⁻¹' e'.source) :=
       IsOpen.inter e.open_source (e'.open_source.preimage hf.continuous)
-    apply chartFull_isOpenMapOn_source _ this (inter_subset_left e.source _)
+    apply extendedChart_isOpenMapOn_source _ this (inter_subset_left e.source _)
   · apply image_subset (↑I ∘ ↑e)
     rw [inter_assoc]
     exact inter_subset_right s (e.source ∩ f ⁻¹' e'.source)
