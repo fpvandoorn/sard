@@ -2,6 +2,7 @@ import Sard.LocallyLipschitz
 import Sard.ManifoldAux
 import Sard.MeasureZero
 import Mathlib.Topology.MetricSpace.HausdorffDimension
+import Mathlib.Geometry.Manifold.Diffeomorph
 
 open ENNReal NNReal FiniteDimensional Function Manifold MeasureTheory Measure Set
   SmoothManifoldWithCorners TopologicalSpace Topology LocallyLipschitz
@@ -74,7 +75,7 @@ theorem sard_local' {s w : Set E} {f : E → F} (hw : IsOpen w) (hs : IsClosed s
 
 -- morally similar to fderivWithin_of_open; either obvious or missing API
 lemma hasFDerivWithinAt_of_open {s : Set E} {x : E} (h : IsOpen s) (hx : x ∈ s) {f : E → F} {f' : E →L[ℝ] F}:
-    HasFDerivWithinAt f f' s x ↔ HasFDerivWithinAt f f' univ x := sorry
+    HasFDerivWithinAt f f' s x ↔ HasFDerivAt f f' x := sorry
 
 /-- **Sard's theorem**. Let $M$ and $N$ be real $C^r$ manifolds of dimensions
 $m$ and $n$, and $f : M → N$ a $C^r$ map. If $r>\max{0, m-n}$,
@@ -103,7 +104,6 @@ theorem sard {f : M → N} (hf : ContMDiff I J r f)
   let w := I ∘ e '' (e.source ∩ f ⁻¹' e'.source)
   let s_better := I ∘ e '' (s ∩ e.source ∩ f ⁻¹' e'.source)
   let f_local := (J ∘ e') ∘ f ∘ (e.invFun ∘ I.invFun)
-  let f'_local := fun xnew ↦ fderiv ℝ f_local xnew
   -- "Obvious" computations from my data.
   have hwopen : IsOpen w := by
     refine extendedChart_isOpenMapOn_source I ?_ (inter_subset_left _ _)
@@ -112,6 +112,10 @@ theorem sard {f : M → N} (hf : ContMDiff I J r f)
     apply image_subset
     rw [inter_assoc]
     apply inter_subset_right s _
+  have hsbetter₀ : s_better ⊆ I ∘ e '' e.source := by
+    apply image_subset
+    rw [inter_comm s, inter_assoc]
+    exact inter_subset_left _ _
 
   have cor : (e.invFun ∘ I.invFun ∘ I ∘ e) '' (s ∩ e.source ∩ f ⁻¹' e'.source) = s ∩ e.source ∩ f ⁻¹' e'.source := by
     rw [extendedChart_symm_leftInverse']
@@ -123,6 +127,7 @@ theorem sard {f : M → N} (hf : ContMDiff I J r f)
         simp only [comp.assoc, image_comp]
       _ = (e.invFun ∘ I.invFun ∘ I ∘ e) '' (s ∩ e.source ∩ f ⁻¹' e'.source) := by simp only [comp.assoc, image_comp]
       _ = s ∩ e.source ∩ f ⁻¹' e'.source := cor
+  -- Inclusions about s_better, which are needed at some point in the proofs below.
   have hsbetter₁ : (e.invFun ∘ I.invFun) '' s_better ⊆ s := by
     rw [hsbetter, inter_assoc]
     exact inter_subset_left s _
@@ -148,7 +153,7 @@ theorem sard {f : M → N} (hf : ContMDiff I J r f)
       _ = J ∘ e' '' (f '' (e.source ∩ s) ∩ e'.source) := by rw [image_inter_preimage f _ _]
       _ = J ∘ e' '' (e'.source ∩ f '' (e.source ∩ s)) := by rw [inter_comm]
   rw [this]
-  apply sard_local hr (w := w) (s := s_better) (f := f_local) (f' := f'_local) (μ := μ)
+  apply sard_local hr (w := w) (s := s_better) (f := f_local) (f' := fderiv ℝ f_local) (μ := μ)
   · have : IsOpen (e.source ∩ f ⁻¹' e'.source) :=
       IsOpen.inter e.open_source (e'.open_source.preimage hf.continuous)
     apply extendedChart_isOpenMapOn_source _ this (inter_subset_left e.source _)
@@ -162,8 +167,8 @@ theorem sard {f : M → N} (hf : ContMDiff I J r f)
     have h2s : MapsTo f (e.source ∩ f ⁻¹' e'.source) e'.source :=
       (mapsTo_preimage f e'.source).mono_left (inter_subset_right _ _)
     exact (contMDiffOn_iff_of_mem_maximalAtlas' (n := r) he he' hs h2s).mp hf.contMDiffOn
-  · -- ∀ x ∈ s_better, HasFDerivWithinAt f_local (f'_local_new x) s_better x
-    -- XXX: there is not much happening here, can this be simplified??
+  · -- ∀ x ∈ s_better, HasFDerivWithinAt f_local (fderiv ℝ f_local x) s_better x
+    -- XXX: there's not much happening, surely this can be golfed!
     -- XXX: something like HasFDerivWithAt_iff_of_mem_maximalAtlas' would be super convenient
     intro xnew hx
     let x' := (e.invFun ∘ I.invFun) xnew
@@ -171,26 +176,16 @@ theorem sard {f : M → N} (hf : ContMDiff I J r f)
     have hx'2 : x' ∈ e.source := hsbetter₂ (mem_image_of_mem _ hx)
     have hx'3 : f x' ∈ e'.source := hsbetter₃ (mem_image_of_mem _ (mem_image_of_mem _ hx))
     specialize hf' x' hx'1
-    have : mfderiv I J f x' = f' x' := hf'.mfderiv
-    rw [MDifferentiableAt.mfderiv, I.range_eq_univ] at this
     -- (1) f_local is differentiable as f is: use charts
     obtain ⟨_, real⟩ := (mdifferentiableAt_iff_of_mem_source hx'2 hx'3).mp hf'.mdifferentiableAt
+    rw [I.range_eq_univ, differentiableWithinAt_univ] at real
     -- (2) recover the differential, using fderiv
-    have : DifferentiableWithinAt ℝ f_local (range I) ((I ∘ e) x') := real
-    have h : (I ∘ e) x' = xnew := by
-      calc (I ∘ e) x'
-        _ = (I ∘ e ∘ e.invFun ∘ I.invFun) xnew := rfl
-        _ = xnew := by sorry -- similar to chart_inverse_pointwise; xnew ∈ I∘e'(e.source) by def
-    rw [I.range_eq_univ, h] at this
-    have : HasFDerivWithinAt f_local (fderivWithin ℝ f_local univ xnew) univ xnew :=
-      this.hasFDerivWithinAt
-    rw [(fderivWithin_of_open isOpen_univ trivial)] at this
-    exact (hasFDerivWithinAt_of_open hwopen (hsw hx)).mpr this
-    exact hf'.mdifferentiableAt
-  · -- ∀ x ∈ s_better, ¬Surjective ↑(f'_local x)
+    have : DifferentiableAt ℝ f_local ((I ∘ e) x') := real
+    have h : (I ∘ e) x' = xnew := extendedChart_leftInverse _ (hsbetter₀ hx)
+    rw [h] at this
+    exact (hasFDerivWithinAt_of_open hwopen (hsw hx)).mpr this.hasFDerivAt
+  · -- ∀ x ∈ s_better, ¬Surjective (fderiv ℝ f_local x)
     intro x hx
-    have : f'_local = fderiv ℝ f_local := rfl -- reminder; can simplify previous section!
-    rw [this]
     -- f_local is a map from E to F, hence its fderiv equals its mfderiv.
     rw [← mfderiv_eq_fderiv]
     set D := mfderiv (modelWithCornersSelf ℝ E) (modelWithCornersSelf ℝ F) f_local x
@@ -200,12 +195,10 @@ theorem sard {f : M → N} (hf : ContMDiff I J r f)
     let B := mfderiv I J f ((e.invFun ∘ I.invFun) x)
     let C := mfderiv J (modelWithCornersSelf ℝ F) (J ∘ e') ((f ∘ e.invFun ∘ I.invFun) x)
 
-    -- by the chain rule, D is essentially this composition
+    -- By the chain rule, D is essentially this composition.
     let comp := C ∘ B ∘ A
-    have : ((J ∘ e') ((f ∘ e.invFun ∘ I.invFun) x)) = f_local x := rfl
-    -- have : D = comp := sorry -- not quite, though; not 100% sure why
-    --let comp' : TangentSpace 𝓘(ℝ, E) x → TangentSpace 𝓘(ℝ, F) (f_local x) := sorry
-
+    -- have : ((J ∘ e') ((f ∘ e.invFun ∘ I.invFun) x)) = f_local x := rfl
+    -- have : D = comp := sorry -- doesn't typecheck; not 100% sure why
     -- By hypothesis, B is not surjective.
     let x' := (e.invFun ∘ I.invFun) x
     have aux : x' ∈ s := hsbetter₁ (mem_image_of_mem _ hx)
@@ -213,6 +206,8 @@ theorem sard {f : M → N} (hf : ContMDiff I J r f)
     have hBsurj : ¬ Surjective B := this ▸ h'f' _ aux
 
     -- The charts I ∘ e and J ∘ e' are diffeos, hences their differentials are isomorphisms.
+    -- lemmas for this are missing from mathlib, though.
+    have : Diffeomorph J (modelWithCornersSelf ℝ F) N F r := sorry -- e.invFun ∘ I.invFun
     have hC : Bijective C := sorry
     have hA : Bijective A := sorry
     -- Thus, B is surjective iff `comp` is.

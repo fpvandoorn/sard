@@ -57,6 +57,34 @@ theorem ModelWithCorners.toOpenEmbedding_symm [I.Boundaryless] : OpenEmbedding I
   I.toHomeomorph.symm.openEmbedding
 end ModelsWithCorners
 
+lemma extendedChart_leftInverse [I.Boundaryless] {e : LocalHomeomorph M H}
+    {x : E} (hx: x ∈ (I ∘ e) '' e.source) : (I ∘ e ∘ e.invFun ∘ I.invFun) x = x := by
+  have : I.invFun x ∈ e.target := by
+    simp_rw [← e.image_source_eq_target]
+    rcases hx with ⟨y, hy, hyx⟩
+    rw [← hyx]
+    simp only [comp_apply, LocalEquiv.invFun_as_coe,
+        ModelWithCorners.toLocalEquiv_coe_symm, ModelWithCorners.left_inv]
+    exact mem_image_of_mem _ hy
+  have aux : ∀ y : H, y ∈ e.target → (e ∘ e.invFun) y = y := by -- XXX: nicer proof?
+    intro y hy
+    simp_all only [comp_apply, mem_image, LocalEquiv.invFun_as_coe,
+      ModelWithCorners.toLocalEquiv_coe_symm, LocalHomeomorph.coe_coe_symm, LocalHomeomorph.right_inv]
+  have aux2 : ∀ x : E, (I ∘ I.invFun) x = x := by -- extract into separate lemma?
+    intro x
+    refine ModelWithCorners.right_inv I ?hx
+    rw [I.range_eq_univ]
+    exact trivial
+  calc (I ∘ e ∘ e.invFun ∘ I.invFun) x
+    _ = I ((e ∘ e.invFun) (I.invFun x)) := rfl
+    _ = I (I.invFun x) := by simp_rw [aux (I.invFun x) this]
+    _ = (I ∘ I.invFun) x := rfl
+    _ = x := aux2 x
+
+-- might be useful for completeness; proof skipped; the above contains all necessary ingredients
+lemma unused_extendedChart_leftInverse' {e : LocalHomeomorph M H} {t : Set E} (ht: t ⊆ (I ∘ e) '' e.source) :
+    (I ∘ e ∘ e.invFun ∘ I.invFun) '' t = t := by sorry
+
 /-- If `I ∘ e` is an extended chart, `(I ∘ e).symm` is a left inverse to `I ∘ e` on `e.source`. -/
 lemma extendedChart_symm_leftInverse {e : LocalHomeomorph M H} {x : M} (hx: x ∈ e.source) :
     (e.invFun ∘ I.invFun ∘ I ∘ e) x = x := by

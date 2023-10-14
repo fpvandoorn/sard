@@ -40,7 +40,7 @@ That said, help is very welcome! Feel free to make a PR filling in some sorry, o
     - [ ] show the ae filter is induced from the charts
     - [ ] perhaps not all of these are truly required
 - [x] state Sard's theorem: formalised
-- [ ] reduce to a local statement: almost done (one sorry, related to missing API in mathlib)
+- [ ] reduce to a local statement: mostly done (remaining sorries are missing API in mathlib)
 - [x] "easy" case of Sard: if $\dim{M}<\dim{N}$: essentially done
 - [ ] "hard" case of Sard: $\dim{M}\geq\dim{N}$: open, not started yet
   - [ ] show $\Sigma_1$ (in Hirsch's proof) has measure zero
