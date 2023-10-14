@@ -1,4 +1,5 @@
 import Mathlib.Geometry.Manifold.MFDeriv
+import Mathlib.Geometry.Manifold.Diffeomorph
 
 /-!
 # Additional lemmas about smooth manifolds
@@ -108,6 +109,18 @@ lemma extendedChart_symm_leftInverse' {t : Set M} {e : LocalHomeomorph M H} (ht:
     _ = (e.invFun ∘ e) '' t := by rw [I.leftInverse', left_id]
     _ = t := funext_on (fun ⟨x, hxt⟩ ↦ e.left_inv' (ht hxt))
 
+lemma extendedChart_LeftInvOn (e : LocalHomeomorph M H) :
+    LeftInvOn (e.invFun ∘ I.invFun) (I ∘ e) e.source :=
+  fun _ hx ↦ extendedChart_symm_leftInverse I hx
+
+lemma extendedChart_RightInvOn [I.Boundaryless] (e : LocalHomeomorph M H) :
+    RightInvOn (e.invFun ∘ I.invFun) (I ∘ e) (I '' e.target) := by
+  intro x hx
+  refine extendedChart_leftInverse I ?hx
+  have : I '' e.target = I '' (e '' e.source) := by rw [e.image_source_eq_target]
+  rw [image_comp, ← this]
+  exact hx
+
 lemma extendedChart_isOpenMapOn_source [I.Boundaryless] {e : LocalHomeomorph M H}
     {s : Set M} (hopen : IsOpen s) (hs : s ⊆ e.source) : IsOpen (I ∘ e '' s) := by
   -- As M has no boundary, I is a homeomorphism from H to E, hence an open embedding.
@@ -119,7 +132,7 @@ lemma extendedChart_image_nhds_on [I.Boundaryless] {e : LocalHomeomorph M H} {x 
   rw [image_comp]
   exact IsOpenMap.image_mem_nhds I.toOpenEmbedding.isOpenMap (e.image_mem_nhds_on hn hn₂)
 
-lemma extendedChart_isOpenMapOn_target [I.Boundaryless] {e : LocalHomeomorph M H} {t : Set E}
+lemma extendedChart_symm_isOpenMapOn_target [I.Boundaryless] {e : LocalHomeomorph M H} {t : Set E}
     (hopen : IsOpen t) (ht : t ⊆ I '' (e.target)) : IsOpen (e.invFun ∘ I.invFun '' t) := by
   have h : IsOpen (I.invFun '' t) := I.toOpenEmbedding_symm.open_iff_image_open.mp hopen
   have : I.invFun '' t ⊆ e.target := by
@@ -158,7 +171,7 @@ lemma localCompactness_aux [FiniteDimensional ℝ E] (hI : ModelWithCorners.Boun
   · rcases mem_nhds_iff.mp hs' with ⟨t', ht's', ht'open, hxt'⟩
     rw [mem_nhds_iff]
     refine ⟨(chart.invFun ∘ I.invFun) '' t', image_subset _ ht's', ?_, ?_⟩
-    · apply extendedChart_isOpenMapOn_target _ ht'open (Subset.trans ht's' hsmall)
+    · apply extendedChart_symm_isOpenMapOn_target _ ht'open (Subset.trans ht's' hsmall)
     · have : (chart.invFun ∘ I.invFun) x' = x := extendedChart_symm_leftInverse _ (mem_chart_source H x)
       exact this ▸ mem_image_of_mem (chart.invFun ∘ I.invFun) hxt'
   · calc s
@@ -191,3 +204,37 @@ instance [SecondCountableTopology M]
   have : LocallyCompactSpace M := by
     sorry -- should be: SmoothManifoldWithCorners.locallyCompact_of_finiteDimensional_of_boundaryless I hI
   apply sigmaCompactSpace_of_locally_compact_second_countable
+
+section ChartsLocalDiffeos
+-- Let `N` be a smooth manifold over the pair `(F, G)`.
+variable {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F] {G : Type*} [TopologicalSpace G]
+  (J : ModelWithCorners ℝ F G) {N : Type*} [TopologicalSpace N] [ChartedSpace G N]
+  [SmoothManifoldWithCorners J N] {r : ℕ} (hr : 1 ≤ r)
+
+lemma bijective_iff_inverses {X Y : Type*} {f : X → Y} {g : Y → X} (h1 : g ∘ f = id) (h2 : f ∘ g = id) :
+    Bijective f :=
+  ⟨LeftInverse.injective (congrFun h1), LeftInverse.surjective (congrFun h2)⟩
+
+-- FIXME: surely this can be golfed?
+lemma bijective_iff_inverses' {X Y : Type*} [NormedAddCommGroup X] [NormedSpace ℝ X]
+    [NormedAddCommGroup Y] [NormedSpace ℝ Y] {f : X →L[ℝ] Y} {g : Y →L[ℝ] X}
+    (h1 : g.comp f = ContinuousLinearMap.id ℝ X) (h2 : f.comp g = ContinuousLinearMap.id ℝ Y) : Bijective f := by
+  have h : f.toFun ∘ g.toFun = id := calc f.toFun ∘ g.toFun
+    _ = (f.comp g).toFun := rfl
+    _ = (ContinuousLinearMap.id ℝ Y).toFun := by rw [h2]
+    _ = id := rfl
+  have : g.toFun ∘ f.toFun = id := by calc g.toFun ∘ f.toFun
+    _ = (g.comp f).toFun := rfl
+    _ = (ContinuousLinearMap.id ℝ X).toFun := by rw [h1]
+    _ = id := rfl
+  exact bijective_iff_inverses this h
+
+-- morally similar to fderivWithin_of_open; either obvious or missing API
+lemma hasFDerivWithinAt_of_open {s : Set E} {x : E} (h : IsOpen s) (hx : x ∈ s) {f : E → F} {f' : E →L[ℝ] F}:
+    HasFDerivWithinAt f f' s x ↔ HasFDerivAt f f' x := sorry
+
+-- similar to fderivWith_of_open; seems to be missing
+lemma mfderivWithin_of_open {s : Set M} {x : M} (h : IsOpen s) (hx : x ∈ s) {f : M → N} :
+  mfderiv I J f x = mfderivWithin I J f s x := sorry
+
+end ChartsLocalDiffeos

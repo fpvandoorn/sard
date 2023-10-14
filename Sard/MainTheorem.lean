@@ -73,10 +73,6 @@ theorem sard_local' {s w : Set E} {f : E → F} (hw : IsOpen w) (hs : IsClosed s
   have : IsSigmaCompact (f '' s) := this.image_of_continuousOn (hf.continuousOn.mono hsw)
   exact meagre_of_sigma_compact_null this ass
 
--- morally similar to fderivWithin_of_open; either obvious or missing API
-lemma hasFDerivWithinAt_of_open {s : Set E} {x : E} (h : IsOpen s) (hx : x ∈ s) {f : E → F} {f' : E →L[ℝ] F}:
-    HasFDerivWithinAt f f' s x ↔ HasFDerivAt f f' x := sorry
-
 /-- **Sard's theorem**. Let $M$ and $N$ be real $C^r$ manifolds of dimensions
 $m$ and $n$, and $f : M → N$ a $C^r$ map. If $r>\max{0, m-n}$,
 the set of regular values of `f` has full measure.
@@ -194,7 +190,6 @@ theorem sard {f : M → N} (hf : ContMDiff I J r f)
     let A := mfderiv (modelWithCornersSelf ℝ E) I (e.invFun ∘ I.invFun) x
     let B := mfderiv I J f ((e.invFun ∘ I.invFun) x)
     let C := mfderiv J (modelWithCornersSelf ℝ F) (J ∘ e') ((f ∘ e.invFun ∘ I.invFun) x)
-
     -- By the chain rule, D is essentially this composition.
     let comp := C ∘ B ∘ A
     -- have : ((J ∘ e') ((f ∘ e.invFun ∘ I.invFun) x)) = f_local x := rfl
@@ -206,7 +201,58 @@ theorem sard {f : M → N} (hf : ContMDiff I J r f)
     have hBsurj : ¬ Surjective B := this ▸ h'f' _ aux
 
     -- The charts I ∘ e and J ∘ e' are diffeos, hences their differentials are isomorphisms.
-    -- lemmas for this are missing from mathlib, though.
+    let A' := mfderiv I (modelWithCornersSelf ℝ E) (I ∘ e) ((e.invFun ∘ I.invFun) x)
+    save
+    have : 1 ≤ (r : ℕ∞) := Nat.one_le_cast.mpr (Nat.one_le_of_lt hr)
+    have easy1 : e.source ∈ 𝓝 ((e.invFun ∘ I.invFun) x) := sorry
+    have easy2 : I '' e.target ∈ 𝓝 x := sorry
+    have h1 : IsOpen (I '' e.target) := sorry -- proven above
+    have h2 : x ∈ I '' e.target := sorry -- also easy
+
+    -- TODO: these are missing currently
+    -- show these are Structomorph instances first, then deduce this
+    have pre1 : ContMDiffOn I (modelWithCornersSelf ℝ E) r (I ∘ e) e.source := sorry
+    have pre2 : ContMDiffOn (modelWithCornersSelf ℝ E) I r (e.invFun ∘ I.invFun) (I '' e.target) := sorry
+    have aux1 : MDifferentiableAt I (modelWithCornersSelf ℝ E) (I ∘ e) ((e.invFun ∘ I.invFun) x) :=
+      (pre1.contMDiffAt easy1).mdifferentiableAt this
+    have aux2 : MDifferentiableAt (modelWithCornersSelf ℝ E) I (e.invFun ∘ I.invFun) x :=
+      (pre2.contMDiffAt easy2).mdifferentiableAt this
+    save
+    have comp := calc A'.comp A
+      _ = mfderiv (modelWithCornersSelf ℝ E) (modelWithCornersSelf ℝ E) ((I ∘ e) ∘ (e.invFun ∘ I.invFun)) x :=
+        (mfderiv_comp x aux1 aux2).symm
+      _ = mfderivWithin (modelWithCornersSelf ℝ E) (modelWithCornersSelf ℝ E) ((I ∘ e) ∘ (e.invFun ∘ I.invFun)) (I '' e.target) x := by
+          exact mfderivWithin_of_open (J := modelWithCornersSelf ℝ E) (f := ((I ∘ e) ∘ (e.invFun ∘ I.invFun))) (modelWithCornersSelf ℝ E) h1 h2
+      _ = mfderivWithin (modelWithCornersSelf ℝ E) (modelWithCornersSelf ℝ E) id (I '' e.target) x := by
+        -- separate lemma: if f and g agree on an open subset, their differentials agree
+        -- use UniqueMDiffOn.eq and I '' e.target being open
+        sorry
+      _ = mfderiv (modelWithCornersSelf ℝ E) (modelWithCornersSelf ℝ E) id x := by
+        symm
+        exact mfderivWithin_of_open (J := modelWithCornersSelf ℝ E) (f := id) (modelWithCornersSelf ℝ E) h1 h2
+      _ = ContinuousLinearMap.id ℝ (TangentSpace 𝓘(ℝ, E) x) := mfderiv_id (modelWithCornersSelf ℝ E)
+    save
+
+    have comp2 := calc A.comp A'
+      _ = mfderiv I I ((e.invFun ∘ I.invFun) ∘ (I ∘ e)) ((e.invFun ∘ I.invFun) x) := by
+        -- rewrite base point first, then function and use chain rule
+        have : ∀ x : E, x ∈ I '' e.target → ((I ∘ e) ∘ (e.invFun ∘ I.invFun)) x = x := sorry -- shown above
+        sorry --(mfderiv_comp ((e.invFun ∘ I.invFun) x) aux2 aux1).symm
+
+      _ = mfderivWithin I I ((e.invFun ∘ I.invFun) ∘ (I ∘ e)) e.source ((e.invFun ∘ I.invFun) x) := by
+        sorry
+        -- exact mfderivWithin_of_open (J := modelWithCornersSelf ℝ E) (f := ((I ∘ e) ∘ (e.invFun ∘ I.invFun))) (modelWithCornersSelf ℝ E) h1 h2
+      _ = mfderivWithin I I id e.source ((e.invFun ∘ I.invFun) x) := sorry -- unique argument, same as before
+      _ = mfderiv I I id ((e.invFun ∘ I.invFun) x) := sorry
+      _ = ContinuousLinearMap.id ℝ (TangentSpace I ((e.invFun ∘ I.invFun) x)) := mfderiv_id I
+
+    -- then deduce that A is bijective
+
+
+
+
+    -- Lemmas for this are missing from mathlib, though.
+    -- more conceptual: phrase this in terms of Structomorph
     have : Diffeomorph J (modelWithCornersSelf ℝ F) N F r := sorry -- e.invFun ∘ I.invFun
     have hC : Bijective C := sorry
     have hA : Bijective A := sorry
