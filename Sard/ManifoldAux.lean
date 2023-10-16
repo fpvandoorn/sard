@@ -59,14 +59,8 @@ theorem ModelWithCorners.toOpenEmbedding_symm [I.Boundaryless] : OpenEmbedding I
 end ModelsWithCorners
 
 lemma extendedChart_leftInverse [I.Boundaryless] {e : LocalHomeomorph M H}
-    {x : E} (hx: x ∈ (I ∘ e) '' e.source) : (I ∘ e ∘ e.invFun ∘ I.invFun) x = x := by
-  have : I.invFun x ∈ e.target := by
-    simp_rw [← e.image_source_eq_target]
-    rcases hx with ⟨y, hy, hyx⟩
-    rw [← hyx]
-    simp only [comp_apply, LocalEquiv.invFun_as_coe,
-        ModelWithCorners.toLocalEquiv_coe_symm, ModelWithCorners.left_inv]
-    exact mem_image_of_mem _ hy
+    {x : E} (hx: x ∈ I ∘ e '' e.source) : (I ∘ e ∘ e.invFun ∘ I.invFun) x = x := by
+  have : I.invFun x ∈ e.target := by aesop
   have aux : ∀ y : H, y ∈ e.target → (e ∘ e.invFun) y = y := by -- XXX: nicer proof?
     intro y hy
     simp_all only [comp_apply, mem_image, LocalEquiv.invFun_as_coe,
@@ -114,12 +108,8 @@ lemma extendedChart_LeftInvOn (e : LocalHomeomorph M H) :
   fun _ hx ↦ extendedChart_symm_leftInverse I hx
 
 lemma extendedChart_RightInvOn [I.Boundaryless] (e : LocalHomeomorph M H) :
-    RightInvOn (e.invFun ∘ I.invFun) (I ∘ e) (I '' e.target) := by
-  intro x hx
-  refine extendedChart_leftInverse I ?hx
-  have : I '' e.target = I '' (e '' e.source) := by rw [e.image_source_eq_target]
-  rw [image_comp, ← this]
-  exact hx
+    RightInvOn (e.invFun ∘ I.invFun) (I ∘ e) (I ∘ e '' e.source) :=
+  fun _ hx ↦ extendedChart_leftInverse I hx
 
 lemma extendedChart_isOpenMapOn_source [I.Boundaryless] {e : LocalHomeomorph M H}
     {s : Set M} (hopen : IsOpen s) (hs : s ⊆ e.source) : IsOpen (I ∘ e '' s) := by

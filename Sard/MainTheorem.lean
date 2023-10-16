@@ -205,19 +205,16 @@ theorem sard {f : M → N} (hf : ContMDiff I J r f)
     have : 1 ≤ (r : ℕ∞) := Nat.one_le_cast.mpr (Nat.one_le_of_lt hr)
 
     have hx'source : x' ∈ e.source := hsbetter₂ (mem_image_of_mem _ hx)
-    have h1 : IsOpen (I '' e.target) := by
-      rw [← e.image_source_eq_target, ← image_comp]
-      apply extendedChart_isOpenMapOn_source I e.open_source (Eq.subset rfl)
-    have h2 : x ∈ I '' e.target := by
-      rw [← e.image_source_eq_target, ← image_comp]
-      exact hsbetter₀ hx
-    have _inv1 : ∀ x ∈ I '' e.target, ((I ∘ e) ∘ (e.invFun ∘ I.invFun)) x = x := sorry
+    have h1 : IsOpen (I ∘ e '' e.source) :=
+      extendedChart_isOpenMapOn_source I e.open_source (Eq.subset rfl)
+    have h2 : x ∈ I ∘ e '' e.source := hsbetter₀ hx
+    have _inv1 : ∀ x ∈ I ∘ e '' e.source, ((I ∘ e) ∘ (e.invFun ∘ I.invFun)) x = x := sorry
     have _inv2 : ∀ x ∈ e.source, ((e.invFun ∘ I.invFun) ∘ (I ∘ e)) x = x := sorry
 
     -- TODO: these are currently from mathlib
     -- show these are `Structomorph` instances first, then deduce the following statements
     have pre1 : ContMDiffOn I 𝓘(ℝ, E) r (I ∘ e) e.source := sorry
-    have pre2 : ContMDiffOn 𝓘(ℝ, E) I r (e.invFun ∘ I.invFun) (I '' e.target) := sorry
+    have pre2 : ContMDiffOn 𝓘(ℝ, E) I r (e.invFun ∘ I.invFun) (I ∘ e '' e.source) := sorry
     have aux1 : MDifferentiableAt I 𝓘(ℝ, E) (I ∘ e) x' :=
       (pre1.contMDiffAt (e.open_source.mem_nhds hx'source)).mdifferentiableAt this
     have aux2 : MDifferentiableAt 𝓘(ℝ, E) I (e.invFun ∘ I.invFun) x :=
@@ -226,9 +223,9 @@ theorem sard {f : M → N} (hf : ContMDiff I J r f)
     have inv1 := calc A'.comp A
       _ = mfderiv 𝓘(ℝ, E) 𝓘(ℝ, E) ((I ∘ e) ∘ (e.invFun ∘ I.invFun)) x :=
           (mfderiv_comp x aux1 aux2).symm
-      _ = mfderivWithin 𝓘(ℝ, E) 𝓘(ℝ, E) ((I ∘ e) ∘ (e.invFun ∘ I.invFun)) (I '' e.target) x :=
-          mfderivWithin_of_open (J := 𝓘(ℝ, E)) (f := ((I ∘ e) ∘ (e.invFun ∘ I.invFun))) 𝓘(ℝ, E) h1 h2
-      _ = mfderivWithin 𝓘(ℝ, E) 𝓘(ℝ, E) id (I '' e.target) x :=
+      _ = mfderivWithin 𝓘(ℝ, E) 𝓘(ℝ, E) ((I ∘ e) ∘ (e.invFun ∘ I.invFun)) (I ∘ e '' e.source) x :=
+          sorry --mfderivWithin_of_open (J := 𝓘(ℝ, E)) (f := ((I ∘ e) ∘ (e.invFun ∘ I.invFun))) 𝓘(ℝ, E) h1 h2
+      _ = mfderivWithin 𝓘(ℝ, E) 𝓘(ℝ, E) id (I ∘ e '' e.source) x :=
           mfderiv_eq_on_open 𝓘(ℝ, E) 𝓘(ℝ, E) h1 h2 _inv1
       _ = mfderiv 𝓘(ℝ, E) 𝓘(ℝ, E) id x :=
           (mfderivWithin_of_open (J := 𝓘(ℝ, E)) (f := id) 𝓘(ℝ, E) h1 h2).symm
