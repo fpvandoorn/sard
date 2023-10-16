@@ -211,6 +211,22 @@ variable {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F] {G : Type*} [Top
   (J : ModelWithCorners ℝ F G) {N : Type*} [TopologicalSpace N] [ChartedSpace G N]
   [SmoothManifoldWithCorners J N] {r : ℕ} (hr : 1 ≤ r)
 
+-- morally similar to fderivWithin_of_open; either obvious or missing API
+lemma hasFDerivWithinAt_of_open {s : Set E} {x : E} (h : IsOpen s) (hx : x ∈ s) {f : E → F} {f' : E →L[ℝ] F}:
+    HasFDerivWithinAt f f' s x ↔ HasFDerivAt f f' x := sorry
+
+-- similar to fderivWith_of_open; seems to be missing
+lemma mfderivWithin_of_open {s : Set M} {x : M} (h : IsOpen s) (hx : x ∈ s) {f : M → N} :
+  mfderiv I J f x = mfderivWithin I J f s x := sorry
+
+/-- If two functions coincide on an open set containing `x`, their `mfderiv` at `x` are equal. -/
+-- presumably, can use `UniqueMDiffOn.eq`
+lemma mfderiv_eq_on_open {s : Set M} {x : M} (h : IsOpen s) (hs : x ∈ s) {f g : M → N}
+    (hf : ∀ x ∈ s, f x = g x) : mfderivWithin I J f s x = mfderivWithin I J g s x :=
+  sorry
+
+-----------------------------------------------
+
 lemma bijective_iff_inverses {X Y : Type*} {f : X → Y} {g : Y → X} (h1 : g ∘ f = id) (h2 : f ∘ g = id) :
     Bijective f :=
   ⟨LeftInverse.injective (congrFun h1), LeftInverse.surjective (congrFun h2)⟩
@@ -229,12 +245,12 @@ lemma bijective_iff_inverses' {X Y : Type*} [NormedAddCommGroup X] [NormedSpace 
     _ = id := rfl
   exact bijective_iff_inverses this h
 
--- morally similar to fderivWithin_of_open; either obvious or missing API
-lemma hasFDerivWithinAt_of_open {s : Set E} {x : E} (h : IsOpen s) (hx : x ∈ s) {f : E → F} {f' : E →L[ℝ] F}:
-    HasFDerivWithinAt f f' s x ↔ HasFDerivAt f f' x := sorry
-
--- similar to fderivWith_of_open; seems to be missing
-lemma mfderivWithin_of_open {s : Set M} {x : M} (h : IsOpen s) (hx : x ∈ s) {f : M → N} :
-  mfderiv I J f x = mfderivWithin I J f s x := sorry
+-- These are needed to apply `bijective_iff_inverses` to differentials:
+-- whose are defined an tangent spaces (which are not normed spaces per se).
+-- XXX: is there a nicer solution than abusing definitional equality like this?
+instance {x : E} : NormedAddCommGroup (TangentSpace 𝓘(ℝ, E) x) := inferInstanceAs (NormedAddCommGroup E)
+instance {x : E} : NormedSpace ℝ (TangentSpace 𝓘(ℝ, E) x) := inferInstanceAs (NormedSpace ℝ E)
+instance {x : M} : NormedAddCommGroup (TangentSpace I x) := inferInstanceAs (NormedAddCommGroup E)
+instance {x : M} : NormedSpace ℝ (TangentSpace I x) := inferInstanceAs (NormedSpace ℝ E)
 
 end ChartsLocalDiffeos

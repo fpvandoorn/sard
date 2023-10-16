@@ -184,12 +184,12 @@ theorem sard {f : M → N} (hf : ContMDiff I J r f)
     intro x hx
     -- f_local is a map from E to F, hence its fderiv equals its mfderiv.
     rw [← mfderiv_eq_fderiv]
-    set D := mfderiv (modelWithCornersSelf ℝ E) (modelWithCornersSelf ℝ F) f_local x
+    set D := mfderiv 𝓘(ℝ, E) (modelWithCornersSelf ℝ F) f_local x
     -- By definition, f_local is the composition (J ∘ e') ∘ f ∘ e.invFun ∘ I.invFun.
     -- Hence, by the chain rule, its mfderiv is the composition of those.
-    let A := mfderiv (modelWithCornersSelf ℝ E) I (e.invFun ∘ I.invFun) x
+    let A := mfderiv 𝓘(ℝ, E) I (e.invFun ∘ I.invFun) x
     let B := mfderiv I J f ((e.invFun ∘ I.invFun) x)
-    let C := mfderiv J (modelWithCornersSelf ℝ F) (J ∘ e') ((f ∘ e.invFun ∘ I.invFun) x)
+    let C := mfderiv J 𝓘(ℝ, F) (J ∘ e') ((f ∘ e.invFun ∘ I.invFun) x)
     -- By the chain rule, D is essentially this composition.
     let comp := C ∘ B ∘ A
     -- have : ((J ∘ e') ((f ∘ e.invFun ∘ I.invFun) x)) = f_local x := rfl
@@ -197,65 +197,58 @@ theorem sard {f : M → N} (hf : ContMDiff I J r f)
     -- By hypothesis, B is not surjective.
     let x' := (e.invFun ∘ I.invFun) x
     have aux : x' ∈ s := hsbetter₁ (mem_image_of_mem _ hx)
-    have : f' ((e.invFun ∘ I.invFun) x) = B := by rw [← (hf' x' aux).mfderiv]
+    have : f' x' = B := by rw [← (hf' x' aux).mfderiv]
     have hBsurj : ¬ Surjective B := this ▸ h'f' _ aux
 
     -- The charts I ∘ e and J ∘ e' are diffeos, hences their differentials are isomorphisms.
-    let A' := mfderiv I (modelWithCornersSelf ℝ E) (I ∘ e) ((e.invFun ∘ I.invFun) x)
-    save
+    let A' := mfderiv I 𝓘(ℝ, E) (I ∘ e) x'
     have : 1 ≤ (r : ℕ∞) := Nat.one_le_cast.mpr (Nat.one_le_of_lt hr)
-    have easy1 : e.source ∈ 𝓝 ((e.invFun ∘ I.invFun) x) := sorry
+    have easy1 : e.source ∈ 𝓝 x' := sorry
     have easy2 : I '' e.target ∈ 𝓝 x := sorry
-    have h1 : IsOpen (I '' e.target) := sorry -- proven above
+    have h1 : IsOpen (I '' e.target) := by
+      rw [← e.image_source_eq_target, ← image_comp]
+      apply extendedChart_isOpenMapOn_source I e.open_source (Eq.subset rfl)
     have h2 : x ∈ I '' e.target := sorry -- also easy
 
-    -- TODO: these are missing currently
-    -- show these are Structomorph instances first, then deduce this
-    have pre1 : ContMDiffOn I (modelWithCornersSelf ℝ E) r (I ∘ e) e.source := sorry
-    have pre2 : ContMDiffOn (modelWithCornersSelf ℝ E) I r (e.invFun ∘ I.invFun) (I '' e.target) := sorry
-    have aux1 : MDifferentiableAt I (modelWithCornersSelf ℝ E) (I ∘ e) ((e.invFun ∘ I.invFun) x) :=
+    have _inv1 : ∀ x ∈ I '' e.target, ((I ∘ e) ∘ (e.invFun ∘ I.invFun)) x = x := sorry
+    have _inv2 : ∀ x ∈ e.source, ((e.invFun ∘ I.invFun) ∘ (I ∘ e)) x = x := sorry
+
+    -- TODO: these are currently from mathlib
+    -- show these are `Structomorph` instances first, then deduce the following statements
+    have pre1 : ContMDiffOn I 𝓘(ℝ, E) r (I ∘ e) e.source := sorry
+    have pre2 : ContMDiffOn 𝓘(ℝ, E) I r (e.invFun ∘ I.invFun) (I '' e.target) := sorry
+    have aux1 : MDifferentiableAt I 𝓘(ℝ, E) (I ∘ e) x' :=
       (pre1.contMDiffAt easy1).mdifferentiableAt this
-    have aux2 : MDifferentiableAt (modelWithCornersSelf ℝ E) I (e.invFun ∘ I.invFun) x :=
+    have aux2 : MDifferentiableAt 𝓘(ℝ, E) I (e.invFun ∘ I.invFun) x :=
       (pre2.contMDiffAt easy2).mdifferentiableAt this
     save
-    have comp := calc A'.comp A
-      _ = mfderiv (modelWithCornersSelf ℝ E) (modelWithCornersSelf ℝ E) ((I ∘ e) ∘ (e.invFun ∘ I.invFun)) x :=
-        (mfderiv_comp x aux1 aux2).symm
-      _ = mfderivWithin (modelWithCornersSelf ℝ E) (modelWithCornersSelf ℝ E) ((I ∘ e) ∘ (e.invFun ∘ I.invFun)) (I '' e.target) x := by
-          exact mfderivWithin_of_open (J := modelWithCornersSelf ℝ E) (f := ((I ∘ e) ∘ (e.invFun ∘ I.invFun))) (modelWithCornersSelf ℝ E) h1 h2
-      _ = mfderivWithin (modelWithCornersSelf ℝ E) (modelWithCornersSelf ℝ E) id (I '' e.target) x := by
-        -- separate lemma: if f and g agree on an open subset, their differentials agree
-        -- use UniqueMDiffOn.eq and I '' e.target being open
-        sorry
-      _ = mfderiv (modelWithCornersSelf ℝ E) (modelWithCornersSelf ℝ E) id x := by
-        symm
-        exact mfderivWithin_of_open (J := modelWithCornersSelf ℝ E) (f := id) (modelWithCornersSelf ℝ E) h1 h2
-      _ = ContinuousLinearMap.id ℝ (TangentSpace 𝓘(ℝ, E) x) := mfderiv_id (modelWithCornersSelf ℝ E)
-    save
-
-    have comp2 := calc A.comp A'
-      _ = mfderiv I I ((e.invFun ∘ I.invFun) ∘ (I ∘ e)) ((e.invFun ∘ I.invFun) x) := by
-        -- rewrite base point first, then function and use chain rule
-        have : ∀ x : E, x ∈ I '' e.target → ((I ∘ e) ∘ (e.invFun ∘ I.invFun)) x = x := sorry -- shown above
-        sorry --(mfderiv_comp ((e.invFun ∘ I.invFun) x) aux2 aux1).symm
-
-      _ = mfderivWithin I I ((e.invFun ∘ I.invFun) ∘ (I ∘ e)) e.source ((e.invFun ∘ I.invFun) x) := by
-        sorry
-        -- exact mfderivWithin_of_open (J := modelWithCornersSelf ℝ E) (f := ((I ∘ e) ∘ (e.invFun ∘ I.invFun))) (modelWithCornersSelf ℝ E) h1 h2
-      _ = mfderivWithin I I id e.source ((e.invFun ∘ I.invFun) x) := sorry -- unique argument, same as before
-      _ = mfderiv I I id ((e.invFun ∘ I.invFun) x) := sorry
+    have inv1 := calc A'.comp A
+      _ = mfderiv 𝓘(ℝ, E) 𝓘(ℝ, E) ((I ∘ e) ∘ (e.invFun ∘ I.invFun)) x :=
+          (mfderiv_comp x aux1 aux2).symm
+      _ = mfderivWithin 𝓘(ℝ, E) 𝓘(ℝ, E) ((I ∘ e) ∘ (e.invFun ∘ I.invFun)) (I '' e.target) x :=
+          mfderivWithin_of_open (J := 𝓘(ℝ, E)) (f := ((I ∘ e) ∘ (e.invFun ∘ I.invFun))) 𝓘(ℝ, E) h1 h2
+      _ = mfderivWithin 𝓘(ℝ, E) 𝓘(ℝ, E) id (I '' e.target) x :=
+          mfderiv_eq_on_open 𝓘(ℝ, E) 𝓘(ℝ, E) h1 h2 _inv1
+      _ = mfderiv 𝓘(ℝ, E) 𝓘(ℝ, E) id x :=
+          (mfderivWithin_of_open (J := 𝓘(ℝ, E)) (f := id) 𝓘(ℝ, E) h1 h2).symm
+      _ = ContinuousLinearMap.id ℝ (TangentSpace 𝓘(ℝ, E) x) := mfderiv_id 𝓘(ℝ, E)
+    have inv2 := calc A.comp A'
+      _ = mfderiv I I ((e.invFun ∘ I.invFun) ∘ (I ∘ e)) x' := by
+          -- rewrite base point first, then rewrite function and use chain rule
+          sorry --(mfderiv_comp ((e.invFun ∘ I.invFun) x) aux2 aux1).symm
+      _ = mfderivWithin I I ((e.invFun ∘ I.invFun) ∘ (I ∘ e)) e.source x' :=
+          mfderivWithin_of_open (J := I) I e.open_source (hsbetter₂ (mem_image_of_mem _ hx))
+      _ = mfderivWithin I I id e.source x' :=
+          mfderiv_eq_on_open I I e.open_source (hsbetter₂ (mem_image_of_mem _ hx)) _inv2
+      _ = mfderiv I I id x' :=
+          (mfderivWithin_of_open (J := I) I e.open_source (hsbetter₂ (mem_image_of_mem _ hx))).symm
       _ = ContinuousLinearMap.id ℝ (TangentSpace I ((e.invFun ∘ I.invFun) x)) := mfderiv_id I
+    save
+    -- Thus, A is bijective.
+    have hA : Bijective A := bijective_iff_inverses' inv1 inv2
 
-    -- then deduce that A is bijective
-
-
-
-
-    -- Lemmas for this are missing from mathlib, though.
-    -- more conceptual: phrase this in terms of Structomorph
-    have : Diffeomorph J (modelWithCornersSelf ℝ F) N F r := sorry -- e.invFun ∘ I.invFun
+    -- Bijectivity of C is similar.
     have hC : Bijective C := sorry
-    have hA : Bijective A := sorry
     -- Thus, B is surjective iff `comp` is.
     -- FUTURE: extract as lemma: df' is {injective,surjective} iff its composition in charts is.
     have : Surjective B ↔ Surjective comp := by
