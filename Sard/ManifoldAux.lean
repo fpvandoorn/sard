@@ -199,7 +199,7 @@ section ChartsLocalDiffeos
 -- Let `N` be a smooth manifold over the pair `(F, G)`.
 variable {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F] {G : Type*} [TopologicalSpace G]
   (J : ModelWithCorners ℝ F G) {N : Type*} [TopologicalSpace N] [ChartedSpace G N]
-  [SmoothManifoldWithCorners J N] {r : ℕ} (hr : 1 ≤ r)
+  [SmoothManifoldWithCorners J N]
 
 -- morally similar to fderivWithin_of_open; either obvious or missing API
 lemma hasFDerivWithinAt_of_open {s : Set E} {x : E} (h : IsOpen s) (hx : x ∈ s) {f : E → F} {f' : E →L[ℝ] F}:
@@ -242,5 +242,57 @@ instance {x : E} : NormedAddCommGroup (TangentSpace 𝓘(ℝ, E) x) := inferInst
 instance {x : E} : NormedSpace ℝ (TangentSpace 𝓘(ℝ, E) x) := inferInstanceAs (NormedSpace ℝ E)
 instance {x : M} : NormedAddCommGroup (TangentSpace I x) := inferInstanceAs (NormedAddCommGroup E)
 instance {x : M} : NormedSpace ℝ (TangentSpace I x) := inferInstanceAs (NormedSpace ℝ E)
+
+lemma extendedChart_symm_differential_bijective [SmoothManifoldWithCorners I M] [I.Boundaryless]
+    {e : LocalHomeomorph M H} {x : E} (hx : x ∈ I ∘ e '' e.source):
+    Bijective (mfderiv 𝓘(ℝ, E) I (e.invFun ∘ I.invFun) x) := by
+  set A := mfderiv 𝓘(ℝ, E) I (e.invFun ∘ I.invFun) x
+  let x' := (e.invFun ∘ I.invFun) x
+  have hx'x : (I ∘ e) x' = x := extendedChart_leftInverse _ hx
+  have hx'source : x' ∈ e.source := by
+    rcases hx with ⟨s, hs, hsx⟩
+    have h : x' = (e.invFun ∘ I.invFun) x := rfl
+    have : (e.invFun ∘ I.invFun) ((↑I ∘ ↑e) s) = s := extendedChart_symm_leftInverse _ hs
+    rw [h, ← hsx, this]
+    exact hs
+  let A' := mfderiv I 𝓘(ℝ, E) (I ∘ e) x'
+  have hopen : IsOpen (I ∘ e '' e.source) :=
+      extendedChart_isOpenMapOn_source I e.open_source (Eq.subset rfl)
+  -- TODO: these are currently missing from mathlib
+  -- show these are `Structomorph` instances first, then deduce the following statements
+  have pre1 : ContMDiffOn I 𝓘(ℝ, E) 1 (I ∘ e) e.source := sorry
+  have pre2 : ContMDiffOn 𝓘(ℝ, E) I 1 (e.invFun ∘ I.invFun) (I ∘ e '' e.source) := sorry
+  have aux1 : MDifferentiableAt I 𝓘(ℝ, E) (I ∘ e) x' :=
+    (pre1.contMDiffAt (e.open_source.mem_nhds hx'source)).mdifferentiableAt (Eq.le rfl)
+  have aux2 : MDifferentiableAt 𝓘(ℝ, E) I (e.invFun ∘ I.invFun) x :=
+      (pre2.contMDiffAt (hopen.mem_nhds hx)).mdifferentiableAt (Eq.le rfl)
+
+  have inv1 := calc A'.comp A
+    _ = mfderiv 𝓘(ℝ, E) 𝓘(ℝ, E) ((I ∘ e) ∘ (e.invFun ∘ I.invFun)) x :=
+        (mfderiv_comp x aux1 aux2).symm
+    _ = mfderivWithin 𝓘(ℝ, E) 𝓘(ℝ, E) ((I ∘ e) ∘ (e.invFun ∘ I.invFun)) (I ∘ e '' e.source) x :=
+        mfderivWithin_of_open 𝓘(ℝ, E) 𝓘(ℝ, E) hopen hx
+    _ = mfderivWithin 𝓘(ℝ, E) 𝓘(ℝ, E) id (I ∘ e '' e.source) x :=
+        mfderiv_eq_on_open 𝓘(ℝ, E) 𝓘(ℝ, E) hopen hx (fun _ hx ↦ extendedChart_leftInverse I hx)
+    _ = mfderiv 𝓘(ℝ, E) 𝓘(ℝ, E) id x :=
+        (mfderivWithin_of_open 𝓘(ℝ, E) 𝓘(ℝ, E) hopen hx).symm
+    _ = ContinuousLinearMap.id ℝ (TangentSpace 𝓘(ℝ, E) x) := mfderiv_id 𝓘(ℝ, E)
+  have inv2 := calc A.comp A'
+    _ = mfderiv I I ((e.invFun ∘ I.invFun) ∘ (I ∘ e)) x' := by
+        -- Use the chain rule: rewrite the base point (I ∘ e ∘ e.invFun ∘ I.invFun) x = x, ...
+        rw [← (extendedChart_leftInverse I hx)] at aux2
+        let r := mfderiv_comp ((e.invFun ∘ I.invFun) x) aux2 aux1
+        -- ... but also the points x and x' under the map.
+        have : x' = (e.invFun ∘ I.invFun) x := rfl
+        rw [← this, hx'x] at r
+        exact r.symm
+    _ = mfderivWithin I I ((e.invFun ∘ I.invFun) ∘ (I ∘ e)) e.source x' :=
+        mfderivWithin_of_open I I e.open_source hx'source
+    _ = mfderivWithin I I id e.source x' :=
+        mfderiv_eq_on_open I I e.open_source hx'source (fun _ hx ↦ extendedChart_symm_leftInverse I hx)
+    _ = mfderiv I I id x' :=
+        (mfderivWithin_of_open I I e.open_source hx'source).symm
+    _ = ContinuousLinearMap.id ℝ (TangentSpace I ((e.invFun ∘ I.invFun) x)) := mfderiv_id I
+  exact bijective_iff_inverses' inv1 inv2
 
 end ChartsLocalDiffeos

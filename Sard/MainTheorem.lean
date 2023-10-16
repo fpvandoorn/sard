@@ -196,56 +196,12 @@ theorem sard {f : M → N} (hf : ContMDiff I J r f)
     -- have : D = comp := sorry -- doesn't typecheck; not 100% sure why
     -- By hypothesis, B is not surjective.
     let x' := (e.invFun ∘ I.invFun) x
-    have hx'x : (I ∘ e) x' = x := extendedChart_leftInverse _ (hsbetter₀ hx)
     have aux : x' ∈ s := hsbetter₁ (mem_image_of_mem _ hx)
     have : f' x' = B := by rw [← (hf' x' aux).mfderiv]
     have hBsurj : ¬ Surjective B := this ▸ h'f' _ aux
-
     -- The charts I ∘ e and J ∘ e' are diffeos, hences their differentials are isomorphisms.
-    let A' := mfderiv I 𝓘(ℝ, E) (I ∘ e) x'
-    have : 1 ≤ (r : ℕ∞) := Nat.one_le_cast.mpr (Nat.one_le_of_lt hr)
-    have hx'source : x' ∈ e.source := hsbetter₂ (mem_image_of_mem _ hx)
-    have hopen : IsOpen (I ∘ e '' e.source) :=
-      extendedChart_isOpenMapOn_source I e.open_source (Eq.subset rfl)
-
-    -- TODO: these are currently missing from mathlib
-    -- show these are `Structomorph` instances first, then deduce the following statements
-    have pre1 : ContMDiffOn I 𝓘(ℝ, E) r (I ∘ e) e.source := sorry
-    have pre2 : ContMDiffOn 𝓘(ℝ, E) I r (e.invFun ∘ I.invFun) (I ∘ e '' e.source) := sorry
-    have aux1 : MDifferentiableAt I 𝓘(ℝ, E) (I ∘ e) x' :=
-      (pre1.contMDiffAt (e.open_source.mem_nhds hx'source)).mdifferentiableAt this
-    have aux2 : MDifferentiableAt 𝓘(ℝ, E) I (e.invFun ∘ I.invFun) x :=
-      (pre2.contMDiffAt (hopen.mem_nhds (hsbetter₀ hx))).mdifferentiableAt this
-    have inv1 := calc A'.comp A
-      _ = mfderiv 𝓘(ℝ, E) 𝓘(ℝ, E) ((I ∘ e) ∘ (e.invFun ∘ I.invFun)) x :=
-          (mfderiv_comp x aux1 aux2).symm
-      _ = mfderivWithin 𝓘(ℝ, E) 𝓘(ℝ, E) ((I ∘ e) ∘ (e.invFun ∘ I.invFun)) (I ∘ e '' e.source) x :=
-          mfderivWithin_of_open (J := 𝓘(ℝ, E)) (f := ((I ∘ e ∘ e.invFun ∘ I.invFun))) 𝓘(ℝ, E) hopen (hsbetter₀ hx)
-      _ = mfderivWithin 𝓘(ℝ, E) 𝓘(ℝ, E) id (I ∘ e '' e.source) x :=
-          mfderiv_eq_on_open 𝓘(ℝ, E) 𝓘(ℝ, E) hopen (hsbetter₀ hx) (fun _ hx ↦ extendedChart_leftInverse I hx)
-      _ = mfderiv 𝓘(ℝ, E) 𝓘(ℝ, E) id x :=
-          (mfderivWithin_of_open (J := 𝓘(ℝ, E)) (f := id) 𝓘(ℝ, E) hopen (hsbetter₀ hx)).symm
-      _ = ContinuousLinearMap.id ℝ (TangentSpace 𝓘(ℝ, E) x) := mfderiv_id 𝓘(ℝ, E)
-    have inv2 := calc A.comp A'
-      _ = mfderiv I I ((e.invFun ∘ I.invFun) ∘ (I ∘ e)) x' := by
-          -- Use the chain rule: rewrite the base point (I ∘ e ∘ e.invFun ∘ I.invFun) x = x,
-          rw [← (extendedChart_leftInverse I (hsbetter₀ hx))] at aux2
-          let r := mfderiv_comp ((e.invFun ∘ I.invFun) x) aux2 aux1
-          -- but also the points x and x' under the map.
-          have : x' = (e.invFun ∘ I.invFun) x := rfl
-          rw [← this, hx'x] at r
-          exact r.symm
-      _ = mfderivWithin I I ((e.invFun ∘ I.invFun) ∘ (I ∘ e)) e.source x' :=
-          mfderivWithin_of_open (J := I) I e.open_source (hsbetter₂ (mem_image_of_mem _ hx))
-      _ = mfderivWithin I I id e.source x' :=
-          mfderiv_eq_on_open I I e.open_source (hsbetter₂ (mem_image_of_mem _ hx)) (fun _ hx ↦ extendedChart_symm_leftInverse I hx)
-      _ = mfderiv I I id x' :=
-          (mfderivWithin_of_open (J := I) I e.open_source (hsbetter₂ (mem_image_of_mem _ hx))).symm
-      _ = ContinuousLinearMap.id ℝ (TangentSpace I ((e.invFun ∘ I.invFun) x)) := mfderiv_id I
-    save
     -- Thus, A is bijective.
-    have hA : Bijective A := bijective_iff_inverses' inv1 inv2
-
+    have hA : Bijective A := extendedChart_symm_differential_bijective I (hsbetter₀ hx)
     -- Bijectivity of C is similar.
     have hC : Bijective C := sorry
     -- Thus, B is surjective iff `comp` is.
