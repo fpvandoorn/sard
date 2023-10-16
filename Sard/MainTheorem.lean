@@ -203,13 +203,14 @@ theorem sard {f : M → N} (hf : ContMDiff I J r f)
     -- The charts I ∘ e and J ∘ e' are diffeos, hences their differentials are isomorphisms.
     let A' := mfderiv I 𝓘(ℝ, E) (I ∘ e) x'
     have : 1 ≤ (r : ℕ∞) := Nat.one_le_cast.mpr (Nat.one_le_of_lt hr)
-    have easy1 : e.source ∈ 𝓝 x' := sorry
-    have easy2 : I '' e.target ∈ 𝓝 x := sorry
+
+    have hx'source : x' ∈ e.source := hsbetter₂ (mem_image_of_mem _ hx)
     have h1 : IsOpen (I '' e.target) := by
       rw [← e.image_source_eq_target, ← image_comp]
       apply extendedChart_isOpenMapOn_source I e.open_source (Eq.subset rfl)
-    have h2 : x ∈ I '' e.target := sorry -- also easy
-
+    have h2 : x ∈ I '' e.target := by
+      rw [← e.image_source_eq_target, ← image_comp]
+      exact hsbetter₀ hx
     have _inv1 : ∀ x ∈ I '' e.target, ((I ∘ e) ∘ (e.invFun ∘ I.invFun)) x = x := sorry
     have _inv2 : ∀ x ∈ e.source, ((e.invFun ∘ I.invFun) ∘ (I ∘ e)) x = x := sorry
 
@@ -218,9 +219,9 @@ theorem sard {f : M → N} (hf : ContMDiff I J r f)
     have pre1 : ContMDiffOn I 𝓘(ℝ, E) r (I ∘ e) e.source := sorry
     have pre2 : ContMDiffOn 𝓘(ℝ, E) I r (e.invFun ∘ I.invFun) (I '' e.target) := sorry
     have aux1 : MDifferentiableAt I 𝓘(ℝ, E) (I ∘ e) x' :=
-      (pre1.contMDiffAt easy1).mdifferentiableAt this
+      (pre1.contMDiffAt (e.open_source.mem_nhds hx'source)).mdifferentiableAt this
     have aux2 : MDifferentiableAt 𝓘(ℝ, E) I (e.invFun ∘ I.invFun) x :=
-      (pre2.contMDiffAt easy2).mdifferentiableAt this
+      (pre2.contMDiffAt (h1.mem_nhds h2)).mdifferentiableAt this
     save
     have inv1 := calc A'.comp A
       _ = mfderiv 𝓘(ℝ, E) 𝓘(ℝ, E) ((I ∘ e) ∘ (e.invFun ∘ I.invFun)) x :=
