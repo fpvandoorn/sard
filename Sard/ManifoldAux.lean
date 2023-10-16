@@ -243,56 +243,86 @@ instance {x : E} : NormedSpace ℝ (TangentSpace 𝓘(ℝ, E) x) := inferInstanc
 instance {x : M} : NormedAddCommGroup (TangentSpace I x) := inferInstanceAs (NormedAddCommGroup E)
 instance {x : M} : NormedSpace ℝ (TangentSpace I x) := inferInstanceAs (NormedSpace ℝ E)
 
+
+
+-- xxx: define local diffeos; diffeos on an open set and refactor conditions accordingly
+lemma diffeoOn_differential_bijective {f : M → N} {g : N → M} {r : ℕ} (hr : 1 ≤ r)
+    -- morally, s and t are the source and target of my local diffeo
+    {s : Set M} {hs : IsOpen s} {t : Set N} {ht : IsOpen t} {x : M} (hx : x ∈ s)
+    (hst : MapsTo f s t) (hts : MapsTo g t s)
+    (hleft_inv : ∀ x ∈ s, g (f x) = x) (hright_inv : ∀ y ∈ t, f (g y) = y)
+    (hf : ContMDiffOn I J r f s) (hg : ContMDiffOn J I r g t) :
+    Bijective (mfderiv I J f x) := by
+  set A := mfderiv I J f x
+  -- Initial observations about x, s and t.
+  let y := f x
+  have hyx : g y = x := hleft_inv x hx
+  have hysource : y ∈ t := hst hx
+  have : f '' s = t := subset_antisymm (mapsTo'.mp hst) (fun y hy ↦ ⟨g y, hts hy, hright_inv y hy⟩)
+  have : g '' t = s := by
+    rw [← this, ← image_comp]
+    exact funext_on (fun ⟨x, hx⟩ ↦ hleft_inv x hx)
+  have hopen : IsOpen (g '' t) := by rw [this]; exact hs
+  have hx2 : x ∈ g '' t := by simp_rw [this]; exact hx
+
+  let A' := mfderiv J I g y
+  have hr : 1 ≤ (r : ℕ∞) := Nat.one_le_cast.mpr (Nat.one_le_of_lt hr)
+  have hgat : MDifferentiableAt J I g y :=
+    (hg.contMDiffAt (ht.mem_nhds (hst hx))).mdifferentiableAt hr
+  have hfat : MDifferentiableAt I J f x :=
+    (hf.contMDiffAt (hs.mem_nhds hx)).mdifferentiableAt hr
+  have inv1 := calc A'.comp A
+    _ = mfderiv I I (g ∘ f) x := (mfderiv_comp x hgat hfat).symm
+    _ = mfderivWithin I I (g ∘ f) (g '' t) x := mfderivWithin_of_open I I hopen hx2
+    _ = mfderivWithin I I id (g '' t) x :=
+        mfderiv_eq_on_open I I hopen hx2 (fun x h ↦ hleft_inv x (this ▸ h))
+    _ = mfderiv I I id x :=
+        (mfderivWithin_of_open I I hopen hx2).symm
+    _ = ContinuousLinearMap.id ℝ (TangentSpace I x) := mfderiv_id I
+  have inv2 := calc A.comp A'
+    _ = mfderiv J J (f ∘ g) y := by
+        -- Use the chain rule: rewrite the base point (I ∘ e ∘ e.invFun ∘ I.invFun) x = x, ...
+        rw [← (hleft_inv x hx)] at hfat
+        -- ... but also the points x and y under the map.
+        exact (hyx ▸ (mfderiv_comp (f x) hfat hgat)).symm
+    _ = mfderivWithin J J (f ∘ g) t y := mfderivWithin_of_open J J ht hysource
+    _ = mfderivWithin J J id t y :=
+            mfderiv_eq_on_open J J ht hysource (fun x h ↦ hright_inv x h)
+    _ = mfderiv J J id y := (mfderivWithin_of_open J J ht hysource).symm
+    _ = ContinuousLinearMap.id ℝ (TangentSpace J (f x)) := mfderiv_id J
+  exact bijective_iff_inverses' inv1 inv2
+
+-- corollary: a diffeo has bijective differential
+lemma diffeo_differential_bijective {r : ℕ} (hr : 1 ≤ r) (f : Diffeomorph I J M N r) {x : M} :
+    Bijective (mfderiv I J f x) := by
+  apply diffeoOn_differential_bijective (s := univ) (t := univ) I J hr trivial (mapsTo_univ f.toFun univ) (mapsTo_univ f.invFun univ)
+  · exact fun _ hx ↦ f.toLocalEquiv.left_inv' hx
+  · exact fun _ hy ↦ f.toLocalEquiv.right_inv' hy
+  · exact contMDiffOn_univ.mpr f.contMDiff_toFun
+  · exact contMDiffOn_univ.mpr f.contMDiff_invFun
+  · exact isOpen_univ
+  · exact isOpen_univ
+
+-- TODO: extract a stronger condition than just bijectivity of the differential,
+-- and rephase its bijectivity as a corollary
+-- TODO: refactor to diffeos
 lemma extendedChart_symm_differential_bijective [SmoothManifoldWithCorners I M] [I.Boundaryless]
     {e : LocalHomeomorph M H} {x : E} (hx : x ∈ I ∘ e '' e.source):
     Bijective (mfderiv 𝓘(ℝ, E) I (e.invFun ∘ I.invFun) x) := by
-  set A := mfderiv 𝓘(ℝ, E) I (e.invFun ∘ I.invFun) x
-  let x' := (e.invFun ∘ I.invFun) x
-  have hx'x : (I ∘ e) x' = x := extendedChart_leftInverse _ hx
-  have hx'source : x' ∈ e.source := by
-    rcases hx with ⟨s, hs, hsx⟩
-    have h : x' = (e.invFun ∘ I.invFun) x := rfl
-    have : (e.invFun ∘ I.invFun) ((↑I ∘ ↑e) s) = s := extendedChart_symm_leftInverse _ hs
-    rw [h, ← hsx, this]
-    exact hs
-  let A' := mfderiv I 𝓘(ℝ, E) (I ∘ e) x'
-  have hopen : IsOpen (I ∘ e '' e.source) :=
-      extendedChart_isOpenMapOn_source I e.open_source (Eq.subset rfl)
+
   -- TODO: these are currently missing from mathlib
   -- show these are `Structomorph` instances first, then deduce the following statements
   have pre1 : ContMDiffOn I 𝓘(ℝ, E) 1 (I ∘ e) e.source := sorry
   have pre2 : ContMDiffOn 𝓘(ℝ, E) I 1 (e.invFun ∘ I.invFun) (I ∘ e '' e.source) := sorry
-  have aux1 : MDifferentiableAt I 𝓘(ℝ, E) (I ∘ e) x' :=
-    (pre1.contMDiffAt (e.open_source.mem_nhds hx'source)).mdifferentiableAt (Eq.le rfl)
-  have aux2 : MDifferentiableAt 𝓘(ℝ, E) I (e.invFun ∘ I.invFun) x :=
-      (pre2.contMDiffAt (hopen.mem_nhds hx)).mdifferentiableAt (Eq.le rfl)
 
-  have inv1 := calc A'.comp A
-    _ = mfderiv 𝓘(ℝ, E) 𝓘(ℝ, E) ((I ∘ e) ∘ (e.invFun ∘ I.invFun)) x :=
-        (mfderiv_comp x aux1 aux2).symm
-    _ = mfderivWithin 𝓘(ℝ, E) 𝓘(ℝ, E) ((I ∘ e) ∘ (e.invFun ∘ I.invFun)) (I ∘ e '' e.source) x :=
-        mfderivWithin_of_open 𝓘(ℝ, E) 𝓘(ℝ, E) hopen hx
-    _ = mfderivWithin 𝓘(ℝ, E) 𝓘(ℝ, E) id (I ∘ e '' e.source) x :=
-        mfderiv_eq_on_open 𝓘(ℝ, E) 𝓘(ℝ, E) hopen hx (fun _ hx ↦ extendedChart_leftInverse I hx)
-    _ = mfderiv 𝓘(ℝ, E) 𝓘(ℝ, E) id x :=
-        (mfderivWithin_of_open 𝓘(ℝ, E) 𝓘(ℝ, E) hopen hx).symm
-    _ = ContinuousLinearMap.id ℝ (TangentSpace 𝓘(ℝ, E) x) := mfderiv_id 𝓘(ℝ, E)
-  have inv2 := calc A.comp A'
-    _ = mfderiv I I ((e.invFun ∘ I.invFun) ∘ (I ∘ e)) x' := by
-        -- Use the chain rule: rewrite the base point (I ∘ e ∘ e.invFun ∘ I.invFun) x = x, ...
-        rw [← (extendedChart_leftInverse I hx)] at aux2
-        let r := mfderiv_comp ((e.invFun ∘ I.invFun) x) aux2 aux1
-        -- ... but also the points x and x' under the map.
-        have : x' = (e.invFun ∘ I.invFun) x := rfl
-        rw [← this, hx'x] at r
-        exact r.symm
-    _ = mfderivWithin I I ((e.invFun ∘ I.invFun) ∘ (I ∘ e)) e.source x' :=
-        mfderivWithin_of_open I I e.open_source hx'source
-    _ = mfderivWithin I I id e.source x' :=
-        mfderiv_eq_on_open I I e.open_source hx'source (fun _ hx ↦ extendedChart_symm_leftInverse I hx)
-    _ = mfderiv I I id x' :=
-        (mfderivWithin_of_open I I e.open_source hx'source).symm
-    _ = ContinuousLinearMap.id ℝ (TangentSpace I ((e.invFun ∘ I.invFun) x)) := mfderiv_id I
-  exact bijective_iff_inverses' inv1 inv2
-
+  have aux : MapsTo (e.invFun ∘ I.invFun) (I ∘ ↑e '' e.source) e.source := by
+    rintro x ⟨s, hs, hsx⟩
+    have : (e.invFun ∘ I.invFun) ((↑I ∘ ↑e) s) = s := extendedChart_symm_leftInverse _ hs
+    rw [← hsx, this]
+    exact hs
+  have hopen : IsOpen (I ∘ e '' e.source) :=
+      extendedChart_isOpenMapOn_source I e.open_source (Eq.subset rfl)
+  apply diffeoOn_differential_bijective 𝓘(ℝ, E) I (Eq.le rfl) hx aux (mapsTo_image (I ∘ e) e.source) (fun x hx ↦ extendedChart_leftInverse _ hx) (fun x hx ↦ extendedChart_symm_leftInverse _ hx) pre2 pre1
+  exact hopen
+  exact e.open_source
 end ChartsLocalDiffeos
