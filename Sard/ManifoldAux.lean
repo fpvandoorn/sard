@@ -243,6 +243,9 @@ instance {x : E} : NormedSpace ℝ (TangentSpace 𝓘(ℝ, E) x) := inferInstanc
 instance {x : M} : NormedAddCommGroup (TangentSpace I x) := inferInstanceAs (NormedAddCommGroup E)
 instance {x : M} : NormedSpace ℝ (TangentSpace I x) := inferInstanceAs (NormedSpace ℝ E)
 
+-- TODO: define notion of "linear isomorphism" and add corresponding variants of
+-- all the lemmas below!
+
 -- xxx: define local diffeos; diffeos on an open set and refactor conditions accordingly
 lemma diffeoOn_differential_bijective {f : M → N} {g : N → M} {r : ℕ} (hr : 1 ≤ r)
     -- morally, s and t are the source and target of my local diffeo
@@ -290,7 +293,7 @@ lemma diffeoOn_differential_bijective {f : M → N} {g : N → M} {r : ℕ} (hr 
     _ = ContinuousLinearMap.id ℝ (TangentSpace J (f x)) := mfderiv_id J
   exact bijective_iff_inverses' inv1 inv2
 
--- corollary: a diffeo has bijective differential
+/-- A diffeomorphism has bijective differential at each point. -/
 lemma diffeo_differential_bijective {r : ℕ} (hr : 1 ≤ r) (f : Diffeomorph I J M N r) {x : M} :
     Bijective (mfderiv I J f x) := by
   refine diffeoOn_differential_bijective I J hr isOpen_univ isOpen_univ trivial (mapsTo_univ f.toFun univ) (mapsTo_univ f.invFun univ) ?_ ?_ ?_ ?_
@@ -299,8 +302,8 @@ lemma diffeo_differential_bijective {r : ℕ} (hr : 1 ≤ r) (f : Diffeomorph I 
   · exact contMDiffOn_univ.mpr f.contMDiff_toFun
   · exact contMDiffOn_univ.mpr f.contMDiff_invFun
 
--- TODO: extract a stronger condition than just bijectivity of the differential,
--- and rephase its bijectivity as a corollary
+/-- The differential of each inverse extended chart, regarded as a smooth map,
+  is bijective at each point in its source. -/
 lemma extendedChart_symm_differential_bijective [SmoothManifoldWithCorners I M] [I.Boundaryless]
     {e : LocalHomeomorph M H} {x : E} (hx : x ∈ I ∘ e '' e.source):
     Bijective (mfderiv 𝓘(ℝ, E) I (e.invFun ∘ I.invFun) x) := by
@@ -318,4 +321,24 @@ lemma extendedChart_symm_differential_bijective [SmoothManifoldWithCorners I M] 
     exact hs
   · exact fun x hx ↦ extendedChart_leftInverse _ hx
   · exact fun x hx ↦ extendedChart_symm_leftInverse _ hx
+
+/-- The differential of each extended chart, regarded as a smooth map,
+  is bijective at each point in its source. -/
+lemma extendedChart_differential_bijective [SmoothManifoldWithCorners I M] [I.Boundaryless]
+    {e : LocalHomeomorph M H} {x : M} (hx : x ∈ e.source):
+    Bijective (mfderiv I 𝓘(ℝ, E) (I ∘ e) x) := by
+  -- TODO: these are currently missing from mathlib
+  -- show these are `Structomorph` instances first, then deduce the following statements
+  have pre1 : ContMDiffOn 𝓘(ℝ, E) I 1 (e.invFun ∘ I.invFun) (I ∘ e '' e.source) := sorry
+  have pre2 : ContMDiffOn I 𝓘(ℝ, E) 1 (I ∘ e) e.source := sorry
+
+  refine diffeoOn_differential_bijective I 𝓘(ℝ, E) (Eq.le rfl) e.open_source ?_ hx (mapsTo_image (I ∘ e) e.source) ?_ ?_ ?_ pre2 pre1
+  · exact extendedChart_isOpenMapOn_source I e.open_source (Eq.subset rfl)
+  · rintro x ⟨s, hs, hsx⟩
+    have : (e.invFun ∘ I.invFun) ((↑I ∘ ↑e) s) = s := extendedChart_symm_leftInverse _ hs
+    rw [← hsx, this]
+    exact hs
+  · exact fun x hx ↦ extendedChart_symm_leftInverse I hx
+  · exact fun x hx ↦ extendedChart_leftInverse _ hx
+
 end ChartsLocalDiffeos

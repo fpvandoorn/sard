@@ -131,8 +131,9 @@ theorem sard {f : M → N} (hf : ContMDiff I J r f)
     rw [hsbetter]
     rw [inter_comm s, inter_assoc]
     exact inter_subset_left _ _
-  have hsbetter₃ : f '' ((e.invFun ∘ I.invFun) '' s_better) ⊆ e'.source := calc
-    f '' ((e.invFun ∘ I.invFun) '' s_better)
+  have hsbetter₃ : (f ∘ e.invFun ∘ I.invFun) '' s_better ⊆ e'.source := calc
+    (f ∘ e.invFun ∘ I.invFun) '' s_better
+      = f '' (e.invFun ∘ I.invFun '' s_better) := by rw [image_comp]
     _ = f '' (s ∩ e.source ∩ f ⁻¹' e'.source) := by rw [hsbetter]
     _ ⊆ f '' (f ⁻¹' e'.source) := by
       apply image_subset
@@ -170,7 +171,7 @@ theorem sard {f : M → N} (hf : ContMDiff I J r f)
     let x' := (e.invFun ∘ I.invFun) xnew
     have hx'1 : x' ∈ s := hsbetter₁ (mem_image_of_mem _ hx)
     have hx'2 : x' ∈ e.source := hsbetter₂ (mem_image_of_mem _ hx)
-    have hx'3 : f x' ∈ e'.source := hsbetter₃ (mem_image_of_mem _ (mem_image_of_mem _ hx))
+    have hx'3 : f x' ∈ e'.source := hsbetter₃ (mem_image_of_mem _ hx)
     specialize hf' x' hx'1
     -- (1) f_local is differentiable as f is: use charts
     obtain ⟨_, real⟩ := (mdifferentiableAt_iff_of_mem_source hx'2 hx'3).mp hf'.mdifferentiableAt
@@ -200,10 +201,10 @@ theorem sard {f : M → N} (hf : ContMDiff I J r f)
     have : f' x' = B := by rw [← (hf' x' aux).mfderiv]
     have hBsurj : ¬ Surjective B := this ▸ h'f' _ aux
     -- The charts I ∘ e and J ∘ e' are diffeos, hences their differentials are isomorphisms.
-    -- Thus, A is bijective.
+    -- Thus, A and C are bijective.
     have hA : Bijective A := extendedChart_symm_differential_bijective I (hsbetter₀ hx)
-    -- Bijectivity of C is similar.
-    have hC : Bijective C := sorry
+    have hC : Bijective C :=
+      extendedChart_differential_bijective J (hsbetter₃ (mem_image_of_mem _ hx))
     -- Thus, B is surjective iff `comp` is.
     -- FUTURE: extract as lemma: df' is {injective,surjective} iff its composition in charts is.
     have : Surjective B ↔ Surjective comp := by
