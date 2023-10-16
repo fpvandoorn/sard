@@ -196,6 +196,7 @@ theorem sard {f : M → N} (hf : ContMDiff I J r f)
     -- have : D = comp := sorry -- doesn't typecheck; not 100% sure why
     -- By hypothesis, B is not surjective.
     let x' := (e.invFun ∘ I.invFun) x
+    have hx'x : (I ∘ e) x' = x := extendedChart_leftInverse _ (hsbetter₀ hx)
     have aux : x' ∈ s := hsbetter₁ (mem_image_of_mem _ hx)
     have : f' x' = B := by rw [← (hf' x' aux).mfderiv]
     have hBsurj : ¬ Surjective B := this ▸ h'f' _ aux
@@ -215,7 +216,6 @@ theorem sard {f : M → N} (hf : ContMDiff I J r f)
       (pre1.contMDiffAt (e.open_source.mem_nhds hx'source)).mdifferentiableAt this
     have aux2 : MDifferentiableAt 𝓘(ℝ, E) I (e.invFun ∘ I.invFun) x :=
       (pre2.contMDiffAt (hopen.mem_nhds (hsbetter₀ hx))).mdifferentiableAt this
-    save
     have inv1 := calc A'.comp A
       _ = mfderiv 𝓘(ℝ, E) 𝓘(ℝ, E) ((I ∘ e) ∘ (e.invFun ∘ I.invFun)) x :=
           (mfderiv_comp x aux1 aux2).symm
@@ -228,8 +228,13 @@ theorem sard {f : M → N} (hf : ContMDiff I J r f)
       _ = ContinuousLinearMap.id ℝ (TangentSpace 𝓘(ℝ, E) x) := mfderiv_id 𝓘(ℝ, E)
     have inv2 := calc A.comp A'
       _ = mfderiv I I ((e.invFun ∘ I.invFun) ∘ (I ∘ e)) x' := by
-          -- rewrite base point first, then rewrite function and use chain rule
-          sorry --(mfderiv_comp ((e.invFun ∘ I.invFun) x) aux2 aux1).symm
+          -- Use the chain rule: rewrite the base point (I ∘ e ∘ e.invFun ∘ I.invFun) x = x,
+          rw [← (extendedChart_leftInverse I (hsbetter₀ hx))] at aux2
+          let r := mfderiv_comp ((e.invFun ∘ I.invFun) x) aux2 aux1
+          -- but also the points x and x' under the map.
+          have : x' = (e.invFun ∘ I.invFun) x := rfl
+          rw [← this, hx'x] at r
+          exact r.symm
       _ = mfderivWithin I I ((e.invFun ∘ I.invFun) ∘ (I ∘ e)) e.source x' :=
           mfderivWithin_of_open (J := I) I e.open_source (hsbetter₂ (mem_image_of_mem _ hx))
       _ = mfderivWithin I I id e.source x' :=
