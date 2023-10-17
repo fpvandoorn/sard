@@ -2,7 +2,7 @@
 In this repository, we work towards the proof of the Morse-Sard and Sard-Smale theorems.
 
 **Morse-Sard theorem.** Let $M$ and $N$ be $C^r$-manifolds of dimensions $m$ and $n$, respectively and $f\colon M\to N$ a $C^r$ map. If $r > \max {O,m - n}$, the set $f(\Sigma_f)$ of critical values of $f$ has measure zero in $N$. Moreover, the set of regular values of f is residual and therefore dense.
-(There is a more general version, about the Hausdorff measure of the set of points where the differential has rank $<k$. Eventually, we also want to prove this one.)
+(There is a more general version, about the Hausdorff measure of the set of points where the differential has rank at most $k$. Eventually, we also want to prove this one.)
 
 The **Sard-Smale** theorem is a generalisation to infinite-dimensional Banach manifolds. Stating it requires a theory of Fredholm operators. See a [separate file](Roadmap_towards_Sard-Smale.md) for detail and a roadmap towards that.
 
