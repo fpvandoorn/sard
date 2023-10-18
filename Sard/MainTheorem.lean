@@ -131,15 +131,17 @@ theorem sard {f : M → N} (hf : ContMDiff I J r f)
     rw [hsbetter]
     rw [inter_comm s, inter_assoc]
     exact inter_subset_left _ _
+
+  have hw : (f ∘ e.invFun ∘ I.invFun) '' w ⊆ e'.source := calc
+    (f ∘ e.invFun ∘ I.invFun) '' w
+      = f '' (e.invFun ∘ I.invFun '' w) := by rw [image_comp]
+    _ = f '' (e.source ∩ f ⁻¹' e'.source) := by sorry -- fully analogous to rw [hsbetter]
+    _ ⊆ f '' (f ⁻¹' e'.source) := image_subset _ (inter_subset_right _ _)
+    _ ⊆ e'.source := image_preimage_subset f e'.source
   have hsbetter₃ : (f ∘ e.invFun ∘ I.invFun) '' s_better ⊆ e'.source := calc
     (f ∘ e.invFun ∘ I.invFun) '' s_better
-      = f '' (e.invFun ∘ I.invFun '' s_better) := by rw [image_comp]
-    _ = f '' (s ∩ e.source ∩ f ⁻¹' e'.source) := by rw [hsbetter]
-    _ ⊆ f '' (f ⁻¹' e'.source) := by
-      apply image_subset
-      exact inter_subset_right _ _
-    _ ⊆ e'.source := by exact image_preimage_subset f e'.source
-
+    _ ⊆ (f ∘ e.invFun ∘ I.invFun) '' w := image_subset _ hsw
+    _ ⊆ e'.source := hw
   have : J ∘ e' '' (e'.source ∩ f '' (e.source ∩ s)) = f_local '' s_better := by
     symm
     calc f_local '' s_better
@@ -192,10 +194,30 @@ theorem sard {f : M → N} (hf : ContMDiff I J r f)
     let B := mfderiv I J f ((e.invFun ∘ I.invFun) x)
     let C := mfderiv J 𝓘(ℝ, F) (J ∘ e') ((f ∘ e.invFun ∘ I.invFun) x)
     -- Technical lemmas needed to apply the chain rule.
-    have hA : MDifferentiableAt 𝓘(ℝ, E) I (e.invFun ∘ I.invFun) x := sorry
+    -- **n**eighbourhood lemma for **A**
+    have hnA : I ∘ ↑e '' e.source ∈ 𝓝 x := by -- this is boring; consolidate these details!
+      let x' := (e.invFun ∘ I.invFun) x
+      have : (I ∘ e) x' = x := extendedChart_leftInverse _ (hsbetter₀ hx)
+      rw [← this]
+      have : e.source ∈ 𝓝 x' := by
+        have : x' ∈ e.source := by
+          sorry-- apply mem_of_mem_of_subset hx hsbetter₀ --?h--sorry
+          -- apply hsbetter₀--apply inter_subset_left--refine MapsTo.image_subset ?h
+        exact IsOpen.mem_nhds e.open_source this
+      exact extendedChart_image_nhds_on I this (Eq.subset rfl)
+    save
+    have hA : MDifferentiableAt 𝓘(ℝ, E) I (e.invFun ∘ I.invFun) x :=
+      SmoothAt.mdifferentiableAt ((extendedChart_symm_smooth _ (chart_mem_atlas H _)).contMDiffAt hnA)
+    -- General nonsense: f is ContMDiff, hence also MDifferentiable at each point.
     have hB : MDifferentiableAt I J f ((e.invFun ∘ I.invFun) x) := sorry
+    -- Should be similar.
     have hBA : MDifferentiableAt 𝓘(ℝ, E) J (f ∘ e.invFun ∘ I.invFun) x := sorry
-    have hC : MDifferentiableAt J 𝓘(ℝ, F) (J ∘ e') ((f ∘ e.invFun ∘ I.invFun) x) := sorry
+    -- should be obvious, skipping for now. (open set as w is open)
+    have hnC : ((f ∘ e.invFun ∘ I.invFun) '' w) ∈ 𝓝 ((f ∘ e.invFun ∘ I.invFun) x) := sorry
+    have hC : MDifferentiableAt J 𝓘(ℝ, F) (J ∘ e') ((f ∘ e.invFun ∘ I.invFun) x) := by
+      have : ContMDiffOn J 𝓘(ℝ, F) ∞ (J ∘ e') e'.source := extendedChart_smooth _ (chart_mem_atlas G _)
+      have : ContMDiffOn J 𝓘(ℝ, F) ∞ (J ∘ e') ((f ∘ e.invFun ∘ I.invFun) '' w) := this.mono hw
+      exact SmoothAt.mdifferentiableAt (this.contMDiffAt hnC)
     -- By the chain rule, D is the composition of A, B and C.
     let comp := C.comp (B.comp A)
     let r := calc comp
@@ -224,7 +246,6 @@ theorem sard {f : M → N} (hf : ContMDiff I J r f)
       rw [this]
       rw [hA.surjective.of_comp_iff (C ∘ B)]
       rw [Surjective.of_comp_iff' hC B]
-    save
     rw [← r]
     have : ¬Surjective comp := by rw [← this]; exact hBsurj
     exact this
