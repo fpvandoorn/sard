@@ -185,16 +185,28 @@ theorem sard {f : M → N} (hf : ContMDiff I J r f)
     intro x hx
     -- f_local is a map from E to F, hence its fderiv equals its mfderiv.
     rw [← mfderiv_eq_fderiv]
-    set D := mfderiv 𝓘(ℝ, E) (modelWithCornersSelf ℝ F) f_local x
+    set D := mfderiv 𝓘(ℝ, E) 𝓘(ℝ, F) f_local x
     -- By definition, f_local is the composition (J ∘ e') ∘ f ∘ e.invFun ∘ I.invFun.
     -- Hence, by the chain rule, its mfderiv is the composition of those.
     let A := mfderiv 𝓘(ℝ, E) I (e.invFun ∘ I.invFun) x
     let B := mfderiv I J f ((e.invFun ∘ I.invFun) x)
     let C := mfderiv J 𝓘(ℝ, F) (J ∘ e') ((f ∘ e.invFun ∘ I.invFun) x)
-    -- By the chain rule, D is essentially this composition.
-    let comp := C ∘ B ∘ A
-    -- have : ((J ∘ e') ((f ∘ e.invFun ∘ I.invFun) x)) = f_local x := rfl
-    -- have : D = comp := sorry -- doesn't typecheck; not 100% sure why
+    -- Technical lemmas needed to apply the chain rule.
+    have hA : MDifferentiableAt 𝓘(ℝ, E) I (e.invFun ∘ I.invFun) x := sorry
+    have hB : MDifferentiableAt I J f ((e.invFun ∘ I.invFun) x) := sorry
+    have hBA : MDifferentiableAt 𝓘(ℝ, E) J (f ∘ e.invFun ∘ I.invFun) x := sorry
+    have hC : MDifferentiableAt J 𝓘(ℝ, F) (J ∘ e') ((f ∘ e.invFun ∘ I.invFun) x) := sorry
+    -- By the chain rule, D is the composition of A, B and C.
+    let comp := C.comp (B.comp A)
+    let r := calc comp
+      _ = C.comp (B.comp A) := rfl
+      _ = C.comp ((mfderiv I J f ((e.invFun ∘ I.invFun) x)).comp (mfderiv 𝓘(ℝ, E) I (e.invFun ∘ I.invFun) x)) := rfl
+      _ = C.comp (mfderiv 𝓘(ℝ, E) J (f ∘ (e.invFun ∘ I.invFun)) x) := by rw [(mfderiv_comp x hB hA)]
+      _ = (mfderiv J 𝓘(ℝ, F) (J ∘ e') ((f ∘ e.invFun ∘ I.invFun) x)).comp (mfderiv 𝓘(ℝ, E) J (f ∘ (e.invFun ∘ I.invFun)) x) := rfl
+      _ = mfderiv 𝓘(ℝ, E) 𝓘(ℝ, F) ((J ∘ e') ∘ ((f ∘ e.invFun ∘ I.invFun))) x := by rw [(mfderiv_comp x hC hBA)]
+      _ = mfderiv 𝓘(ℝ, E) 𝓘(ℝ, F) f_local x := rfl
+      _ = D := rfl
+
     -- By hypothesis, B is not surjective.
     let x' := (e.invFun ∘ I.invFun) x
     have aux : x' ∈ s := hsbetter₁ (mem_image_of_mem _ hx)
@@ -212,9 +224,10 @@ theorem sard {f : M → N} (hf : ContMDiff I J r f)
       rw [this]
       rw [hA.surjective.of_comp_iff (C ∘ B)]
       rw [Surjective.of_comp_iff' hC B]
-    -- Thus, we're done except for Lean issues.
+    save
+    rw [← r]
     have : ¬Surjective comp := by rw [← this]; exact hBsurj
-    sorry
+    exact this
 
 /-- **Sard's theorem**: let $M$ and $N$ be real $C^r$ manifolds of dimensions $m$ and $n$,
 and $f:M→N$ a $C^r$ map. If $r>\max{0, m-n}$, the critical set is meagre. -/
