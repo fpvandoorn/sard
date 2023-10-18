@@ -202,9 +202,9 @@ theorem sard {f : M → N} (hf : ContMDiff I J r f)
     have hBsurj : ¬ Surjective B := this ▸ h'f' _ aux
     -- The charts I ∘ e and J ∘ e' are diffeos, hences their differentials are isomorphisms.
     -- Thus, A and C are bijective.
-    have hA : Bijective A := extendedChart_symm_differential_bijective I (hsbetter₀ hx)
+    have hA : Bijective A := extendedChart_symm_differential_bijective I (chart_mem_atlas H _) (hsbetter₀ hx)
     have hC : Bijective C :=
-      extendedChart_differential_bijective J (hsbetter₃ (mem_image_of_mem _ hx))
+      extendedChart_differential_bijective J (chart_mem_atlas G _) (hsbetter₃ (mem_image_of_mem _ hx))
     -- Thus, B is surjective iff `comp` is.
     -- FUTURE: extract as lemma: df' is {injective,surjective} iff its composition in charts is.
     have : Surjective B ↔ Surjective comp := by
