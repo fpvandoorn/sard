@@ -201,9 +201,11 @@ variable {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F] {G : Type*} [Top
   (J : ModelWithCorners ℝ F G) {N : Type*} [TopologicalSpace N] [ChartedSpace G N]
   [SmoothManifoldWithCorners J N]
 
--- morally similar to fderivWithin_of_open; either obvious or missing API
+-- similar to `fderivWithin_of_open`; seems missing
 lemma hasFDerivWithinAt_of_open {s : Set E} {x : E} (h : IsOpen s) (hx : x ∈ s) {f : E → F} {f' : E →L[ℝ] F}:
-    HasFDerivWithinAt f f' s x ↔ HasFDerivAt f f' x := sorry
+    HasFDerivWithinAt f f' s x ↔ HasFDerivAt f f' x := by
+  simp only [HasFDerivAt, HasFDerivWithinAt]
+  rw [IsOpen.nhdsWithin_eq h hx]
 
 -- I have not compared FDeriv.Basic to MFDeriv and added all analogous lemmas.
 -- analogous to `fderivWithin_of_mem_nhds`
@@ -222,12 +224,6 @@ theorem mfderivWithin_eq_mfderiv {s : Set M} {x : M} {f : M → N}
     mfderivWithin I J f s x = mfderiv I J f x := by
   rw [← mfderivWithin_univ]
   exact mfderivWithin_subset (subset_univ _) hs h.mdifferentiableWithinAt
-
-/-- If two functions coincide on an open set containing `x`, their `mfderiv` at `x` are equal. -/
--- presumably, can use `UniqueMDiffOn.eq`
-lemma mfderiv_eq_on_open {s : Set M} {x : M} (h : IsOpen s) (hs : x ∈ s) {f g : M → N}
-    (hf : ∀ x ∈ s, f x = g x) : mfderivWithin I J f s x = mfderivWithin I J g s x :=
-  sorry
 
 -----------------------------------------------
 
@@ -290,18 +286,18 @@ lemma diffeoOn_differential_bijective {f : M → N} {g : N → M} {r : ℕ} (hr 
     _ = mfderiv I I (g ∘ f) x := (mfderiv_comp x hgat hfat).symm
     _ = mfderivWithin I I (g ∘ f) (g '' t) x := (mfderivWithin_of_open I I hopen hx2).symm
     _ = mfderivWithin I I id (g '' t) x :=
-        mfderiv_eq_on_open I I hopen hx2 (fun x h ↦ hleft_inv x (this ▸ h))
+      mfderivWithin_congr (hopen.uniqueMDiffWithinAt hx2) (this ▸ hleft_inv) (hleft_inv x (this ▸ hx2))
     _ = mfderiv I I id x := mfderivWithin_of_open I I hopen hx2
     _ = ContinuousLinearMap.id ℝ (TangentSpace I x) := mfderiv_id I
   have inv2 := calc A.comp A'
     _ = mfderiv J J (f ∘ g) y := by
-        -- Use the chain rule: rewrite the base point (I ∘ e ∘ e.invFun ∘ I.invFun) x = x, ...
-        rw [← (hleft_inv x hx)] at hfat
-        -- ... but also the points x and y under the map.
-        exact (hyx ▸ (mfderiv_comp (f x) hfat hgat)).symm
+          -- Use the chain rule: rewrite the base point (I ∘ e ∘ e.invFun ∘ I.invFun) x = x, ...
+          rw [← (hleft_inv x hx)] at hfat
+          -- ... but also the points x and y under the map.
+          exact (hyx ▸ (mfderiv_comp (f x) hfat hgat)).symm
     _ = mfderivWithin J J (f ∘ g) t y := (mfderivWithin_of_open J J ht hysource).symm
     _ = mfderivWithin J J id t y :=
-            mfderiv_eq_on_open J J ht hysource (fun x h ↦ hright_inv x h)
+          mfderivWithin_congr (ht.uniqueMDiffWithinAt hysource) hright_inv (hright_inv y hysource)
     _ = mfderiv J J id y := mfderivWithin_of_open J J ht hysource
     _ = ContinuousLinearMap.id ℝ (TangentSpace J (f x)) := mfderiv_id J
   exact bijective_iff_inverses' inv1 inv2
