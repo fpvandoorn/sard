@@ -326,6 +326,19 @@ lemma extendedChart_smooth {e : LocalHomeomorph M H} (he : e ∈ atlas H M) [I.B
   apply (contMDiffOn_iff_of_mem_maximalAtlas' h₁ h₂ (Eq.subset rfl) (mapsTo_univ _ _)).mpr
   exact ContMDiffOn.contDiffOn (fun x hx ↦ ContMDiffWithinAt.congr smoothWithinAt_id h (h x hx))
 
+-- belongs in `SmoothManifoldWithCorners.lean`
+/-- An identity local homeomorphism belongs to the maximal atlas on `E`. -/
+lemma ofSet_in_maximal_atlas {s : Set E} (hs : IsOpen s) :
+    LocalHomeomorph.ofSet s hs ∈ maximalAtlas 𝓘(ℝ, E) E := by
+  set e := LocalHomeomorph.ofSet s hs
+  set gr := (contDiffGroupoid ∞ I)
+  rw [maximalAtlas, mem_maximalAtlas_iff]
+  intro e' he'
+  rw [he']
+  simp only [comp_apply, LocalHomeomorph.ofSet_symm, LocalHomeomorph.trans_refl,
+    LocalHomeomorph.refl_symm, LocalHomeomorph.refl_trans, and_self]
+  apply ofSet_mem_contDiffGroupoid
+
 /-- The inverse $e.invFun ∘ I.invFun : E → M$ of an extended chart $I ∘ e : M → E$
 on a smooth manifold without boundary is smooth on `I ∘ e '' e.source`. -/
 -- TODO: deduce this from a more general result about these being `Structomorph`
@@ -335,14 +348,7 @@ lemma extendedChart_symm_smooth {e : LocalHomeomorph M H} (he : e ∈ atlas H M)
   have : IsOpen (I ∘ e '' e.source) := extendedChart_isOpenMapOn_source I e.open_source (Eq.subset rfl)
   let e' : LocalHomeomorph E E := LocalHomeomorph.ofSet (I ∘ e '' e.source) this
   have h1 : e ∈ maximalAtlas I M := subset_maximalAtlas _ he
-  have h2 : e' ∈ maximalAtlas 𝓘(ℝ, E) E := by -- XXX: extract into separate lemma!
-    set gr := (contDiffGroupoid ∞ I)
-    rw [maximalAtlas, mem_maximalAtlas_iff]
-    intro e' he'
-    rw [he']
-    simp only [comp_apply, LocalHomeomorph.ofSet_symm, LocalHomeomorph.trans_refl,
-      LocalHomeomorph.refl_symm, LocalHomeomorph.refl_trans, and_self]
-    apply ofSet_mem_contDiffGroupoid
+  have h2 : e' ∈ maximalAtlas 𝓘(ℝ, E) E := ofSet_in_maximal_atlas I this
   -- XXX: this occurs twice -> extract?
   have h3 : MapsTo (e.invFun ∘ I.invFun) (I ∘ e '' e.source) e.source := by
     rintro x ⟨s, hs, hsx⟩
