@@ -311,6 +311,7 @@ lemma diffeo_differential_bijective {r : ℕ} (hr : 1 ≤ r) (f : Diffeomorph I 
   · exact contMDiffOn_univ.mpr f.contMDiff_toFun
   · exact contMDiffOn_univ.mpr f.contMDiff_invFun
 
+-- `contMDiffOn_of_mem_maximalAtlas` shows this for `e`!
 /-- An extended chart $I ∘ e : M → E$ on a smooth manifold is smooth on `e.source`. -/
 -- TODO: can I generalise this to `Structomorph`?
 -- TODO: does this hold for manifolds with boundary?
@@ -351,9 +352,9 @@ lemma extendedChart_symm_smooth {e : LocalHomeomorph M H} (he : e ∈ atlas H M)
   have h2 : e' ∈ maximalAtlas 𝓘(ℝ, E) E := ofSet_in_maximal_atlas I this
   -- XXX: this occurs twice -> extract?
   have h3 : MapsTo (e.invFun ∘ I.invFun) (I ∘ e '' e.source) e.source := by
-    rintro x ⟨s, hs, hsx⟩
+    rintro x ⟨s, hs, rfl⟩
     have : (e.invFun ∘ I.invFun) ((↑I ∘ ↑e) s) = s := extendedChart_symm_leftInverse _ hs
-    rw [← hsx, this]
+    rw [this]
     exact hs
   apply (contMDiffOn_iff_of_mem_maximalAtlas' h2 h1 (Eq.subset rfl) h3).mpr
 
@@ -384,9 +385,9 @@ lemma extendedChart_symm_differential_bijective [SmoothManifoldWithCorners I M] 
     Bijective (mfderiv 𝓘(ℝ, E) I (e.invFun ∘ I.invFun) x) := by
   refine diffeoOn_differential_bijective 𝓘(ℝ, E) I (Eq.le rfl) ?_ e.open_source hx ?_ (mapsTo_image (I ∘ e) e.source) ?_ ?_ ?_ ?_
   · exact extendedChart_isOpenMapOn_source I e.open_source (Eq.subset rfl)
-  · rintro x ⟨s, hs, hsx⟩
+  · rintro x ⟨s, hs, rfl⟩
     have : (e.invFun ∘ I.invFun) ((↑I ∘ ↑e) s) = s := extendedChart_symm_leftInverse _ hs
-    rw [← hsx, this]
+    rw [this]
     exact hs
   · exact fun x hx ↦ extendedChart_leftInverse _ hx
   · exact fun x hx ↦ extendedChart_symm_leftInverse _ hx
@@ -402,9 +403,9 @@ lemma extendedChart_differential_bijective [SmoothManifoldWithCorners I M] [I.Bo
     SmoothOn.contMDiffOn (extendedChart_symm_smooth I he)
   refine diffeoOn_differential_bijective I 𝓘(ℝ, E) (Eq.le rfl) e.open_source ?_ hx (mapsTo_image (I ∘ e) e.source) ?_ ?_ ?_ ?_ diff
   · exact extendedChart_isOpenMapOn_source I e.open_source (Eq.subset rfl)
-  · rintro x ⟨s, hs, hsx⟩
+  · rintro x ⟨s, hs, rfl⟩
     have : (e.invFun ∘ I.invFun) ((↑I ∘ ↑e) s) = s := extendedChart_symm_leftInverse _ hs
-    rw [← hsx, this]
+    rw [this]
     exact hs
   · exact fun x hx ↦ extendedChart_symm_leftInverse I hx
   · exact fun x hx ↦ extendedChart_leftInverse _ hx

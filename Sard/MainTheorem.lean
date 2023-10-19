@@ -205,7 +205,6 @@ theorem sard {f : M → N} (hf : ContMDiff I J r f)
           -- apply hsbetter₀--apply inter_subset_left--refine MapsTo.image_subset ?h
         exact IsOpen.mem_nhds e.open_source this
       exact extendedChart_image_nhds_on I this (Eq.subset rfl)
-    save
     have hA : MDifferentiableAt 𝓘(ℝ, E) I (e.invFun ∘ I.invFun) x :=
       SmoothAt.mdifferentiableAt ((extendedChart_symm_smooth _ (chart_mem_atlas H _)).contMDiffAt hnA)
     -- General nonsense: f is ContMDiff, hence also MDifferentiable at each point.

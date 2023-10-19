@@ -50,8 +50,7 @@ protected lemma restrict {f : X → Y} (hf : LocallyLipschitz f) (s : Set X) :
   intro x
   rcases hf x with ⟨K, t, ht, hfL⟩
   -- Consider t' := t ∩ s as a neighbourhood of x *in s*.
-  use K, toSubset t s
-  exact ⟨ToSubset.compatible_with_nhds s t ht, LipschitzOnWith.restrict_subtype s t hfL⟩
+  exact ⟨K, toSubset t s, ToSubset.compatible_with_nhds s t ht, LipschitzOnWith.restrict_subtype s t hfL⟩
 
 /-- C¹ functions are locally Lipschitz. -/
 -- upstreamed, as ContDiff.locallyLipschitz
@@ -72,8 +71,7 @@ lemma of_C1_on_open {E F: Type*} {f : E → F} [NormedAddCommGroup E] [NormedSpa
   rcases (h h₂U) with ⟨K, t, ht, hf⟩
   -- `t` is a neighbourhood of x "within U", i.e. contains the intersection of U with some nbhd a of x.
   -- Intersect with `U` to obtain a neighbourhood contained in `U`.
-  use K, toSubset t U
-  exact ⟨ToSubset.compatible_with_nhds_within t U h₁U ht, LipschitzOnWith.restrict_subtype U t hf⟩
+  exact ⟨K, toSubset t U, ToSubset.compatible_with_nhds_within t U h₁U ht, LipschitzOnWith.restrict_subtype U t hf⟩
 end LocallyLipschitz
 end Metric
 
