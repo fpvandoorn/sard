@@ -16,36 +16,36 @@ variable
   [SmoothManifoldWithCorners I M]
 
 -- might be useful for completeness; proof skipped; the above contains all necessary ingredients
-lemma unused_extendedChart_leftInverse' {e : LocalHomeomorph M H} {t : Set E} (ht: t ⊆ (I ∘ e) '' e.source) :
-    (I ∘ e ∘ e.invFun ∘ I.invFun) '' t = t := by sorry
+lemma unused_extendedChart_leftInverse' {e : LocalHomeomorph M H} {t : Set E} (ht: t ⊆ e.extend I '' e.source) :
+    e.extend I ∘ (e.extend I).symm '' t = t := by sorry
 
 -- FIXME: remove, in favour of using mathlib lemmas
 lemma extendedChart_image_nhds_on [I.Boundaryless] {e : LocalHomeomorph M H} {x : M} {n : Set M}
-    (hn : n ∈ 𝓝 x) (hn₂ : n ⊆ e.source) : I ∘ e '' n ∈ 𝓝 ((I ∘ e) x) := by
+    (hn : n ∈ 𝓝 x) (hn₂ : n ⊆ e.source) : I ∘ e '' n ∈ 𝓝 (e.extend I x) := by
   rw [image_comp]
   exact IsOpenMap.image_mem_nhds I.toOpenEmbedding.isOpenMap (e.image_mem_nhds_on hn hn₂)
 
 lemma extendedChart_LeftInvOn (e : LocalHomeomorph M H) :
-    LeftInvOn (e.invFun ∘ I.invFun) (I ∘ e) e.source :=
+    LeftInvOn (e.extend I).symm (e.extend I) e.source :=
   fun _ hx ↦ e.extend_symm_leftInverse I hx
 
+lemma ModelWithCorners.right_inv'' [I.Boundaryless] (x : E) : (I ∘ I.invFun) x = x := by
+  have : x ∈ range I := by rw [I.range_eq_univ]; exact trivial
+  exact I.right_inv this
+
+-- XXX: does mathlib have this already?
 lemma LocalHomeomorph.extend_leftInverse [I.Boundaryless] {e : LocalHomeomorph M H}
     {x : E} (hx: x ∈ (e.extend I) '' e.source) : ((e.extend I) ∘ (e.extend I).symm) x = x := by
   have : I.invFun x ∈ e.target := by aesop
   have aux : ∀ y : H, y ∈ e.target → (e ∘ e.invFun) y = y := by intros; aesop
-  have aux2 : ∀ x : E, (I ∘ I.invFun) x = x := by -- extract into separate lemma?
-    intro x
-    refine I.right_inv ?hx
-    rw [I.range_eq_univ]
-    exact trivial
-  calc (I ∘ e ∘ e.invFun ∘ I.invFun) x
+  calc ((e.extend I) ∘ (e.extend I).symm) x
     _ = I ((e ∘ e.invFun) (I.invFun x)) := rfl
     _ = I (I.invFun x) := by simp_rw [aux (I.invFun x) this]
     _ = (I ∘ I.invFun) x := rfl
-    _ = x := aux2 x
+    _ = x := I.right_inv'' x
 
 lemma extendedChart_RightInvOn [I.Boundaryless] (e : LocalHomeomorph M H) :
-    RightInvOn (e.invFun ∘ I.invFun) (I ∘ e) (I ∘ e '' e.source) :=
+    RightInvOn (e.extend I).symm (e.extend I) (e.extend I '' e.source) :=
   fun _ hx ↦ e.extend_leftInverse I hx
 
 section ChartsLocalDiffeos
@@ -165,18 +165,18 @@ lemma diffeo_differential_bijective {r : ℕ} (hr : 1 ≤ r) (f : Diffeomorph I 
   · exact contMDiffOn_univ.mpr f.contMDiff_invFun
 
 -- `contMDiffOn_of_mem_maximalAtlas` shows this for `e`!
-/-- An extended chart $I ∘ e : M → E$ on a smooth manifold is smooth on `e.source`. -/
+/-- An extended chart $e.extend I : M → E$ on a smooth manifold is smooth on `e.source`. -/
 -- TODO: can I generalise this to `Structomorph`?
 -- TODO: does this hold for manifolds with boundary?
 lemma extendedChart_smooth {e : LocalHomeomorph M H} (he : e ∈ atlas H M) [I.Boundaryless] :
-    ContMDiffOn I 𝓘(ℝ, E) ∞ (I ∘ e) e.source := by
+    ContMDiffOn I 𝓘(ℝ, E) ∞ (e.extend I) e.source := by
   let e' : LocalHomeomorph E E := LocalHomeomorph.refl E
   have h₁ : e ∈ maximalAtlas I M := subset_maximalAtlas _ he
   have h₂ : e' ∈ maximalAtlas 𝓘(ℝ, E) E := subset_maximalAtlas _ (by rfl)
   -- Looking closely, we want to show smoothness of f.
-  set f := I ∘ e ∘ e.invFun ∘ I.invFun
-  -- Since f=id on I ∘ e '' e.source, we're done.
-  have h : ∀ x ∈ I ∘ e '' e.source, f x = x := fun _ hx ↦ e.extend_leftInverse I hx
+  set f := e.extend I ∘ (e.extend I).symm
+  -- Since f=id on e.extend I '' e.source, we're done.
+  have h : ∀ x ∈ (e.extend I) '' e.source, f x = x := fun _ hx ↦ e.extend_leftInverse I hx
   apply (contMDiffOn_iff_of_mem_maximalAtlas' h₁ h₂ (Eq.subset rfl) (mapsTo_univ _ _)).mpr
   exact ContMDiffOn.contDiffOn (fun x hx ↦ ContMDiffWithinAt.congr smoothWithinAt_id h (h x hx))
 
@@ -193,39 +193,41 @@ lemma ofSet_in_maximal_atlas {s : Set E} (hs : IsOpen s) :
     LocalHomeomorph.refl_symm, LocalHomeomorph.refl_trans, and_self]
   apply ofSet_mem_contDiffGroupoid
 
-/-- The inverse $e.invFun ∘ I.invFun : E → M$ of an extended chart $I ∘ e : M → E$
-on a smooth manifold without boundary is smooth on `I ∘ e '' e.source`. -/
+/-- The inverse of an extended chart `e.extend I : M → E` on a smooth manifold without boundary
+  is smooth on its source. -/
 -- TODO: deduce this from a more general result about these being `Structomorph`
 -- FIXME: does this hold for manifolds with boundary?
 lemma extendedChart_symm_smooth {e : LocalHomeomorph M H} (he : e ∈ atlas H M) [I.Boundaryless] :
-    ContMDiffOn 𝓘(ℝ, E) I ∞ (e.invFun ∘ I.invFun) (I ∘ e '' e.source) := by
-  have : IsOpen (I ∘ e '' e.source) := e.extend_isOpenMapOn_source I e.open_source (Eq.subset rfl)
-  let e' : LocalHomeomorph E E := LocalHomeomorph.ofSet (I ∘ e '' e.source) this
+    ContMDiffOn 𝓘(ℝ, E) I ∞ (e.extend I).symm (e.extend I '' e.source) := by
+  -- xxx: is this in mathlib?
+  have : IsOpen ((e.extend I) '' e.source) := e.extend_isOpenMapOn_source I e.open_source (Eq.subset rfl)
+  let e' : LocalHomeomorph E E := LocalHomeomorph.ofSet (e.extend I '' e.source) this
   have h1 : e ∈ maximalAtlas I M := subset_maximalAtlas _ he
   have h2 : e' ∈ maximalAtlas 𝓘(ℝ, E) E := ofSet_in_maximal_atlas I this
   -- XXX: this occurs twice -> extract?
-  have h3 : MapsTo (e.invFun ∘ I.invFun) (I ∘ e '' e.source) e.source := by
+  -- xxx: is this in mathlib already?
+  have h3 : MapsTo (e.extend I).symm (e.extend I '' e.source) e.source := by
     rintro x ⟨s, hs, rfl⟩
-    have : (e.invFun ∘ I.invFun) ((↑I ∘ ↑e) s) = s := e.extend_symm_leftInverse _ hs
+    have : (e.extend I).symm (e.extend I s) = s := e.extend_symm_leftInverse _ hs
     rw [this]
     exact hs
   apply (contMDiffOn_iff_of_mem_maximalAtlas' h2 h1 (Eq.subset rfl) h3).mpr
 
   apply ContMDiffOn.contDiffOn
   -- We want to show smoothness of this function: locally, that's just the identity.
-  set f := (I ∘ e) ∘ (e.invFun ∘ I.invFun) ∘ (LocalEquiv.symm (LocalHomeomorph.extend e' 𝓘(ℝ, E)))
-  have cong : ∀ x ∈ I ∘ e '' e.source, f x = x := by
+  set f := e.extend I ∘ (e.extend I).symm ∘ (LocalEquiv.symm (LocalHomeomorph.extend e' 𝓘(ℝ, E)))
+  have cong : ∀ x ∈ e.extend I '' e.source, f x = x := by
     intro x hx
     calc f x
-      _ = ((I ∘ e) ∘ (e.invFun ∘ I.invFun)) (LocalEquiv.symm (LocalHomeomorph.extend e' 𝓘(ℝ, E)) x) := rfl
-      _ = ((I ∘ e) ∘ (e.invFun ∘ I.invFun)) x := rfl
-      _ = (I ∘ e ∘ e.invFun ∘ I.invFun) x := rfl
+      _ = (e.extend I ∘ (e.extend I).symm) (LocalEquiv.symm (LocalHomeomorph.extend e' 𝓘(ℝ, E)) x) := rfl
+      --_ = (e.extend I ∘ (e.extend I).symm) x := rfl
+      --_ = (e.extend I ∘ (e.extend I).symm) x := rfl
       _ = x := e.extend_leftInverse I hx
   -- Hence, we're done (modulo some rewriting to make this obvious to Lean).
-  have : e'.source = I ∘ e '' e.source := rfl
+  have : e'.source = e.extend I '' e.source := rfl
   rw [this]
-  have h : (LocalHomeomorph.extend e' 𝓘(ℝ, E)) '' e'.source = I ∘ e '' e.source := by simp
-  have : ((LocalHomeomorph.extend e' 𝓘(ℝ, E)) '' (↑I ∘ ↑e '' e.source)) = I ∘ e '' e.source := by
+  have h : (LocalHomeomorph.extend e' 𝓘(ℝ, E)) '' e'.source = e.extend I '' e.source := by simp
+  have : ((LocalHomeomorph.extend e' 𝓘(ℝ, E)) '' (e.extend I '' e.source)) = e.extend I '' e.source := by
     rw [← this]
     exact h
   rw [this]
@@ -234,12 +236,12 @@ lemma extendedChart_symm_smooth {e : LocalHomeomorph M H} (he : e ∈ atlas H M)
 /-- The differential of each inverse extended chart, regarded as a smooth map,
   is bijective at each point in its source. -/
 lemma extendedChart_symm_differential_bijective [SmoothManifoldWithCorners I M] [I.Boundaryless]
-    {e : LocalHomeomorph M H} (he : e ∈ atlas H M) {x : E} (hx : x ∈ I ∘ e '' e.source):
-    Bijective (mfderiv 𝓘(ℝ, E) I (e.invFun ∘ I.invFun) x) := by
-  refine diffeoOn_differential_bijective 𝓘(ℝ, E) I (Eq.le rfl) ?_ e.open_source hx ?_ (mapsTo_image (I ∘ e) e.source) ?_ ?_ ?_ ?_
+    {e : LocalHomeomorph M H} (he : e ∈ atlas H M) {x : E} (hx : x ∈ e.extend I '' e.source):
+    Bijective (mfderiv 𝓘(ℝ, E) I (e.extend I).symm x) := by
+  refine diffeoOn_differential_bijective 𝓘(ℝ, E) I (Eq.le rfl) ?_ e.open_source hx ?_ (mapsTo_image (e.extend I) e.source) ?_ ?_ ?_ ?_
   · exact e.extend_isOpenMapOn_source I e.open_source (Eq.subset rfl)
   · rintro x ⟨s, hs, rfl⟩
-    have : (e.invFun ∘ I.invFun) ((↑I ∘ ↑e) s) = s := e.extend_symm_leftInverse _ hs
+    have : (e.extend I).symm (e.extend I s) = s := e.extend_symm_leftInverse _ hs
     rw [this]
     exact hs
   · exact fun x hx ↦ e.extend_leftInverse _ hx
@@ -251,13 +253,13 @@ lemma extendedChart_symm_differential_bijective [SmoothManifoldWithCorners I M] 
   is bijective at each point in its source. -/
 lemma extendedChart_differential_bijective [SmoothManifoldWithCorners I M] [I.Boundaryless]
     {e : LocalHomeomorph M H} (he : e ∈ atlas H M) {x : M} (hx : x ∈ e.source):
-    Bijective (mfderiv I 𝓘(ℝ, E) (I ∘ e) x) := by
-  have diff : ContMDiffOn 𝓘(ℝ, E) I 1 (e.invFun ∘ I.invFun) (I ∘ e '' e.source) :=
+    Bijective (mfderiv I 𝓘(ℝ, E) (e.extend I) x) := by
+  have diff : ContMDiffOn 𝓘(ℝ, E) I 1 (e.extend I).symm (e.extend I '' e.source) :=
     SmoothOn.contMDiffOn (extendedChart_symm_smooth I he)
-  refine diffeoOn_differential_bijective I 𝓘(ℝ, E) (Eq.le rfl) e.open_source ?_ hx (mapsTo_image (I ∘ e) e.source) ?_ ?_ ?_ ?_ diff
+  refine diffeoOn_differential_bijective I 𝓘(ℝ, E) (Eq.le rfl) e.open_source ?_ hx (mapsTo_image (e.extend I) e.source) ?_ ?_ ?_ ?_ diff
   · exact e.extend_isOpenMapOn_source I e.open_source (Eq.subset rfl)
   · rintro x ⟨s, hs, rfl⟩
-    have : (e.invFun ∘ I.invFun) ((↑I ∘ ↑e) s) = s := e.extend_symm_leftInverse _ hs
+    have : (e.extend I).symm (e.extend I s) = s := e.extend_symm_leftInverse _ hs
     rw [this]
     exact hs
   · exact fun x hx ↦ e.extend_symm_leftInverse I hx
