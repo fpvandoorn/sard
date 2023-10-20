@@ -84,6 +84,17 @@ lemma LocalHomeomorph.extend_symm_isOpenMapOn_target [I.Boundaryless] {e : Local
   rw [extend_coe_symm, image_comp]
   exact e.symm_isOpenMapOn_target h this
 
+/-- If `I` has no boundary, `(e.extend I).symm` maps neighbourhoods on its source. -/
+lemma LocalHomeomorph.extend_image_mem_nhds_symm [I.Boundaryless] {e : LocalHomeomorph M H}
+    {x : E} {n : Set E} (hn : n ∈ 𝓝 x) (hn' : n ⊆ (e.extend I).target) :
+    (e.extend I).symm '' n ∈ 𝓝 ((e.extend I).symm x) := by
+  -- XXX: there ought to be a slicker proof, using that I and e map nhds to nhds
+  rcases mem_nhds_iff.mp hn with ⟨t', ht's', ht'open, hxt'⟩
+  rw [mem_nhds_iff]
+  refine ⟨(e.extend I).symm '' t', image_subset _ ht's', ?_, ?_⟩
+  · apply e.extend_symm_isOpenMapOn_target _ ht'open (Subset.trans ht's' hn')
+  · exact mem_image_of_mem (e.extend I).symm hxt'
+
 end ModelsWithCorners
 
 /-- Auxiliary lemma for local compactness of `M`. -/
@@ -112,12 +123,11 @@ lemma localCompactness_aux [FiniteDimensional ℝ E] (hI : ModelWithCorners.Boun
     _ ⊆ echart '' (echart.source) := image_subset _ (inter_subset_right _ _)
     _ ⊆ echart.target := echart.map_source''
   refine ⟨s, ?_, ?_, ?_⟩
-  · rcases mem_nhds_iff.mp hs' with ⟨t', ht's', ht'open, hxt'⟩
-    rw [mem_nhds_iff]
-    refine ⟨echart.symm '' t', image_subset _ ht's', ?_, ?_⟩
-    · apply chart.extend_symm_isOpenMapOn_target _ ht'open (Subset.trans ht's' hsmall)
-    · have : echart.symm x' = x := chart.extend_left_inv _ (mem_chart_source H x)
-      exact this ▸ mem_image_of_mem echart.symm hxt'
+  · -- FIXME: (how) to avoid these rewrites?
+    let r := chart.extend_image_mem_nhds_symm I hs' hsmall
+    have : LocalHomeomorph.extend chart I = echart := rfl
+    rw [this, ← image_eta, (extChartAt_to_inv I x)] at r
+    apply r
   · calc s
       _ ⊆ echart.symm '' n' := image_subset echart.symm hsn'
       _ = (echart.symm ∘ echart) '' (n ∩ echart.source) := by rw [image_comp]
