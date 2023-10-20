@@ -102,7 +102,7 @@ theorem sard {f : M → N} (hf : ContMDiff I J r f)
   let f_local := (J ∘ e') ∘ f ∘ (e.invFun ∘ I.invFun)
   -- "Obvious" computations from my data.
   have hwopen : IsOpen w := by
-    refine extendedChart_isOpenMapOn_source I ?_ (inter_subset_left _ _)
+    refine e.extend_isOpenMapOn_source I ?_ (inter_subset_left _ _)
     exact e.open_source.inter (e'.open_source.preimage hf.continuous)
   have hsw : s_better ⊆ w := by
     apply image_subset
@@ -112,11 +112,11 @@ theorem sard {f : M → N} (hf : ContMDiff I J r f)
     apply image_subset
     rw [inter_comm s, inter_assoc]
     exact inter_subset_left _ _
-
   have cor : (e.invFun ∘ I.invFun ∘ I ∘ e) '' (s ∩ e.source ∩ f ⁻¹' e'.source) = s ∩ e.source ∩ f ⁻¹' e'.source := by
-    rw [extendedChart_symm_leftInverse']
-    rw [inter_comm s, inter_assoc]
-    apply inter_subset_left
+    have : (s ∩ e.source ∩ f ⁻¹' e'.source) ⊆ e.source := by
+      rw [inter_comm s, inter_assoc]
+      apply inter_subset_left
+    apply e.extend_symm_leftInverse' _ this
   have hsbetter : e.invFun ∘ I.invFun '' s_better = s ∩ e.source ∩ f ⁻¹' e'.source := by
     calc e.invFun ∘ I.invFun '' s_better
       _ = (e.invFun ∘ I.invFun) ∘ I ∘ e '' (s ∩ e.source ∩ f ⁻¹' e'.source) := by
@@ -155,7 +155,7 @@ theorem sard {f : M → N} (hf : ContMDiff I J r f)
   apply sard_local hr (w := w) (s := s_better) (f := f_local) (f' := fderiv ℝ f_local) (μ := μ)
   · have : IsOpen (e.source ∩ f ⁻¹' e'.source) :=
       IsOpen.inter e.open_source (e'.open_source.preimage hf.continuous)
-    apply extendedChart_isOpenMapOn_source _ this (inter_subset_left e.source _)
+    apply e.extend_isOpenMapOn_source _ this (inter_subset_left e.source _)
   · apply image_subset (↑I ∘ ↑e)
     rw [inter_assoc]
     exact inter_subset_right s (e.source ∩ f ⁻¹' e'.source)
@@ -180,7 +180,7 @@ theorem sard {f : M → N} (hf : ContMDiff I J r f)
     rw [I.range_eq_univ, differentiableWithinAt_univ] at real
     -- (2) recover the differential, using fderiv
     have : DifferentiableAt ℝ f_local ((I ∘ e) x') := real
-    have h : (I ∘ e) x' = xnew := extendedChart_leftInverse _ (hsbetter₀ hx)
+    have h : (I ∘ e) x' = xnew := e.extend_leftInverse _ (hsbetter₀ hx)
     rw [h] at this
     exact (hasFDerivWithinAt_of_open hwopen (hsw hx)).mpr this.hasFDerivAt
   · -- ∀ x ∈ s_better, ¬Surjective (fderiv ℝ f_local x)
@@ -197,7 +197,7 @@ theorem sard {f : M → N} (hf : ContMDiff I J r f)
     -- **n**eighbourhood lemma for **A**
     have hnA : I ∘ ↑e '' e.source ∈ 𝓝 x := by -- this is boring; consolidate these details!
       let x' := (e.invFun ∘ I.invFun) x
-      have : (I ∘ e) x' = x := extendedChart_leftInverse _ (hsbetter₀ hx)
+      have : (I ∘ e) x' = x := e.extend_leftInverse _ (hsbetter₀ hx)
       rw [← this]
       have : e.source ∈ 𝓝 x' := by
         have : x' ∈ e.source := by
