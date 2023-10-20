@@ -41,7 +41,6 @@ lemma LocalHomeomorph.extend_leftInverse [I.Boundaryless] {e : LocalHomeomorph M
   calc ((e.extend I) ∘ (e.extend I).symm) x
     _ = I ((e ∘ e.invFun) (I.invFun x)) := rfl
     _ = I (I.invFun x) := by simp_rw [aux (I.invFun x) this]
-    _ = (I ∘ I.invFun) x := rfl
     _ = x := I.right_inv'' x
 
 lemma extendedChart_RightInvOn [I.Boundaryless] (e : LocalHomeomorph M H) :
@@ -216,21 +215,12 @@ lemma extendedChart_symm_smooth {e : LocalHomeomorph M H} (he : e ∈ atlas H M)
   apply ContMDiffOn.contDiffOn
   -- We want to show smoothness of this function: locally, that's just the identity.
   set f := e.extend I ∘ (e.extend I).symm ∘ (LocalEquiv.symm (LocalHomeomorph.extend e' 𝓘(ℝ, E)))
-  have cong : ∀ x ∈ e.extend I '' e.source, f x = x := by
-    intro x hx
-    calc f x
-      _ = (e.extend I ∘ (e.extend I).symm) (LocalEquiv.symm (LocalHomeomorph.extend e' 𝓘(ℝ, E)) x) := rfl
-      --_ = (e.extend I ∘ (e.extend I).symm) x := rfl
-      --_ = (e.extend I ∘ (e.extend I).symm) x := rfl
-      _ = x := e.extend_leftInverse I hx
-  -- Hence, we're done (modulo some rewriting to make this obvious to Lean).
-  have : e'.source = e.extend I '' e.source := rfl
-  rw [this]
+  have cong : ∀ x ∈ e.extend I '' e.source, f x = x := fun x hx ↦ e.extend_leftInverse I hx
   have h : (LocalHomeomorph.extend e' 𝓘(ℝ, E)) '' e'.source = e.extend I '' e.source := by simp
   have : ((LocalHomeomorph.extend e' 𝓘(ℝ, E)) '' (e.extend I '' e.source)) = e.extend I '' e.source := by
-    rw [← this]
-    exact h
-  rw [this]
+    have : e'.source = e.extend I '' e.source := by rw [@LocalHomeomorph.ofSet_source]
+    exact this ▸ h
+  rw [LocalHomeomorph.ofSet_source, this]
   exact fun x hx ↦ ContMDiffWithinAt.congr smoothWithinAt_id cong (cong x (h ▸ hx))
 
 /-- The differential of each inverse extended chart, regarded as a smooth map,
