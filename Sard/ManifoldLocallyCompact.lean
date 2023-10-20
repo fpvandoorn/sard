@@ -66,11 +66,7 @@ theorem ModelWithCorners.toOpenEmbedding [I.Boundaryless] : OpenEmbedding I :=
 theorem ModelWithCorners.toOpenEmbedding_symm [I.Boundaryless] : OpenEmbedding I.symm :=
   I.toHomeomorph.symm.openEmbedding
 
-lemma LocalHomeomorph.extend_symm_leftInverse {e : LocalHomeomorph M H} {x : M} (hx: x ∈ e.source) :
-    ((e.extend I).symm ∘ (e.extend I)) x = x :=
-  e.extend_left_inv _ hx
-
-lemma LocalHomeomorph.extend_symm_leftInverse' {t : Set M} {e : LocalHomeomorph M H} (ht: t ⊆ e.source) :
+lemma LocalHomeomorph.extend_left_inv' {t : Set M} {e : LocalHomeomorph M H} (ht: t ⊆ e.source) :
     ((e.extend I).symm ∘ (e.extend I)) '' t = t :=
   funext_on (fun ⟨_, hx⟩ ↦ e.extend_left_inv _ (ht hx))
 
@@ -128,13 +124,13 @@ lemma localCompactness_aux [FiniteDimensional ℝ E] (hI : ModelWithCorners.Boun
     rw [mem_nhds_iff]
     refine ⟨echart.symm '' t', image_subset _ ht's', ?_, ?_⟩
     · apply chart.extend_symm_isOpenMapOn_target _ ht'open (Subset.trans ht's' hsmall)
-    · have : echart.symm x' = x := chart.extend_symm_leftInverse _ (mem_chart_source H x)
+    · have : echart.symm x' = x := chart.extend_left_inv _ (mem_chart_source H x)
       exact this ▸ mem_image_of_mem echart.symm hxt'
   · calc s
       _ ⊆ echart.symm '' n' := image_subset echart.symm hsn'
       _ = (echart.symm ∘ echart) '' (n ∩ echart.source) := by rw [image_comp]
       _ = n ∩ echart.source := by
-        apply chart.extend_symm_leftInverse'
+        apply chart.extend_left_inv'
         rw [extChartAt_source]
         apply inter_subset_right
       _ ⊆ n := inter_subset_left _ _

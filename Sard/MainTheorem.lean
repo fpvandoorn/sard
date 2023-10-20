@@ -116,7 +116,7 @@ theorem sard {f : M → N} (hf : ContMDiff I J r f)
     have : (s ∩ e.source ∩ f ⁻¹' e'.source) ⊆ e.source := by
       rw [inter_comm s, inter_assoc]
       apply inter_subset_left
-    apply e.extend_symm_leftInverse' _ this
+    apply e.extend_left_inv' _ this
   have hsbetter : e.invFun ∘ I.invFun '' s_better = s ∩ e.source ∩ f ⁻¹' e'.source := by
     calc e.invFun ∘ I.invFun '' s_better
       _ = (e.invFun ∘ I.invFun) ∘ I ∘ e '' (s ∩ e.source ∩ f ⁻¹' e'.source) := by
@@ -180,7 +180,7 @@ theorem sard {f : M → N} (hf : ContMDiff I J r f)
     rw [I.range_eq_univ, differentiableWithinAt_univ] at real
     -- (2) recover the differential, using fderiv
     have : DifferentiableAt ℝ f_local ((I ∘ e) x') := real
-    have h : (I ∘ e) x' = xnew := e.extend_leftInverse _ (hsbetter₀ hx)
+    have h : (I ∘ e) x' = xnew := e.extend_right_inv _ (hsbetter₀ hx)
     rw [h] at this
     exact (hasFDerivWithinAt_of_open hwopen (hsw hx)).mpr this.hasFDerivAt
   · -- ∀ x ∈ s_better, ¬Surjective (fderiv ℝ f_local x)
@@ -197,7 +197,7 @@ theorem sard {f : M → N} (hf : ContMDiff I J r f)
     -- **n**eighbourhood lemma for **A**
     have hnA : I ∘ ↑e '' e.source ∈ 𝓝 x := by -- this is boring; consolidate these details!
       let x' := (e.invFun ∘ I.invFun) x
-      have : (I ∘ e) x' = x := e.extend_leftInverse _ (hsbetter₀ hx)
+      have : (I ∘ e) x' = x := e.extend_right_inv _ (hsbetter₀ hx)
       rw [← this]
       have : e.source ∈ 𝓝 x' := by
         have : x' ∈ e.source := by
