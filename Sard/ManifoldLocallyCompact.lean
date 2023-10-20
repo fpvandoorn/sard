@@ -1,16 +1,21 @@
 import Mathlib.Geometry.Manifold.MFDeriv
 
 /-!
-# Local compactness of smooth manifolds
+# Local compactness of manifolds
 Finite-dimensional manifolds without boundary are locally compact.
+
+TODO:
+- adapt the proof to manifolds with boundary (needs a new argument to handle boundary points),
+  possibly also adaptions of the definition of boundary.
+- generalise to manifolds on any complete normed fields
+(this is merely missing the corresponding instance on normed spaces)
 -/
 
-open Function Manifold Set SmoothManifoldWithCorners TopologicalSpace Topology
+open Function Set TopologicalSpace Topology
 set_option autoImplicit false
 
 variable
-  -- Let `M` be a smooth manifold over the pair `(E, H)`.
-  -- xxx: remove smooth!
+  -- Let `M` be a manifold over the pair `(E, H)`.
   {E : Type*}
   [NormedAddCommGroup E] [NormedSpace ℝ E] {H : Type*} [TopologicalSpace H]
   (I : ModelWithCorners ℝ E H) {M : Type*} [TopologicalSpace M] [ChartedSpace H M]
@@ -55,6 +60,7 @@ theorem ModelWithCorners.leftInverse' : I.invFun ∘ I = id := funext I.leftInve
 theorem ModelWithCorners.toOpenEmbedding [I.Boundaryless] : OpenEmbedding I :=
   I.toHomeomorph.openEmbedding
 
+/-- If I is boundaryless, `I.symm` is an open embedding. -/
 theorem ModelWithCorners.toOpenEmbedding_symm [I.Boundaryless] : OpenEmbedding I.symm :=
   I.toHomeomorph.symm.openEmbedding
 
@@ -174,16 +180,15 @@ lemma localCompactness_aux [FiniteDimensional ℝ E] (hI : ModelWithCorners.Boun
 
 -- TODO: what's the right way to make this an instance?
 /-- A finite-dimensional manifold without boundary is locally compact. -/
--- TODO: allow boundary; needs a new argument for the boundary points.
-lemma SmoothManifoldWithCorners.locallyCompact_of_finiteDimensional_of_boundaryless
+lemma Manifold.locallyCompact_of_finiteDimensional_of_boundaryless
     [FiniteDimensional ℝ E] (hI : ModelWithCorners.Boundaryless I) : LocallyCompactSpace M := by
   exact { local_compact_nhds := fun x n hn ↦ localCompactness_aux I hI hn }
 
 -- TODO: add hypotheses, once I figure out the right incantation to add them!
 /-- A finite-dimensional second-countable manifold without boundary is σ-compact. -/
 instance [SecondCountableTopology M]
-  /- [SmoothManifoldWithCorners I M] and all the other things -/
+  /- [HasGroupoid M (contDiffGroupoid 0 I)] and all the other things -/
   /- [FiniteDimensional ℝ E] (hI : ModelWithCorners.Boundaryless I)-/ : SigmaCompactSpace M := by
   have : LocallyCompactSpace M := by
-    sorry -- should be: SmoothManifoldWithCorners.locallyCompact_of_finiteDimensional_of_boundaryless I hI
+    sorry -- should be: Manifold.locallyCompact_of_finiteDimensional_of_boundaryless I hI
   apply sigmaCompactSpace_of_locally_compact_second_countable
