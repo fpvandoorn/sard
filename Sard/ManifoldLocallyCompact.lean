@@ -41,18 +41,10 @@ lemma LocalHomeomorph.isOpenMapOn_source {e : LocalHomeomorph M H} {s : Set M}
   rw [(image_eq_target_inter_inv_preimage (e := e) hs)]
   exact e.continuous_invFun.preimage_open_of_open e.open_target hopen
 
-lemma LocalHomeomorph.image_mem_nhds_on {e : LocalHomeomorph M H} {x : M} {n : Set M}
-    (hn : n ∈ 𝓝 x) (hn₂ : n ⊆ e.source) : e '' n ∈ 𝓝 (e x) := by
-  rcases mem_nhds_iff.mp hn with ⟨t, htn, htopen, hxt⟩
-  rw [mem_nhds_iff]
-  exact ⟨e '' t, image_subset e htn, e.isOpenMapOn_source htopen (Subset.trans htn hn₂),
-    mem_image_of_mem _ hxt⟩
-
 lemma LocalHomeomorph.symm_isOpenMapOn_target {e : LocalHomeomorph M H} {t : Set H}
     (hopen : IsOpen t) (ht : t ⊆ e.target) : IsOpen (e.invFun '' t) := by
   have r : e.invFun '' t = e.source ∩ ↑e ⁻¹' t := symm_image_eq_source_inter_preimage (e := e) ht
   exact r ▸ e.continuous_toFun.preimage_open_of_open e.open_source hopen
-
 end LocalHomeo
 
 section ModelsWithCorners -- add to `SmoothManifoldWithCorners.lean`
@@ -130,9 +122,8 @@ lemma localCompactness_aux [FiniteDimensional ℝ E] (hI : ModelWithCorners.Boun
       _ ⊆ echart.symm '' n' := image_subset echart.symm hsn'
       _ = (echart.symm ∘ echart) '' (n ∩ echart.source) := by rw [image_comp]
       _ = n ∩ echart.source := by
-        apply chart.extend_left_inv'
         rw [extChartAt_source]
-        apply inter_subset_right
+        apply chart.extend_left_inv' _ (inter_subset_right _ _)
       _ ⊆ n := inter_subset_left _ _
   · apply hscompact.image_of_continuousOn ((chart.continuousOn_extend_symm I).mono hsmall)
 

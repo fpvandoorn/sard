@@ -23,7 +23,7 @@ lemma unused_extendedChart_leftInverse' {e : LocalHomeomorph M H} {t : Set E} (h
 lemma extendedChart_image_nhds_on [I.Boundaryless] {e : LocalHomeomorph M H} {x : M} {n : Set M}
     (hn : n ∈ 𝓝 x) (hn₂ : n ⊆ e.source) : I ∘ e '' n ∈ 𝓝 (e.extend I x) := by
   rw [image_comp]
-  exact IsOpenMap.image_mem_nhds I.toOpenEmbedding.isOpenMap (e.image_mem_nhds_on hn hn₂)
+  apply I.toOpenEmbedding.isOpenMap.image_mem_nhds (e.image_mem_nhds (hn₂ (mem_of_mem_nhds hn)) hn)
 
 lemma LocalHomeomorph.mapsTo_extend_symm {e : LocalHomeomorph M H} :
     MapsTo (e.extend I).symm (e.extend I '' e.source) e.source := by
@@ -32,7 +32,7 @@ lemma LocalHomeomorph.mapsTo_extend_symm {e : LocalHomeomorph M H} :
   rw [this]
   exact hs
 
-lemma extendedChart_LeftInvOn (e : LocalHomeomorph M H) :
+lemma LocalHomeomorph.extend_LeftInvOn (e : LocalHomeomorph M H) :
     LeftInvOn (e.extend I).symm (e.extend I) e.source :=
   fun _ hx ↦ e.extend_left_inv I hx
 
@@ -49,7 +49,7 @@ lemma LocalHomeomorph.extend_right_inv [I.Boundaryless] {e : LocalHomeomorph M H
     _ = I (I.invFun x) := by simp_rw [aux (I.invFun x) this]
     _ = x := I.right_inv'' x
 
-lemma extendedChart_RightInvOn [I.Boundaryless] (e : LocalHomeomorph M H) :
+lemma LocalHomeomorph.extend_RightInvOn [I.Boundaryless] (e : LocalHomeomorph M H) :
     RightInvOn (e.extend I).symm (e.extend I) (e.extend I '' e.source) :=
   fun _ hx ↦ e.extend_right_inv I hx
 
