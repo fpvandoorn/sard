@@ -97,9 +97,9 @@ theorem sard {f : M → N} (hf : ContMDiff I J r f)
   intro μ hμ y
   let e' := chartAt G y
   -- Data for the reduction to local coordinates.
-  let w := I ∘ e '' (e.source ∩ f ⁻¹' e'.source)
-  let s_better := I ∘ e '' (s ∩ e.source ∩ f ⁻¹' e'.source)
-  let f_local := (J ∘ e') ∘ f ∘ (e.invFun ∘ I.invFun)
+  let w := e.extend I '' (e.source ∩ f ⁻¹' e'.source)
+  let s_better := (e.extend I) '' (s ∩ e.source ∩ f ⁻¹' e'.source)
+  let f_local := (J ∘ e') ∘ f ∘ (e.extend I).symm
   -- "Obvious" computations from my data.
   have hwopen : IsOpen w := by
     refine e.extend_isOpenMapOn_source I ?_ (inter_subset_left _ _)
@@ -108,44 +108,42 @@ theorem sard {f : M → N} (hf : ContMDiff I J r f)
     apply image_subset
     rw [inter_assoc]
     apply inter_subset_right s _
-  have hsbetter₀ : s_better ⊆ I ∘ e '' e.source := by
+  have hsbetter₀ : s_better ⊆ e.extend I '' e.source := by
     apply image_subset
     rw [inter_comm s, inter_assoc]
     exact inter_subset_left _ _
-  have cor : (e.invFun ∘ I.invFun ∘ I ∘ e) '' (s ∩ e.source ∩ f ⁻¹' e'.source) = s ∩ e.source ∩ f ⁻¹' e'.source := by
+  have cor : ((e.extend I).symm ∘ e.extend I) '' (s ∩ e.source ∩ f ⁻¹' e'.source) = s ∩ e.source ∩ f ⁻¹' e'.source := by
     have : (s ∩ e.source ∩ f ⁻¹' e'.source) ⊆ e.source := by
       rw [inter_comm s, inter_assoc]
       apply inter_subset_left
     apply e.extend_left_inv' _ this
-  have hsbetter : e.invFun ∘ I.invFun '' s_better = s ∩ e.source ∩ f ⁻¹' e'.source := by
-    calc e.invFun ∘ I.invFun '' s_better
-      _ = (e.invFun ∘ I.invFun) ∘ I ∘ e '' (s ∩ e.source ∩ f ⁻¹' e'.source) := by
-        simp only [comp.assoc, image_comp]
-      _ = (e.invFun ∘ I.invFun ∘ I ∘ e) '' (s ∩ e.source ∩ f ⁻¹' e'.source) := by simp only [comp.assoc, image_comp]
+  have hsbetter : (e.extend I).symm '' s_better = s ∩ e.source ∩ f ⁻¹' e'.source := by
+    calc (e.extend I).symm '' s_better
+      _ = ((e.extend I).symm ∘ (e.extend I)) '' (s ∩ e.source ∩ f ⁻¹' e'.source) := by simp only [comp.assoc, image_comp]
       _ = s ∩ e.source ∩ f ⁻¹' e'.source := cor
   -- Inclusions about s_better, which are needed at some point in the proofs below.
-  have hsbetter₁ : (e.invFun ∘ I.invFun) '' s_better ⊆ s := by
+  have hsbetter₁ : (e.extend I).symm '' s_better ⊆ s := by
     rw [hsbetter, inter_assoc]
     exact inter_subset_left s _
-  have hsbetter₂ : (e.invFun ∘ I.invFun) '' s_better ⊆ e.source := by
+  have hsbetter₂ : (e.extend I).symm '' s_better ⊆ e.source := by
     rw [hsbetter]
     rw [inter_comm s, inter_assoc]
     exact inter_subset_left _ _
 
-  have hw : (f ∘ e.invFun ∘ I.invFun) '' w ⊆ e'.source := calc
-    (f ∘ e.invFun ∘ I.invFun) '' w
-      = f '' (e.invFun ∘ I.invFun '' w) := by rw [image_comp]
+  have hw : (f ∘ (e.extend I).symm) '' w ⊆ e'.source := calc
+    (f ∘ (e.extend I).symm) '' w
+      = f '' ((e.extend I).symm '' w) := by rw [image_comp]
     _ = f '' (e.source ∩ f ⁻¹' e'.source) := by sorry -- fully analogous to rw [hsbetter]
     _ ⊆ f '' (f ⁻¹' e'.source) := image_subset _ (inter_subset_right _ _)
     _ ⊆ e'.source := image_preimage_subset f e'.source
-  have hsbetter₃ : (f ∘ e.invFun ∘ I.invFun) '' s_better ⊆ e'.source := calc
-    (f ∘ e.invFun ∘ I.invFun) '' s_better
-    _ ⊆ (f ∘ e.invFun ∘ I.invFun) '' w := image_subset _ hsw
+  have hsbetter₃ : (f ∘ (e.extend I).symm) '' s_better ⊆ e'.source := calc
+    (f ∘ (e.extend I).symm) '' s_better
+    _ ⊆ (f ∘ (e.extend I).symm) '' w := image_subset _ hsw
     _ ⊆ e'.source := hw
   have : J ∘ e' '' (e'.source ∩ f '' (e.source ∩ s)) = f_local '' s_better := by
     symm
     calc f_local '' s_better
-      _ = (J ∘ e') ∘ f '' ((e.invFun ∘ I.invFun ∘ I ∘ e) '' (s ∩ e.source ∩ f ⁻¹' e'.source)) := by
+      _ = ((J ∘ e') ∘ f) '' (((e.extend I).symm ∘ (e.extend I)) '' (s ∩ e.source ∩ f ⁻¹' e'.source)) := by
         simp only [comp.assoc, image_comp]
       _ = J ∘ e' '' (f '' (s ∩ e.source ∩ f ⁻¹' e'.source)) := by rw [cor, image_comp]
       _ = J ∘ e' '' (f '' (e.source ∩ s ∩ f ⁻¹' e'.source)) := by rw [inter_comm s]
@@ -156,7 +154,7 @@ theorem sard {f : M → N} (hf : ContMDiff I J r f)
   · have : IsOpen (e.source ∩ f ⁻¹' e'.source) :=
       IsOpen.inter e.open_source (e'.open_source.preimage hf.continuous)
     apply e.extend_isOpenMapOn_source _ this (inter_subset_left e.source _)
-  · apply image_subset (↑I ∘ ↑e)
+  · apply image_subset
     rw [inter_assoc]
     exact inter_subset_right s (e.source ∩ f ⁻¹' e'.source)
   · -- ContDiffOn ℝ (↑r) f_local w follows by definition, of ContMDiff f in charts
@@ -170,17 +168,17 @@ theorem sard {f : M → N} (hf : ContMDiff I J r f)
     -- XXX: there's not much happening, surely this can be golfed!
     -- XXX: something like HasFDerivWithAt_iff_of_mem_maximalAtlas' would be super convenient
     intro xnew hx
-    let x' := (e.invFun ∘ I.invFun) xnew
-    have hx'1 : x' ∈ s := hsbetter₁ (mem_image_of_mem _ hx)
-    have hx'2 : x' ∈ e.source := hsbetter₂ (mem_image_of_mem _ hx)
-    have hx'3 : f x' ∈ e'.source := hsbetter₃ (mem_image_of_mem _ hx)
-    specialize hf' x' hx'1
+    let x' := (e.extend I).symm xnew
+    have hx'₁ : x' ∈ s := hsbetter₁ (mem_image_of_mem _ hx)
+    have hx'₂ : x' ∈ e.source := hsbetter₂ (mem_image_of_mem _ hx)
+    have hx'₃ : f x' ∈ e'.source := hsbetter₃ (mem_image_of_mem _ hx)
+    specialize hf' x' hx'₁
     -- (1) f_local is differentiable as f is: use charts
-    obtain ⟨_, real⟩ := (mdifferentiableAt_iff_of_mem_source hx'2 hx'3).mp hf'.mdifferentiableAt
+    obtain ⟨_, real⟩ := (mdifferentiableAt_iff_of_mem_source hx'₂ hx'₃).mp hf'.mdifferentiableAt
     rw [I.range_eq_univ, differentiableWithinAt_univ] at real
     -- (2) recover the differential, using fderiv
-    have : DifferentiableAt ℝ f_local ((I ∘ e) x') := real
-    have h : (I ∘ e) x' = xnew := e.extend_right_inv _ (hsbetter₀ hx)
+    have : DifferentiableAt ℝ f_local (e.extend I x') := real
+    have h : e.extend I x' = xnew := e.extend_right_inv _ (hsbetter₀ hx)
     rw [h] at this
     exact (hasFDerivWithinAt_of_open hwopen (hsw hx)).mpr this.hasFDerivAt
   · -- ∀ x ∈ s_better, ¬Surjective (fderiv ℝ f_local x)
@@ -190,19 +188,21 @@ theorem sard {f : M → N} (hf : ContMDiff I J r f)
     set D := mfderiv 𝓘(ℝ, E) 𝓘(ℝ, F) f_local x
     -- By definition, f_local is the composition (J ∘ e') ∘ f ∘ e.invFun ∘ I.invFun.
     -- Hence, by the chain rule, its mfderiv is the composition of those.
-    let A := mfderiv 𝓘(ℝ, E) I (e.invFun ∘ I.invFun) x
-    let B := mfderiv I J f ((e.invFun ∘ I.invFun) x)
-    let C := mfderiv J 𝓘(ℝ, F) (J ∘ e') ((f ∘ e.invFun ∘ I.invFun) x)
+    let A := mfderiv 𝓘(ℝ, E) I (e.extend I).symm x
+    let B := mfderiv I J f ((e.extend I).symm x)
+    let C := mfderiv J 𝓘(ℝ, F) (e'.extend J) ((f ∘ (e.extend I).symm) x)
     -- Technical lemmas needed to apply the chain rule.
     -- **n**eighbourhood lemma for **A**
-    have hnA : I ∘ ↑e '' e.source ∈ 𝓝 x := by -- this is boring; consolidate these details!
-      let x' := (e.invFun ∘ I.invFun) x
-      have : (I ∘ e) x' = x := e.extend_right_inv _ (hsbetter₀ hx)
+    have hnA : e.extend I '' e.source ∈ 𝓝 x := by -- this is boring; consolidate these details!
+      let x' := (e.extend I).symm x
+      have : e.extend I x' = x := e.extend_right_inv _ (hsbetter₀ hx)
       rw [← this]
       have : e.source ∈ 𝓝 x' := by
-        have : x' ∈ e.source := by
-          sorry-- apply mem_of_mem_of_subset hx hsbetter₀ --?h--sorry
-          -- apply hsbetter₀--apply inter_subset_left--refine MapsTo.image_subset ?h
+        have : (e.extend I).symm x = x' := rfl
+        have : x' ∈ e.source := by sorry -- tedious busywork
+          --rw [← this]
+          --apply mem_of_mem_of_subset hx hsbetter₀ --?h--sorry
+          --apply inter_subset_left--refine MapsTo.image_subset ?h
         exact IsOpen.mem_nhds e.open_source this
       exact extendedChart_image_nhds_on I this (Eq.subset rfl)
     have hA : MDifferentiableAt 𝓘(ℝ, E) I (e.invFun ∘ I.invFun) x :=
@@ -229,11 +229,11 @@ theorem sard {f : M → N} (hf : ContMDiff I J r f)
       _ = D := rfl
 
     -- By hypothesis, B is not surjective.
-    let x' := (e.invFun ∘ I.invFun) x
+    let x' := (e.extend I).symm x
     have aux : x' ∈ s := hsbetter₁ (mem_image_of_mem _ hx)
     have : f' x' = B := by rw [← (hf' x' aux).mfderiv]
     have hBsurj : ¬ Surjective B := this ▸ h'f' _ aux
-    -- The charts I ∘ e and J ∘ e' are diffeos, hences their differentials are isomorphisms.
+    -- The charts e.extend I and e'.extend J are diffeos, hences their differentials are isomorphisms.
     -- Thus, A and C are bijective.
     have hA : Bijective A := extendedChart_symm_differential_bijective I (chart_mem_atlas H _) (hsbetter₀ hx)
     have hC : Bijective C :=
