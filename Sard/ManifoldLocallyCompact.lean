@@ -21,11 +21,12 @@ variable
   (I : ModelWithCorners ℝ E H) {M : Type*} [TopologicalSpace M] [ChartedSpace H M]
   [HasGroupoid M (contDiffGroupoid 0 I)]
 
-/-- Analogous to the funext tactic, but only on a set. -/
+/-- Variant of `image_congr`, but with one function being the identity. -/
 -- add to Data.Set.Image
-theorem funext_on {α β : Type*} {f : α → β} {g : β → α} {s : Set α} (h : ∀ x : s, (g ∘ f) x = x)
-    : g ∘ f '' s = s := by
-  simp_all only [comp_apply, Subtype.forall, image_id']
+theorem Set.image_congr'' {α β : Type*} {f : α → β} {g : β → α} {s : Set α}
+    (h : ∀ x : α, x ∈ s → (g ∘ f) x = x) : g ∘ f '' s = s := by
+  have : ∀ x : α, x ∈ s → (g ∘ f) x = id x := fun x hx  ↦ id_def ▸ h x hx
+  rw [Set.image_congr (this), image_id]
 
 section LocalHomeo -- add to `LocalHomeomorph.lean`
 -- like `e.map_source`, but stated in terms of images
@@ -60,7 +61,7 @@ theorem ModelWithCorners.toOpenEmbedding_symm [I.Boundaryless] : OpenEmbedding I
 
 lemma LocalHomeomorph.extend_left_inv' {t : Set M} {e : LocalHomeomorph M H} (ht: t ⊆ e.source) :
     ((e.extend I).symm ∘ (e.extend I)) '' t = t :=
-  funext_on (fun ⟨_, hx⟩ ↦ e.extend_left_inv _ (ht hx))
+  Set.image_congr'' (fun _ hx ↦ e.extend_left_inv _ (ht hx))
 
 /-- If I has no boundary, `e.extend I` is an open map on its source. -/
 lemma LocalHomeomorph.extend_isOpenMapOn_source [I.Boundaryless] {e : LocalHomeomorph M H}

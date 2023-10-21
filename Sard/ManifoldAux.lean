@@ -128,7 +128,7 @@ lemma diffeoOn_differential_bijective {f : M → N} {g : N → M} {r : ℕ} (hr 
   have : f '' s = t := subset_antisymm (mapsTo'.mp hst) (fun y hy ↦ ⟨g y, hts hy, hright_inv y hy⟩)
   have : g '' t = s := by
     rw [← this, ← image_comp]
-    exact funext_on (fun ⟨x, hx⟩ ↦ hleft_inv x hx)
+    exact Set.image_congr'' (fun x hx ↦ hleft_inv x hx)
   have hopen : IsOpen (g '' t) := by rw [this]; exact hs
   have hx2 : x ∈ g '' t := by simp_rw [this]; exact hx
 
