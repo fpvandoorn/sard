@@ -29,7 +29,7 @@ That said, help is very welcome! Feel free to make a PR filling in some sorry, o
   - [x] nowhere dense and meagre sets: [PRed](https://github.com/leanprover-community/mathlib4/pull/7180) and merged
   - [x] $\sigma$-compact subsets, relation to $\sigma$-compact spaces and basic: [PRed](https://github.com/leanprover-community/mathlib4/pull/7576) and merged
   - [x] $\sigma$-compact measure zero sets are meagre: [PRed](https://github.com/leanprover-community/mathlib4/pull/7640)
-  - [x] finite-dimensional manifolds are locally compact: done (need messaging to produce instances)
+  - [x] finite-dimensional manifolds are locally compact: [PRed](https://github.com/leanprover-community/mathlib4/pull/7823); need some massaging to turn lemmas into instances
 
   - [ ] define measure zero subsets of a manifold: first version complete [and PRed](https://github.com/leanprover-community/mathlib4/pull/7076). Needs rework to a more conceptual approach:
     - [ ] define Lebesgue measure on a C¹ manifold (pull back Lebesgue measure on each chart, use a partition of unity)
@@ -40,7 +40,7 @@ That said, help is very welcome! Feel free to make a PR filling in some sorry, o
     - [ ] show the ae filter is induced from the charts
     - [ ] perhaps not all of these are truly required
 - [x] state Sard's theorem: formalised
-- [ ] reduce to a local statement: mostly done (remaining sorries are missing API in mathlib)
+- [ ] reduce to a local statement: essentially done (remaining sorries are busywork)
 - [x] "easy" case of Sard: if $\dim{M}<\dim{N}$: essentially done
 - [ ] "hard" case of Sard: $\dim{M}\geq\dim{N}$: open, not started yet
   - [ ] show $\Sigma_1$ (in Hirsch's proof) has measure zero

@@ -34,6 +34,7 @@ section LocalHomeo -- add to `LocalHomeomorph.lean`
 lemma LocalHomeomorph.map_source'' {e : LocalHomeomorph M H} : e '' e.source ⊆ e.target :=
   fun _ ⟨_, hx, hex⟩ ↦ mem_of_eq_of_mem (id hex.symm) (e.map_source' hx)
 
+-- like `e.map_source'`, but stated in terms of images
 lemma LocalEquiv.map_source'' {e : LocalEquiv M H} : e '' e.source ⊆ e.target :=
   fun _ ⟨_, hx, hex⟩ ↦ mem_of_eq_of_mem (id hex.symm) (e.map_source' hx)
 
@@ -49,16 +50,16 @@ lemma LocalHomeomorph.symm_isOpenMapOn_target {e : LocalHomeomorph M H} {t : Set
 end LocalHomeo
 
 section ModelsWithCorners -- add to `SmoothManifoldWithCorners.lean`
-theorem ModelWithCorners.leftInverse' : I.invFun ∘ I = id := funext I.leftInverse
 
-/-- If I is boundaryless, it is an open embedding. -/
+/-- If `I` is boundaryless, it is an open embedding. -/
 theorem ModelWithCorners.toOpenEmbedding [I.Boundaryless] : OpenEmbedding I :=
   I.toHomeomorph.openEmbedding
 
-/-- If I is boundaryless, `I.symm` is an open embedding. -/
+/-- If `I` is boundaryless, `I.symm` is an open embedding. -/
 theorem ModelWithCorners.toOpenEmbedding_symm [I.Boundaryless] : OpenEmbedding I.symm :=
   I.toHomeomorph.symm.openEmbedding
 
+-- like `e.extend_left_inv' I`, but stated in terms of images
 lemma LocalHomeomorph.extend_left_inv' {t : Set M} {e : LocalHomeomorph M H} (ht: t ⊆ e.source) :
     ((e.extend I).symm ∘ (e.extend I)) '' t = t :=
   Set.image_congr'' (fun _ hx ↦ e.extend_left_inv _ (ht hx))
