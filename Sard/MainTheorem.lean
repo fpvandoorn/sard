@@ -208,15 +208,17 @@ theorem sard {f : M → N} (hf : ContMDiff I J r f)
     have hA : MDifferentiableAt 𝓘(ℝ, E) I (e.invFun ∘ I.invFun) x :=
       SmoothAt.mdifferentiableAt ((extendedChart_symm_smooth _ (chart_mem_atlas H _)).contMDiffAt hnA)
     -- General nonsense: f is ContMDiff, hence also MDifferentiable at each point.
-    have hB : MDifferentiableAt I J f ((e.invFun ∘ I.invFun) x) := sorry
-    -- Should be similar.
-    have hBA : MDifferentiableAt 𝓘(ℝ, E) J (f ∘ e.invFun ∘ I.invFun) x := sorry
+    have hr : 1 ≤ (r : ℕ∞) := Nat.one_le_cast.mpr (Nat.one_le_of_lt hr)
+    have hB : MDifferentiableAt I J f ((e.invFun ∘ I.invFun) x) :=
+      hf.contMDiffAt.mdifferentiableAt hr
+    -- Should be similar. TODO: fix this.
+    have hBA : MDifferentiableAt 𝓘(ℝ, E) J (f ∘ (e.invFun ∘ I.invFun)) x := by
+      sorry -- exact hB.comp hA (M' := M) (M'' := N)
     -- should be obvious, skipping for now. (open set as w is open)
     have hnC : ((f ∘ e.invFun ∘ I.invFun) '' w) ∈ 𝓝 ((f ∘ e.invFun ∘ I.invFun) x) := sorry
     have hC : MDifferentiableAt J 𝓘(ℝ, F) (J ∘ e') ((f ∘ e.invFun ∘ I.invFun) x) := by
       have : ContMDiffOn J 𝓘(ℝ, F) ∞ (J ∘ e') e'.source := extendedChart_smooth _ (chart_mem_atlas G _)
-      have : ContMDiffOn J 𝓘(ℝ, F) ∞ (J ∘ e') ((f ∘ e.invFun ∘ I.invFun) '' w) := this.mono hw
-      exact SmoothAt.mdifferentiableAt (this.contMDiffAt hnC)
+      exact SmoothAt.mdifferentiableAt ((this.mono hw).contMDiffAt hnC)
     -- By the chain rule, D is the composition of A, B and C.
     let comp := C.comp (B.comp A)
     let r := calc comp
