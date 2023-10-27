@@ -57,6 +57,11 @@ theorem sard_local {s w : Set E} {f : E → F} (hw : IsOpen w) (hsw : s ⊆ w)
     exact hless
   · sorry
 
+-- PRed at https://github.com/leanprover-community/mathlib4/pull/7640; TODO add proof later
+lemma isMeagre_of_isSigmaCompact_null {X : Type*} [TopologicalSpace X] [T2Space X]
+    [MeasurableSpace X] [BorelSpace X] {μ : Measure X} [IsOpenPosMeasure μ] {s : Set X} (h₁s : IsSigmaCompact s) (h₂s : μ s = 0) :
+    IsMeagre s := sorry
+
 /-- Local version of Sard's theorem. If $W ⊆ ℝ^m$ is open and $f: W → ℝ^n$ is $C^r$,
 the set of critical values of `f` is a meagre set.
 We phrase this for any closed set `s` of critical points of `f`; this is fine
@@ -71,7 +76,7 @@ theorem sard_local' {s w : Set E} {f : E → F} (hw : IsOpen w) (hs : IsClosed s
   -- `s` is closed, hence σ-compact --- thus so is f '' s.
   have : IsSigmaCompact s := isSigmaCompact_univ.of_isClosed_subset hs (subset_univ s)
   have : IsSigmaCompact (f '' s) := this.image_of_continuousOn (hf.continuousOn.mono hsw)
-  exact meagre_of_sigma_compact_null this ass
+  exact isMeagre_of_isSigmaCompact_null this ass
 
 /-- **Sard's theorem**. Let $M$ and $N$ be real $C^r$ manifolds of dimensions
 $m$ and $n$, and $f : M → N$ a $C^r$ map. If $r>\max{0, m-n}$,
@@ -180,7 +185,7 @@ theorem sard {f : M → N} (hf : ContMDiff I J r f)
     have : DifferentiableAt ℝ f_local (e.extend I x') := real
     have h : e.extend I x' = xnew := e.extend_right_inv _ (hsbetter₀ hx)
     rw [h] at this
-    exact (hasFDerivWithinAt_of_open hwopen (hsw hx)).mpr this.hasFDerivAt
+    exact (hasFDerivWithinAt_of_isOpen hwopen (hsw hx)).mpr this.hasFDerivAt
   · -- ∀ x ∈ s_better, ¬Surjective (fderiv ℝ f_local x)
     intro x hx
     -- f_local is a map from E to F, hence its fderiv equals its mfderiv.
@@ -259,6 +264,7 @@ theorem sard' {f : M → N} (hf : ContMDiff I J r f) [T2Space N]
     (hf' : ∀ x ∈ s, HasMFDerivAt I J f x (f' x))
     (h'f' : ∀ x ∈ s, ¬ Surjective (f' x)) : IsMeagre (f '' s) := by
   -- M is second countable and locally compact (as finite-dimensional), hence σ-compact.
+  have : LocallyCompactSpace M := Manifold.locallyCompact_of_finiteDimensional I
   have : IsSigmaCompact s := isSigmaCompact_univ.of_isClosed_subset hs (subset_univ s)
   exact MeasureZero.meagre_if_sigma_compact J (sard _ hr hf hf' h'f') (this.image (hf.continuous))
 

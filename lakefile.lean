@@ -6,7 +6,7 @@ package «sard» {
 }
 
 require mathlib from git
-  "https://github.com/leanprover-community/mathlib4.git" @ "MR-sigma-compact-measure-zero"
+  "https://github.com/leanprover-community/mathlib4.git"
 
 @[default_target]
 lean_lib «Sard» {

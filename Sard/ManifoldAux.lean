@@ -59,32 +59,6 @@ variable {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F] {G : Type*} [Top
   (J : ModelWithCorners ℝ F G) {N : Type*} [TopologicalSpace N] [ChartedSpace G N]
   [SmoothManifoldWithCorners J N]
 
--- similar to `fderivWithin_of_open`; seems missing
-lemma hasFDerivWithinAt_of_open {s : Set E} {x : E} (h : IsOpen s) (hx : x ∈ s) {f : E → F} {f' : E →L[ℝ] F}:
-    HasFDerivWithinAt f f' s x ↔ HasFDerivAt f f' x := by
-  simp only [HasFDerivAt, HasFDerivWithinAt]
-  rw [IsOpen.nhdsWithin_eq h hx]
-
--- I have not compared FDeriv.Basic to MFDeriv and added all analogous lemmas.
--- analogous to `fderivWithin_of_mem_nhds`
-theorem mfderivWithin_of_mem_nhds {f : M → N} {s : Set M} {x : M} (h : s ∈ 𝓝 x) :
-    mfderivWithin I J f s x = mfderiv I J f x := by
-  rw [← mfderivWithin_univ, ← univ_inter s, mfderivWithin_inter h]
-
--- similar to `fderivWith_of_open`
-lemma mfderivWithin_of_open {s : Set M} {x : M} (hs : IsOpen s) (hx : x ∈ s) {f : M → N} :
-    mfderivWithin I J f s x = mfderiv I J f x :=
-  mfderivWithin_of_mem_nhds I J (hs.mem_nhds hx)
-
--- analogous to `mfderivWithin_eq_mfderiv`
-theorem mfderivWithin_eq_mfderiv {s : Set M} {x : M} {f : M → N}
-    (hs : UniqueMDiffWithinAt I s x) (h : MDifferentiableAt I J f x) :
-    mfderivWithin I J f s x = mfderiv I J f x := by
-  rw [← mfderivWithin_univ]
-  exact mfderivWithin_subset (subset_univ _) hs h.mdifferentiableWithinAt
-
------------------------------------------------
-
 lemma bijective_iff_inverses {X Y : Type*} {f : X → Y} {g : Y → X} (h1 : g ∘ f = id) (h2 : f ∘ g = id) :
     Bijective f :=
   ⟨LeftInverse.injective (congrFun h1), LeftInverse.surjective (congrFun h2)⟩
@@ -128,7 +102,7 @@ lemma diffeoOn_differential_bijective {f : M → N} {g : N → M} {r : ℕ} (hr 
   have : f '' s = t := subset_antisymm (mapsTo'.mp hst) (fun y hy ↦ ⟨g y, hts hy, hright_inv y hy⟩)
   have : g '' t = s := by
     rw [← this, ← image_comp]
-    exact Set.image_congr'' (fun x hx ↦ hleft_inv x hx)
+    exact EqOn.image_eq_self hleft_inv
   have hopen : IsOpen (g '' t) := by rw [this]; exact hs
   have hx2 : x ∈ g '' t := by simp_rw [this]; exact hx
 
@@ -140,10 +114,10 @@ lemma diffeoOn_differential_bijective {f : M → N} {g : N → M} {r : ℕ} (hr 
     (hf.contMDiffAt (hs.mem_nhds hx)).mdifferentiableAt hr
   have inv1 := calc A'.comp A
     _ = mfderiv I I (g ∘ f) x := (mfderiv_comp x hgat hfat).symm
-    _ = mfderivWithin I I (g ∘ f) (g '' t) x := (mfderivWithin_of_open I I hopen hx2).symm
+    _ = mfderivWithin I I (g ∘ f) (g '' t) x := (mfderivWithin_of_isOpen hopen hx2).symm
     _ = mfderivWithin I I id (g '' t) x :=
       mfderivWithin_congr (hopen.uniqueMDiffWithinAt hx2) (this ▸ hleft_inv) (hleft_inv x (this ▸ hx2))
-    _ = mfderiv I I id x := mfderivWithin_of_open I I hopen hx2
+    _ = mfderiv I I id x := mfderivWithin_of_isOpen hopen hx2
     _ = ContinuousLinearMap.id ℝ (TangentSpace I x) := mfderiv_id I
   have inv2 := calc A.comp A'
     _ = mfderiv J J (f ∘ g) y := by
@@ -151,10 +125,10 @@ lemma diffeoOn_differential_bijective {f : M → N} {g : N → M} {r : ℕ} (hr 
           rw [← (hleft_inv x hx)] at hfat
           -- ... but also the points x and y under the map.
           exact (hyx ▸ (mfderiv_comp (f x) hfat hgat)).symm
-    _ = mfderivWithin J J (f ∘ g) t y := (mfderivWithin_of_open J J ht hysource).symm
+    _ = mfderivWithin J J (f ∘ g) t y := (mfderivWithin_of_isOpen ht hysource).symm
     _ = mfderivWithin J J id t y :=
           mfderivWithin_congr (ht.uniqueMDiffWithinAt hysource) hright_inv (hright_inv y hysource)
-    _ = mfderiv J J id y := mfderivWithin_of_open J J ht hysource
+    _ = mfderiv J J id y := mfderivWithin_of_isOpen ht hysource
     _ = ContinuousLinearMap.id ℝ (TangentSpace J (f x)) := mfderiv_id J
   exact bijective_iff_inverses' inv1 inv2
 

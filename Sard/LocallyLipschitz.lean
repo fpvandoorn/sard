@@ -1,5 +1,5 @@
 import Sard.ToSubset
-import Mathlib.Analysis.Calculus.ContDiff
+import Mathlib.Analysis.Calculus.ContDiff.IsROrC
 import Mathlib.Topology.MetricSpace.Lipschitz
 
 /-!
