@@ -52,8 +52,8 @@ That said, help is very welcome! Feel free to make a PR filling in some sorry, o
 
 **File organisation**
 - `MainTheorem.lean` contains the statement of Sard's theorem and the reduction to the local case.
-- `ManifoldLocallyCompact.lean` shows that finite-dimensional manifolds are locally compact.
-- `ManifoldAux.lean` contains other results about smooth manifolds and their charts, used in reducing Sard's theorem to the local case.
+- `ManifoldAux.lean` contains miscellaneous results about smooth manifolds and their charts,
+used for reducing Sard's theorem to the local case.
 - `MeasureZero.lean` contains the definition of measure zero subsets of a manifold (not reworked yet) and shows a $\sigma$-compact measure zero set is meagre.
 
 - `LocallyLipschitz.lean` contains additional material on locally Lipschitz functions
