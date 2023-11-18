@@ -203,12 +203,12 @@ lemma measure_zero_image_iff_chart_domains {f : M → N} {s : Set M}
   apply MeasureZero.iUnion (ι := T) this
 
 /-- A closed measure zero set is nowhere dense. -/
-lemma MeasureZero.closed_implies_nowhere_dense {s : Set N} (h₁ : MeasureZero J s)
+lemma MeasureZero.isNowhereDense_of_isClosed {s : Set N} (h₁ : MeasureZero J s)
     (h₂ : IsClosed s) : IsNowhereDense s :=
   h₂.isNowhereDense_iff.mpr (MeasureZero.MeasureZero_implies_empty_interior h₁)
 
 /-- A σ-compact measure zero set is meagre (the countable union of nowhere dense sets). -/
-lemma meagre_if_sigma_compact [T2Space N] {s : Set N} (h₁s : MeasureZero J s) (h₂s : IsSigmaCompact s) : IsMeagre s := by
+lemma isMeagre_of_isSigmaCompact [T2Space N] {s : Set N} (h₁s : MeasureZero J s) (h₂s : IsSigmaCompact s) : IsMeagre s := by
   -- Decompose into countably many pieces, using h₂s.
   obtain ⟨K, ⟨hcompact, hcover⟩⟩ := h₂s
   -- The countable union of nowhere dense sets is meagre.
@@ -218,5 +218,5 @@ lemma meagre_if_sigma_compact [T2Space N] {s : Set N} (h₁s : MeasureZero J s) 
     exact ⟨range K, fun t ⟨n, hn⟩ ↦ hn ▸ this n, countable_range K, fun i ↦ subset_iUnion K i⟩
   intro n
   have h : MeasureZero J (K n) := h₁s.mono (hcover ▸ subset_iUnion K n)
-  exact MeasureZero.closed_implies_nowhere_dense J h (IsCompact.isClosed (hcompact n))
+  exact MeasureZero.isNowhereDense_of_isClosed J h (IsCompact.isClosed (hcompact n))
 end MeasureZero

@@ -266,7 +266,7 @@ theorem sard' {f : M → N} (hf : ContMDiff I J r f) [T2Space N]
   -- M is second countable and locally compact (as finite-dimensional), hence σ-compact.
   have : LocallyCompactSpace M := Manifold.locallyCompact_of_finiteDimensional I
   have : IsSigmaCompact s := isSigmaCompact_univ.of_isClosed_subset hs (subset_univ s)
-  exact MeasureZero.meagre_if_sigma_compact J (sard _ hr hf hf' h'f') (this.image (hf.continuous))
+  exact MeasureZero.isMeagre_of_isSigmaCompact J (sard _ hr hf hf' h'f') (this.image (hf.continuous))
 
 -- Corollary. The set of regular values is residual and therefore dense.
 
