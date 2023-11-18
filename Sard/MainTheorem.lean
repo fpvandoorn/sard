@@ -12,13 +12,13 @@ variable
   -- declare a smooth manifold `M` over the pair `(E, H)`.
   {E : Type*}
   [NormedAddCommGroup E] [NormedSpace ℝ E] {H : Type*} [TopologicalSpace H]
-  (I : ModelWithCorners ℝ E H) {M : Type*} [TopologicalSpace M] [ChartedSpace H M] [I.Boundaryless]
+  (I : ModelWithCorners ℝ E H) {M : Type*} [TopologicalSpace M] [ChartedSpace H M] --[I.Boundaryless]
   [SmoothManifoldWithCorners I M] [FiniteDimensional ℝ E]
   [SecondCountableTopology M] [MeasurableSpace E] [BorelSpace E]
   -- declare a smooth manifold `N` over the pair `(F, G)`.
   {F : Type*}
   [NormedAddCommGroup F] [NormedSpace ℝ F] {G : Type*} [TopologicalSpace G]
-  {J : ModelWithCorners ℝ F G} {N : Type*} [TopologicalSpace N] [ChartedSpace G N] [J.Boundaryless]
+  {J : ModelWithCorners ℝ F G} {N : Type*} [TopologicalSpace N] [ChartedSpace G N] --[J.Boundaryless]
   [SmoothManifoldWithCorners J N] [FiniteDimensional ℝ F]
   [MeasurableSpace F] [BorelSpace F]
 variable {m n r : ℕ} (hm : finrank ℝ E = m) (hn : finrank ℝ F = n) (hr : r > m-n)
@@ -88,7 +88,7 @@ This local result implies the case $m=n$ for $r\geq 1$ (not hard to show).
 However, note that the case $m > n$ requires a different proof: for $m>n$, the condition
 $f\in C^1$ is not sufficient any more: Whitney (1957) constructed a C¹ function
 $$f : ℝ² → ℝ$$ whose set of critical values contains an open set, thus has positive measure. -/
-theorem sard {f : M → N} (hf : ContMDiff I J r f)
+theorem sard_boundaryless {f : M → N} (hf : ContMDiff I J r f) [I.Boundaryless] [J.Boundaryless]
     {f' : ∀x, TangentSpace I x →L[ℝ] TangentSpace J (f x)} {s : Set M}
     (hf' : ∀ x ∈ s, HasMFDerivAt I J f x (f' x))
     (h'f' : ∀ x ∈ s, ¬ Surjective (f' x)) : MeasureZero J (f '' s) := by
@@ -256,17 +256,29 @@ theorem sard {f : M → N} (hf : ContMDiff I J r f)
     have : ¬Surjective comp := by rw [← this]; exact hBsurj
     exact this
 
+theorem sard {f : M → N} (hf : ContMDiff I J r f)
+    {f' : ∀x, TangentSpace I x →L[ℝ] TangentSpace J (f x)} {s : Set M}
+    (hf' : ∀ x ∈ s, HasMFDerivAt I J f x (f' x))
+    (h'f' : ∀ x ∈ s, ¬ Surjective (f' x)) : MeasureZero J (f '' s) := by
+  -- define interior and boundary of a manifold; show they decompose M
+  -- show: interior is open, hence is a manifold without boundary
+  -- (show: boundary is a one-dimensional submanifold --- not important for this theorem)
+  -- show: boundary has measure zero
+  -- deduce version this version from `sard_boundaryless`
+  sorry
+
 /-- **Sard's theorem**: let $M$ and $N$ be real $C^r$ manifolds of dimensions $m$ and $n$,
 and $f:M→N$ a $C^r$ map. If $r>\max{0, m-n}$, the critical set is meagre. -/
 -- FIXME: do I really need N to be Hausdorff? For the local result, I don't...
-theorem sard' {f : M → N} (hf : ContMDiff I J r f) [T2Space N]
+-- FIXME: allow `N` with boundary - will follow once `meagre_if_sigma_compact
+theorem sard' {f : M → N} (hf : ContMDiff I J r f) [T2Space N] [J.Boundaryless]
     {f' : ∀x, TangentSpace I x →L[ℝ] TangentSpace J (f x)} {s : Set M} (hs : IsClosed s)
     (hf' : ∀ x ∈ s, HasMFDerivAt I J f x (f' x))
     (h'f' : ∀ x ∈ s, ¬ Surjective (f' x)) : IsMeagre (f '' s) := by
   -- M is second countable and locally compact (as finite-dimensional), hence σ-compact.
   have : LocallyCompactSpace M := Manifold.locallyCompact_of_finiteDimensional I
   have : IsSigmaCompact s := isSigmaCompact_univ.of_isClosed_subset hs (subset_univ s)
-  exact MeasureZero.isMeagre_of_isSigmaCompact J (sard _ hr hf hf' h'f') (this.image (hf.continuous))
+  exact MeasureZero.isMeagre_of_isSigmaCompact J (sard I hf hf' h'f') (this.image (hf.continuous))
 
 -- Corollary. The set of regular values is residual and therefore dense.
 
