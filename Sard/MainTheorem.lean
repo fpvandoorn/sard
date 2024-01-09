@@ -156,15 +156,14 @@ theorem sard_boundaryless {f : M → N} (hf : ContMDiff I J r f) [I.Boundaryless
       _ = J ∘ e' '' (e'.source ∩ f '' (e.source ∩ s)) := by rw [inter_comm]
   rw [this]
   apply sard_local hr (w := w) (s := s_better) (f := f_local) (f' := fderiv ℝ f_local) (μ := μ)
-  · have : IsOpen (e.source ∩ f ⁻¹' e'.source) :=
-      IsOpen.inter e.open_source (e'.open_source.preimage hf.continuous)
-    apply e.extend_isOpenMapOn_source _ this (inter_subset_left e.source _)
+  · exact e.extend_isOpenMapOn_source _
+      (e.open_source.inter (e'.open_source.preimage hf.continuous)) (inter_subset_left _ _)
   · apply image_subset
     rw [inter_assoc]
-    exact inter_subset_right s (e.source ∩ f ⁻¹' e'.source)
+    exact inter_subset_right s _
   · -- ContDiffOn ℝ (↑r) f_local w follows by definition, of ContMDiff f in charts
-    have he : e ∈ maximalAtlas I M := by apply subset_maximalAtlas; exact chart_mem_atlas H x
-    have he' : e' ∈ maximalAtlas J N := by apply subset_maximalAtlas; exact chart_mem_atlas G y
+    have he : e ∈ maximalAtlas I M := subset_maximalAtlas _ (chart_mem_atlas H x)
+    have he' : e' ∈ maximalAtlas J N := subset_maximalAtlas _ (chart_mem_atlas G y)
     have hs : e.source ∩ f ⁻¹' e'.source ⊆ e.source := inter_subset_left _ _
     have h2s : MapsTo f (e.source ∩ f ⁻¹' e'.source) e'.source :=
       (mapsTo_preimage f e'.source).mono_left (inter_subset_right _ _)
@@ -202,20 +201,21 @@ theorem sard_boundaryless {f : M → N} (hf : ContMDiff I J r f) [I.Boundaryless
       let x' := (e.extend I).symm x
       have : e.extend I x' = x := e.extend_right_inv _ (hsbetter₀ hx)
       rw [← this]
-      have : e.source ∈ 𝓝 x' := by
+      have hesource : e.source ∈ 𝓝 x' := by
         have : (e.extend I).symm x = x' := rfl
         have : x' ∈ e.source := by sorry -- tedious busywork
           --rw [← this]
           --apply mem_of_mem_of_subset hx hsbetter₀ --?h--sorry
           --apply inter_subset_left--refine MapsTo.image_subset ?h
-        exact IsOpen.mem_nhds e.open_source this
-      exact extendedChart_image_nhds_on I this (Eq.subset rfl)
-    have hA : MDifferentiableAt 𝓘(ℝ, E) I (e.invFun ∘ I.invFun) x :=
-      SmoothAt.mdifferentiableAt ((extendedChart_symm_smooth _ (chart_mem_atlas H _)).contMDiffAt hnA)
-    -- General nonsense: f is ContMDiff, hence also MDifferentiable at each point.
+        exact e.open_source.mem_nhds this
+      exact extendedChart_image_nhds_on I hesource (Eq.subset rfl)
     have hr : 1 ≤ (r : ℕ∞) := Nat.one_le_cast.mpr (Nat.one_le_of_lt hr)
-    have hB : MDifferentiableAt I J f ((e.invFun ∘ I.invFun) x) :=
-      hf.contMDiffAt.mdifferentiableAt hr
+    have he : e ∈ maximalAtlas I M := by sorry -- why doesn't the same proof work?
+    have : I '' e.target ∈ 𝓝 x := sorry -- easy
+    have hA : MDifferentiableAt 𝓘(ℝ, E) I (e.invFun ∘ I.invFun) x :=
+      ((contMDiffOn_extend_symm (𝕜 := ℝ) he).contMDiffAt this).mdifferentiableAt hr
+    -- General nonsense: f is ContMDiff, hence also MDifferentiable at each point.
+    have hB : MDifferentiableAt I J f ((e.invFun ∘ I.invFun) x) := hf.contMDiffAt.mdifferentiableAt hr
     -- Should be similar. TODO: fix this.
     have hBA : MDifferentiableAt 𝓘(ℝ, E) J (f ∘ (e.invFun ∘ I.invFun)) x := by
       sorry -- exact hB.comp hA (M' := M) (M'' := N)

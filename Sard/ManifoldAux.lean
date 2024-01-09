@@ -7,6 +7,25 @@ import Mathlib.Geometry.Manifold.Diffeomorph
 open Function Manifold Set SmoothManifoldWithCorners TopologicalSpace Topology
 set_option autoImplicit false
 
+section new
+variable {𝕜 : Type*} [NontriviallyNormedField 𝕜]
+  -- declare a smooth manifold `M` over the pair `(E, H)`.
+  {E : Type*}
+  [NormedAddCommGroup E] [NormedSpace 𝕜 E] {H : Type*} [TopologicalSpace H]
+  {I : ModelWithCorners 𝕜 E H} {M : Type*} [TopologicalSpace M] [ChartedSpace H M]
+  [SmoothManifoldWithCorners I M]
+  -- declare a smooth manifold `M'` over the pair `(E', H')`.
+  {E' : Type*}
+  [NormedAddCommGroup E'] [NormedSpace 𝕜 E'] {H' : Type*} [TopologicalSpace H']
+  {I' : ModelWithCorners 𝕜 E' H'} {M' : Type*} [TopologicalSpace M'] [ChartedSpace H' M']
+  [SmoothManifoldWithCorners I' M']
+  -- declare functions, sets, points and smoothness indices
+  {e : PartialHomeomorph M H} {x : M} {m n : ℕ∞}
+
+theorem contMDiffOn_extend (he : e ∈ maximalAtlas I M) : ContMDiffOn I 𝓘(𝕜, E) n (e.extend I) e.source :=
+  fun _x' hx' => (contMDiffAt_extend he hx').contMDiffWithinAt
+end new
+
 variable
   -- Let `M` be a smooth manifold over the pair `(E, H)`.
   {E : Type*}
