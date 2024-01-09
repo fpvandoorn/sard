@@ -1,6 +1,6 @@
 import Sard.LocallyLipschitzMeasureZero
 import Sard.MeasureZero
-import Mathlib.Geometry.Manifold.ContMDiff
+import Mathlib.Geometry.Manifold.ContMDiff.Basic
 
 open ENNReal NNReal FiniteDimensional Function Manifold MeasureTheory Measure Set TopologicalSpace Topology LocallyLipschitz
 set_option autoImplicit false

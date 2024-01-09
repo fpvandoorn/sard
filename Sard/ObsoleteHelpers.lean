@@ -14,14 +14,14 @@ theorem empty_iff_open_cover {X : Type} {I : Type} {U : I → Set X}
   nth_rewrite 1 [← this]
   simp only [iUnion_eq_empty]
 
--- this lemma is in mathlib, in LocalHomeomorph
+-- this lemma is in mathlib, in PartialHomeomorph
 -- theorem preimage_interior (s : Set β) :
 --     e.source ∩ e ⁻¹' interior s = e.source ∩ interior (e ⁻¹' s) :=
 --   (IsImage.of_preimage_eq rfl).interior.preimage_eq
 
 -- this counterpart for image is currently missing
 lemma image_interior {α β : Type} [TopologicalSpace α] [TopologicalSpace β]
-    (e : LocalHomeomorph α β) (s : Set α) :
+    (e : PartialHomeomorph α β) (s : Set α) :
     e.target ∩ e '' interior s = e '' (e.source ∩ interior s) := by
   -- idea: restrict the local homeo to the appropriate part; then it's a homeo
   -- have more proof ideas on paper
@@ -35,7 +35,7 @@ lemma homeo_preserves_empty_interior {α β : Type} [TopologicalSpace α] [Topol
 
 -- and the version for local homeomorphisms
 lemma local_homeo_preserves_empty_interior {α β : Type}
-    [TopologicalSpace α] [TopologicalSpace β] {f : LocalHomeomorph α β} {s : Set α}
+    [TopologicalSpace α] [TopologicalSpace β] {f : PartialHomeomorph α β} {s : Set α}
     (hs : s ⊆ f.source) (h₂s : interior s = ∅) : interior (f '' s) = ∅ := by
   -- xxx clean up these partial steps
   -- restrict to domain and target: mathematically trivial

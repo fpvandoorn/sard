@@ -111,7 +111,7 @@ protected lemma open_implies_empty {s : Set M} (h₁s : IsOpen s) (h₂s : Measu
     by_contra h
     obtain ⟨x, hx⟩ : Set.Nonempty s := Iff.mp nmem_singleton_empty h
     specialize this x
-    have h₂: x ∈ (chartAt H x).toLocalEquiv.source ∩ s := by
+    have h₂: x ∈ (chartAt H x).toPartialEquiv.source ∩ s := by
       simp
       exact hx
     rw [this] at h₂
@@ -130,8 +130,8 @@ protected lemma open_implies_empty {s : Set M} (h₁s : IsOpen s) (h₂s : Measu
     have : Set.Nonempty (I ∘ e '' (e.source ∩ s)) := by
       exact (Iff.mp Set.nmem_singleton_empty h).image _
     have : IsOpen (e '' (e.source ∩ s)) := by
-        apply e.image_open_of_open'
-        exact h₁s
+      apply e.image_isOpen_of_isOpen'
+      exact h₁s
     have : IsOpen (I ∘ e '' (e.source ∩ s)) := by
       rw [Set.image_comp]
       apply I.toHomeomorph.isOpenMap _ this
@@ -172,7 +172,7 @@ iff for each preferred chart of $M$, the image $f(U ∩ s)$ has measure zero. -/
 lemma measure_zero_image_iff_chart_domains {f : M → N} {s : Set M}
     (hs : ∀ x : M, MeasureZero J (f '' ((chartAt H x).source ∩ s))) : MeasureZero J (f '' s) := by
   -- The charts of M form an open cover.
-  let U : M → Set M := fun x ↦ (ChartedSpace.chartAt x : LocalHomeomorph M H).source
+  let U : M → Set M := fun x ↦ (ChartedSpace.chartAt x : PartialHomeomorph M H).source
   have hcovering : univ ⊆ ⋃ (x : M), U x := by
     intro x _
     rw [mem_iUnion]
@@ -183,7 +183,7 @@ lemma measure_zero_image_iff_chart_domains {f : M → N} {s : Set M}
   -- Each f(U_n ∩ S) has measure zero.
   have : ∀ i : T, MeasureZero J (f '' ((U i) ∩ s)) := by
     intro i
-    let e : LocalHomeomorph M H := ChartedSpace.chartAt i
+    let e : PartialHomeomorph M H := ChartedSpace.chartAt i
     have h : MeasureZero J (f '' (e.source ∩ s)) := hs i
     have h₃ : U i = e.source := by rw [← Filter.principal_eq_iff_eq]
     apply h.mono _
@@ -213,7 +213,7 @@ lemma isMeagre_of_isSigmaCompact [T2Space N] {s : Set N} (h₁s : MeasureZero J 
   obtain ⟨K, ⟨hcompact, hcover⟩⟩ := h₂s
   -- The countable union of nowhere dense sets is meagre.
   suffices ∀ n : ℕ, IsNowhereDense (K n) by
-    rw [meagre_iff_countable_union_nowhereDense, ← hcover]
+    rw [meagre_iff_countable_union_isNowhereDense, ← hcover]
     simp [IsMeagre]
     exact ⟨range K, fun t ⟨n, hn⟩ ↦ hn ▸ this n, countable_range K, fun i ↦ subset_iUnion K i⟩
   intro n
