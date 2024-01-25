@@ -57,11 +57,6 @@ theorem sard_local {s w : Set E} {f : E → F} (hw : IsOpen w) (hsw : s ⊆ w)
     exact hless
   · sorry
 
--- PRed at https://github.com/leanprover-community/mathlib4/pull/7640; TODO add proof later
-lemma isMeagre_of_isSigmaCompact_null {X : Type*} [TopologicalSpace X] [T2Space X]
-    [MeasurableSpace X] [BorelSpace X] {μ : Measure X} [IsOpenPosMeasure μ] {s : Set X} (h₁s : IsSigmaCompact s) (h₂s : μ s = 0) :
-    IsMeagre s := sorry
-
 /-- Local version of Sard's theorem. If $W ⊆ ℝ^m$ is open and $f: W → ℝ^n$ is $C^r$,
 the set of critical values of `f` is a meagre set.
 We phrase this for any closed set `s` of critical points of `f`; this is fine
@@ -76,7 +71,7 @@ theorem sard_local' {s w : Set E} {f : E → F} (hw : IsOpen w) (hs : IsClosed s
   -- `s` is closed, hence σ-compact --- thus so is f '' s.
   have : IsSigmaCompact s := isSigmaCompact_univ.of_isClosed_subset hs (subset_univ s)
   have : IsSigmaCompact (f '' s) := this.image_of_continuousOn (hf.continuousOn.mono hsw)
-  exact isMeagre_of_isSigmaCompact_null this ass
+  exact IsMeagre.of_isSigmaCompact_null this ass
 
 /-- **Sard's theorem**. Let $M$ and $N$ be real $C^r$ manifolds of dimensions
 $m$ and $n$, and $f : M → N$ a $C^r$ map. If $r>\max{0, m-n}$,

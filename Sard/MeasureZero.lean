@@ -127,16 +127,12 @@ protected lemma open_implies_empty {s : Set M} (h₁s : IsOpen s) (h₂s : Measu
   by_contra h
   -- in particular, e.source ∩ s is an open subset contained in that, hence has measure zero
   have h' : Set.Nonempty (interior (I ∘ e '' (e.source ∩ s))) := by
-    have : Set.Nonempty (I ∘ e '' (e.source ∩ s)) := by
-      exact (Iff.mp Set.nmem_singleton_empty h).image _
-    have : IsOpen (e '' (e.source ∩ s)) := by
-      apply e.image_isOpen_of_isOpen'
-      exact h₁s
+    have : Set.Nonempty (I ∘ e '' (e.source ∩ s)) := (Iff.mp Set.nmem_singleton_empty h).image _
     have : IsOpen (I ∘ e '' (e.source ∩ s)) := by
       rw [Set.image_comp]
-      apply I.toHomeomorph.isOpenMap _ this
+      exact I.toHomeomorph.isOpenMap _ (e.isOpen_image_source_inter h₁s)
     rwa [this.interior_eq]
-  apply (measure_pos_of_nonempty_interior (μ := μ) h').ne' h₂s
+  exact (measure_pos_of_nonempty_interior (μ := μ) h').ne' h₂s
 
 /-- A subset of a manifold `M` with measure zero has empty interior.
 
@@ -213,7 +209,7 @@ lemma isMeagre_of_isSigmaCompact [T2Space N] {s : Set N} (h₁s : MeasureZero J 
   obtain ⟨K, ⟨hcompact, hcover⟩⟩ := h₂s
   -- The countable union of nowhere dense sets is meagre.
   suffices ∀ n : ℕ, IsNowhereDense (K n) by
-    rw [meagre_iff_countable_union_isNowhereDense, ← hcover]
+    rw [isMeagre_iff_countable_union_isNowhereDense, ← hcover]
     simp [IsMeagre]
     exact ⟨range K, fun t ⟨n, hn⟩ ↦ hn ▸ this n, countable_range K, fun i ↦ subset_iUnion K i⟩
   intro n
