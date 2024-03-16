@@ -1,5 +1,4 @@
 import Mathlib.Geometry.Manifold.Diffeomorph
-
 /-!
 # Additional lemmas about smooth manifolds
 -/
@@ -236,13 +235,10 @@ lemma extendedChart_smooth {e : PartialHomeomorph M H} (he : e ∈ atlas H M) [I
 /-- An identity local homeomorphism belongs to the maximal atlas on `E`. -/
 lemma ofSet_in_maximal_atlas {s : Set E} (hs : IsOpen s) :
     PartialHomeomorph.ofSet s hs ∈ maximalAtlas 𝓘(ℝ, E) E := by
-  set e := PartialHomeomorph.ofSet s hs
-  set gr := (contDiffGroupoid ∞ I)
   rw [maximalAtlas, mem_maximalAtlas_iff]
   intro e' he'
   rw [he']
-  simp only [comp_apply, PartialHomeomorph.ofSet_symm, PartialHomeomorph.trans_refl,
-    PartialHomeomorph.refl_symm, PartialHomeomorph.refl_trans, and_self]
+  simp only [mfld_simps]
   apply ofSet_mem_contDiffGroupoid
 
 /-- The inverse of an extended chart `e.extend I : M → E` on a smooth manifold without boundary
@@ -254,16 +250,17 @@ lemma extendedChart_symm_smooth {e : PartialHomeomorph M H} (he : e ∈ atlas H 
   have : IsOpen ((e.extend I) '' e.source) := e.extend_isOpenMapOn_source I e.open_source (Eq.subset rfl)
   let e' : PartialHomeomorph E E := PartialHomeomorph.ofSet (e.extend I '' e.source) this
   have h1 : e ∈ maximalAtlas I M := subset_maximalAtlas _ he
-  have h2 : e' ∈ maximalAtlas 𝓘(ℝ, E) E := ofSet_in_maximal_atlas I this
+  have h2 : e' ∈ maximalAtlas 𝓘(ℝ, E) E := ofSet_in_maximal_atlas this
   apply (contMDiffOn_iff_of_mem_maximalAtlas' h2 h1 (Eq.subset rfl) (e.mapsTo_extend_symm I)).mpr
 
   apply ContMDiffOn.contDiffOn
   -- We want to show smoothness of this function: locally, that's just the identity.
   set f := e.extend I ∘ (e.extend I).symm ∘ (PartialEquiv.symm (PartialHomeomorph.extend e' 𝓘(ℝ, E)))
   have cong : ∀ x ∈ e.extend I '' e.source, f x = x := fun x hx ↦ e.extend_right_inv I hx
-  have h : (PartialHomeomorph.extend e' 𝓘(ℝ, E)) '' e'.source = e.extend I '' e.source := by simp
-  have : ((PartialHomeomorph.extend e' 𝓘(ℝ, E)) '' (e.extend I '' e.source)) = e.extend I '' e.source := by
-    have : e'.source = e.extend I '' e.source := by rw [@PartialHomeomorph.ofSet_source]
+  have h : (e'.extend 𝓘(ℝ, E)) '' e'.source = e.extend I '' e.source := by
+    simp only [e', mfld_simps, image_id']
+  have : ((e'.extend 𝓘(ℝ, E)) '' (e.extend I '' e.source)) = e.extend I '' e.source := by
+    have : e'.source = e.extend I '' e.source := by rw [PartialHomeomorph.ofSet_source]
     exact this ▸ h
   rw [PartialHomeomorph.ofSet_source, this]
   exact fun x hx ↦ ContMDiffWithinAt.congr smoothWithinAt_id cong (cong x (h ▸ hx))

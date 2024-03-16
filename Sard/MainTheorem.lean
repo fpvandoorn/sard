@@ -144,7 +144,7 @@ theorem sard_boundaryless {f : M → N} (hf : ContMDiff I J r f) [I.Boundaryless
     symm
     calc f_local '' s_better
       _ = ((J ∘ e') ∘ f) '' (((e.extend I).symm ∘ (e.extend I)) '' (s ∩ e.source ∩ f ⁻¹' e'.source)) := by
-        simp only [comp.assoc, image_comp]
+        simp only [e, e', f_local, s_better, comp.assoc, image_comp]
       _ = J ∘ e' '' (f '' (s ∩ e.source ∩ f ⁻¹' e'.source)) := by rw [cor, image_comp]
       _ = J ∘ e' '' (f '' (e.source ∩ s ∩ f ⁻¹' e'.source)) := by rw [inter_comm s]
       _ = J ∘ e' '' (f '' (e.source ∩ s) ∩ e'.source) := by rw [image_inter_preimage f _ _]
