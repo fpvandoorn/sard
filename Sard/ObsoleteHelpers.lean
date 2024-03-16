@@ -1,7 +1,6 @@
-import Mathlib.MeasureTheory.Measure.OpenPos
-import Mathlib.Geometry.Manifold.VectorBundle.SmoothSection
+import Mathlib.Topology.PartialHomeomorph
 
-open Manifold MeasureTheory FiniteDimensional Measure Function TopologicalSpace Set
+open Function TopologicalSpace Set
 set_option autoImplicit false
 
 -- Helper results (mostly topological) which I didn't need. Mostly missing from mathlib.
@@ -85,6 +84,6 @@ theorem interior_zero_iff_open_cover {X : Type} [TopologicalSpace X]
       sorry
     rw [h'']
     -- warning for shadowing of hypotheses
-    simp [Set.mem_iUnion]
+    simp only [Set.iUnion_eq_empty]
     tauto
 end helpers_obsolete

@@ -1,4 +1,3 @@
-import Sard.LocallyLipschitz
 import Sard.ManifoldAux
 import Sard.MeasureZero
 import Mathlib.Topology.MetricSpace.HausdorffDimension
