@@ -138,7 +138,7 @@ protected lemma open_implies_empty {s : Set M} (h₁s : IsOpen s) (h₂s : Measu
 
 In particular, a *closed* measure zero subset of M is nowhere dense.
 (Closedness is required: there are generalised Cantor sets of positive Lebesgue measure.) -/
-protected lemma MeasureZero_implies_empty_interior {s : Set M}
+protected lemma empty_interior {s : Set M}
     (h₂s : MeasureZero I s) : interior s = ∅ :=
   (h₂s.mono interior_subset).open_implies_empty isOpen_interior
 end MeasureZero
@@ -165,7 +165,7 @@ variable
 iff for each preferred chart of $M$, the image $f(U ∩ s)$ has measure zero. -/
 -- is the converse useful or just busywork?
 -- TODO: also state a version using all charts, not just the preferred ones?
-lemma measure_zero_image_iff_chart_domains {f : M → N} {s : Set M}
+lemma _root_.measure_zero_image_iff_chart_domains {f : M → N} {s : Set M}
     (hs : ∀ x : M, MeasureZero J (f '' ((chartAt H x).source ∩ s))) : MeasureZero J (f '' s) := by
   -- The charts of M form an open cover.
   let U : M → Set M := fun x ↦ (ChartedSpace.chartAt x : PartialHomeomorph M H).source
@@ -201,7 +201,7 @@ lemma measure_zero_image_iff_chart_domains {f : M → N} {s : Set M}
 /-- A closed measure zero set is nowhere dense. -/
 lemma MeasureZero.isNowhereDense_of_isClosed {s : Set N} (h₁ : MeasureZero J s)
     (h₂ : IsClosed s) : IsNowhereDense s :=
-  h₂.isNowhereDense_iff.mpr (MeasureZero.MeasureZero_implies_empty_interior h₁)
+  h₂.isNowhereDense_iff.mpr h₁.empty_interior
 
 /-- A σ-compact measure zero set is meagre (the countable union of nowhere dense sets). -/
 lemma isMeagre_of_isSigmaCompact [T2Space N] {s : Set N} (h₁s : MeasureZero J s) (h₂s : IsSigmaCompact s) : IsMeagre s := by

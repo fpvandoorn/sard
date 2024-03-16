@@ -78,7 +78,7 @@ lemma image_measure_zero_of_C1_dimension_increase {g : E → F} {U : Set E} (hU 
   -- Choose a Haar measure on E × ℝ^{n-m}, so we can speak about the measure of U × {0},
   obtain ⟨K''⟩ : Nonempty (PositiveCompacts (E × (Fin (n-m) → ℝ))) := PositiveCompacts.nonempty'
   let μ' : Measure (E × (Fin (n-m) → ℝ)) := addHaarMeasure K''
-  have hisHaar: IsAddHaarMeasure μ' := isAddHaarMeasure_addHaarMeasure K''
+  -- have hisHaar: IsAddHaarMeasure μ' := isAddHaarMeasure_addHaarMeasure K''
   -- U × 0 has measure zero in E × ℝ^{n-m}: use Fubini and product measures.
   have aux : μ' (incl '' U) = 0 := by sorry
   -- Hence so does its image pi ∘ g' ∘ incl (U) = g '' U.
@@ -95,8 +95,8 @@ lemma image_measure_zero_of_C1_dimension_increase {g : E → F} {U : Set E} (hU 
 lemma image_null_of_C1_of_dimension_increase {f : M → N} (hf : ContMDiff I J r f)
     (hdim : m < n) : MeasureZero J (Set.range f) := by
   rw [← image_univ]
-  suffices hyp : ∀ x : M, MeasureZero J (f '' ((chartAt H x).source ∩ univ)) by
-    apply MeasureZero.measure_zero_image_iff_chart_domains (J := J) hyp
+  suffices hyp : ∀ x : M, MeasureZero J (f '' ((chartAt H x).source ∩ univ)) from
+    measure_zero_image_iff_chart_domains (J := J) hyp
   -- Fix a chart; we want to show f(U ∩ M) has measure zero.
   intro x μ hμ y
   let e := chartAt H x

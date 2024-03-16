@@ -87,7 +87,7 @@ theorem sard_boundaryless {f : M → N} (hf : ContMDiff I J r f) [I.Boundaryless
     (hf' : ∀ x ∈ s, HasMFDerivAt I J f x (f' x))
     (h'f' : ∀ x ∈ s, ¬ Surjective (f' x)) : MeasureZero J (f '' s) := by
   suffices hyp : ∀ x : M, MeasureZero J (f '' ((chartAt H x).source ∩ s)) from
-    MeasureZero.measure_zero_image_iff_chart_domains (J := J) hyp
+    measure_zero_image_iff_chart_domains (J := J) hyp
   intro x
   let e := chartAt H x
 
