@@ -34,7 +34,6 @@ See [Hirsch76], chapter 3.1 for the definition of measure zero subsets in a mani
 -/
 
 open MeasureTheory Measure Function TopologicalSpace Set
-set_option autoImplicit false
 
 variable
   -- Let `M` be a finite-dimensional (topological) manifold without boundary over the pair `(E, H)`.

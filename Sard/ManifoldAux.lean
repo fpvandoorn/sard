@@ -4,7 +4,6 @@ import Mathlib.Geometry.Manifold.Diffeomorph
 -/
 
 open Function Manifold Set SmoothManifoldWithCorners TopologicalSpace Topology
-set_option autoImplicit false
 
 section new
 variable {𝕜 : Type*} [NontriviallyNormedField 𝕜]

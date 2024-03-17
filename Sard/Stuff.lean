@@ -3,7 +3,6 @@ import Sard.MeasureZero
 import Mathlib.Geometry.Manifold.ContMDiff.Defs
 
 open ENNReal NNReal FiniteDimensional Function Manifold MeasureTheory Measure Set TopologicalSpace Topology LocallyLipschitz
-set_option autoImplicit false
 
 variable
   -- declare a smooth manifold `M` over the pair `(E, H)`.

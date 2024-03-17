@@ -7,7 +7,6 @@ Additional lemmas about locally Lipschitz functions.
 -/
 
 open Function NNReal Set Topology
-set_option autoImplicit false
 
 variable {X Y Z: Type*}
 

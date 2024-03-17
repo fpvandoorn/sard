@@ -5,7 +5,6 @@ import Mathlib.Geometry.Manifold.Diffeomorph
 
 open ENNReal NNReal FiniteDimensional Function Manifold MeasureTheory Measure Set
   SmoothManifoldWithCorners TopologicalSpace Topology LocallyLipschitz
-set_option autoImplicit false
 
 variable
   -- declare a smooth manifold `M` over the pair `(E, H)`.

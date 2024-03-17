@@ -2,7 +2,11 @@ import Lake
 open Lake DSL
 
 package «sard» {
-  -- add any package configuration options here
+  leanOptions := #[
+    ⟨`pp.unicode.fun, true⟩, -- pretty-prints `fun a ↦ b`
+    ⟨`pp.proofs.withType, false⟩,
+    ⟨`autoImplicit, false⟩,
+    ⟨`relaxedAutoImplicit, false⟩]
 }
 
 require mathlib from git

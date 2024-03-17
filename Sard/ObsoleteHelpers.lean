@@ -1,7 +1,6 @@
 import Mathlib.Topology.PartialHomeomorph
 
 open Function TopologicalSpace Set
-set_option autoImplicit false
 
 -- Helper results (mostly topological) which I didn't need. Mostly missing from mathlib.
 section helpers_obsolete

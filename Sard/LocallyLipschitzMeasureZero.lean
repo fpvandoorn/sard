@@ -3,7 +3,7 @@ import Mathlib.MeasureTheory.Measure.Hausdorff
 
 -- Locally Lipschitz maps preserve measure zero sets.
 open ENNReal NNReal LocallyLipschitz MeasureTheory Set Topology
-set_option autoImplicit false
+
 variable {X Y : Type*} [MetricSpace X] [MeasurableSpace X] [BorelSpace X]
   [MetricSpace Y] [MeasurableSpace Y] [BorelSpace Y]
 
