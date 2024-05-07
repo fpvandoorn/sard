@@ -198,7 +198,7 @@ lemma _root_.measure_zero_image_iff_chart_domains {f : M → N} {s : Set M}
   apply MeasureZero.iUnion (ι := T) this
 
 /-- A closed measure zero set is nowhere dense. -/
-lemma MeasureZero.isNowhereDense_of_isClosed {s : Set N} (h₁ : MeasureZero J s)
+lemma isNowhereDense_of_isClosed {s : Set N} (h₁ : MeasureZero J s)
     (h₂ : IsClosed s) : IsNowhereDense s :=
   h₂.isNowhereDense_iff.mpr h₁.empty_interior
 
