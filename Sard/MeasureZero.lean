@@ -38,8 +38,7 @@ open MeasureTheory Measure Function TopologicalSpace Set
 variable
   -- Let `M` be a finite-dimensional (topological) manifold without boundary over the pair `(E, H)`.
   {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] {H : Type*} [TopologicalSpace H]
-  (I : ModelWithCorners ℝ E H) {M : Type*} [TopologicalSpace M] [ChartedSpace H M] [I.Boundaryless]
-  [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
+  (I : ModelWithCorners ℝ E H) {M : Type*} [TopologicalSpace M] [ChartedSpace H M] [MeasurableSpace E]
 variable {I}
 
 variable (I) in
@@ -88,6 +87,8 @@ protected lemma union {s t : Set M} (hs : MeasureZero I s) (ht : MeasureZero I t
     · exact hs
   rw [union_eq_iUnion]
   exact MeasureZero.iUnion this
+
+variable [I.Boundaryless] [FiniteDimensional ℝ E] [BorelSpace E]
 
 /-- The “almost everywhere” filter of co-measure zero sets in a manifold. -/
 def ModelWithCorners.ae
@@ -143,7 +144,7 @@ protected lemma empty_interior {s : Set M}
 end MeasureZero
 
 ---------------------------------------------------------
--- everything above the fold was already PRed to mathlib
+-- everything above the fold was PRed to mathlib, but not yet merged
 ---------------------------------------------------------
 
 namespace MeasureZero
@@ -157,8 +158,7 @@ variable
   {F : Type*}
   [NormedAddCommGroup F] [NormedSpace ℝ F] {G : Type*} [TopologicalSpace G]
   (J : ModelWithCorners ℝ F G) {N : Type*} [TopologicalSpace N] [ChartedSpace G N] [J.Boundaryless]
-  [SmoothManifoldWithCorners J N] [FiniteDimensional ℝ F]
-  [MeasurableSpace F] [BorelSpace F]
+  [FiniteDimensional ℝ F] [MeasurableSpace F] [BorelSpace F]
 
 /-- The image `f(s)` of a set `s ⊆ M` under a C¹ map `f : M → N` has measure zero
 iff for each preferred chart of $M$, the image $f(U ∩ s)$ has measure zero. -/

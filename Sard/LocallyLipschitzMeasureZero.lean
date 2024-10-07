@@ -4,8 +4,7 @@ import Mathlib.MeasureTheory.Measure.Hausdorff
 -- Locally Lipschitz maps preserve measure zero sets.
 open ENNReal NNReal LocallyLipschitz MeasureTheory Set Topology
 
-variable {X Y : Type*} [MetricSpace X] [MeasurableSpace X] [BorelSpace X]
-  [MetricSpace Y] [MeasurableSpace Y] [BorelSpace Y]
+variable {X Y : Type*} [MeasurableSpace X]
 
 -- this belongs lower in mathlib, `#find_home!` says `Mathlib.MeasureTheory.Measure.MeasureSpaceDef`
 /-- If `(s_n)` is a countable cover of `t` consisting of null sets, `t` is a null set. -/
@@ -23,6 +22,9 @@ lemma null_set_from_countable_cover {t : Set X} (μ : Measure X)
   exact h
 
 section ImageMeasureZeroSet
+
+variable [MetricSpace X] [BorelSpace X] [MetricSpace Y] [MeasurableSpace Y] [BorelSpace Y]
+
 /-- If `f : X → Y` is a Lipschitz map between metric spaces, then `f` maps null sets
 to null sets, w.r.t. the `d`-dimensional Hausdorff measure on `X` resp. `Y`. -/
 lemma lipschitz_image_null_set_is_null_set {d : ℝ} (hd : d ≥ 0) {s : Set X} {f : X → Y} {K : ℝ≥0}

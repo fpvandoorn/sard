@@ -75,7 +75,7 @@ end LocallyLipschitz
 end Metric
 
 section Normed
-variable [MetricSpace X] [NormedAddCommGroup Y] [NormedSpace ℝ Y] {f g : X → Y}
+variable [MetricSpace X] [NormedAddCommGroup Y] {f g : X → Y}
 
 /-- The sum of Lipschitz functions is Lipschitz. -/
 protected lemma LipschitzOnWith.sum {Kf : ℝ≥0} {Kg : ℝ≥0} {s : Set X}
@@ -130,6 +130,8 @@ lemma last (a : ℝ) (K : ℝ≥0) (c : ENNReal) : (Real.toNNReal ‖a‖) * (K 
   lift c to ℝ≥0 using this
   --exact last'' a K c -- fails: coercion of the first factor makes a difference
   sorry
+
+variable [NormedSpace ℝ Y]
 
 protected lemma LipschitzOnWith.smul {K : ℝ≥0} {s : Set X} (hf : LipschitzOnWith K f s)
     (a : ℝ) : LipschitzOnWith (ENNReal.toNNReal (ENNReal.ofReal ‖a‖) * K) (fun x ↦ a • f x) s := by

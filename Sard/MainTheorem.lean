@@ -39,6 +39,7 @@ lemma image_measure_zero_of_C1_dimension_increase' {g : E → F} {U : Set E} (hU
     _ ≤ m := h ▸ dimH_mono (subset_univ U) -- should this be a separate lemma?
     _ < n := Nat.cast_lt.mpr hmn
 
+include m hr in
 /-- Local version of Sard's theorem. If $W ⊆ ℝ^m$ is open and $f: W → ℝ^n$ is $C^r$,
 the set of critical values has measure zero. -/
 theorem sard_local {s w : Set E} {f : E → F} (hw : IsOpen w) (hsw : s ⊆ w)
@@ -55,6 +56,7 @@ theorem sard_local {s w : Set E} {f : E → F} (hw : IsOpen w) (hsw : s ⊆ w)
     exact hless
   · sorry
 
+include hr in
 /-- Local version of Sard's theorem. If $W ⊆ ℝ^m$ is open and $f: W → ℝ^n$ is $C^r$,
 the set of critical values of `f` is a meagre set.
 We phrase this for any closed set `s` of critical points of `f`; this is fine
@@ -71,6 +73,7 @@ theorem sard_local' {s w : Set E} {f : E → F} (hw : IsOpen w) (hs : IsClosed s
   have : IsSigmaCompact (f '' s) := this.image_of_continuousOn (hf.continuousOn.mono hsw)
   exact IsMeagre.of_isSigmaCompact_null this ass
 
+include hr in
 /-- **Sard's theorem**. Let $M$ and $N$ be real $C^r$ manifolds of dimensions
 $m$ and $n$, and $f : M → N$ a $C^r$ map. If $r>\max{0, m-n}$,
 the set of regular values of `f` has full measure.
@@ -117,7 +120,7 @@ theorem sard_boundaryless {f : M → N} (hf : ContMDiff I J r f) [I.Boundaryless
     apply e.extend_left_inv' _ this
   have hsbetter : (e.extend I).symm '' s_better = s ∩ e.source ∩ f ⁻¹' e'.source := by
     calc (e.extend I).symm '' s_better
-      _ = ((e.extend I).symm ∘ (e.extend I)) '' (s ∩ e.source ∩ f ⁻¹' e'.source) := by simp only [comp.assoc, image_comp]
+      _ = ((e.extend I).symm ∘ (e.extend I)) '' (s ∩ e.source ∩ f ⁻¹' e'.source) := by simp only [comp_assoc, image_comp]
       _ = s ∩ e.source ∩ f ⁻¹' e'.source := cor
   -- Inclusions about s_better, which are needed at some point in the proofs below.
   have hsbetter₁ : (e.extend I).symm '' s_better ⊆ s := by
@@ -142,7 +145,7 @@ theorem sard_boundaryless {f : M → N} (hf : ContMDiff I J r f) [I.Boundaryless
     symm
     calc f_local '' s_better
       _ = ((J ∘ e') ∘ f) '' (((e.extend I).symm ∘ (e.extend I)) '' (s ∩ e.source ∩ f ⁻¹' e'.source)) := by
-        simp only [e, e', f_local, s_better, comp.assoc, image_comp]
+        simp only [e, e', f_local, s_better, comp_assoc, image_comp]
       _ = J ∘ e' '' (f '' (s ∩ e.source ∩ f ⁻¹' e'.source)) := by rw [cor, image_comp]
       _ = J ∘ e' '' (f '' (e.source ∩ s ∩ f ⁻¹' e'.source)) := by rw [inter_comm s]
       _ = J ∘ e' '' (f '' (e.source ∩ s) ∩ e'.source) := by rw [image_inter_preimage f _ _]

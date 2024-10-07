@@ -1,4 +1,5 @@
 import Mathlib.Geometry.Manifold.Diffeomorph
+
 /-!
 # Additional lemmas about smooth manifolds
 -/
@@ -28,8 +29,7 @@ variable
   -- Let `M` be a smooth manifold over the pair `(E, H)`.
   {E : Type*}
   [NormedAddCommGroup E] [NormedSpace ℝ E] {H : Type*} [TopologicalSpace H]
-  (I : ModelWithCorners ℝ E H) {M : Type*} [TopologicalSpace M] [ChartedSpace H M]
-  [SmoothManifoldWithCorners I M]
+  (I : ModelWithCorners ℝ E H) {M : Type*} [TopologicalSpace M]
 
 section LocalHomeo -- add to `PartialHomeomorph.lean`
 lemma PartialHomeomorph.isOpenMapOn_source {e : PartialHomeomorph M H} {s : Set M}
@@ -150,6 +150,8 @@ lemma bijective_iff_inverses' {X Y : Type*} [NormedAddCommGroup X] [NormedSpace 
     _ = id := rfl
   exact bijective_iff_inverses this h
 
+variable [ChartedSpace H M] [SmoothManifoldWithCorners I M]
+
 -- These are needed to apply `bijective_iff_inverses` to differentials:
 -- whose are defined an tangent spaces (which are not normed spaces per se).
 -- FIXME: is there a nicer solution than abusing definitional equality like this?
@@ -264,6 +266,7 @@ lemma extendedChart_symm_smooth {e : PartialHomeomorph M H} (he : e ∈ atlas H 
   rw [PartialHomeomorph.ofSet_source, this]
   exact fun x hx ↦ ContMDiffWithinAt.congr smoothWithinAt_id cong (cong x (h ▸ hx))
 
+omit [SmoothManifoldWithCorners I M] in
 /-- The differential of each inverse extended chart, regarded as a smooth map,
   is bijective at each point in its source. -/
 lemma extendedChart_symm_differential_bijective [SmoothManifoldWithCorners I M] [I.Boundaryless]
@@ -280,6 +283,7 @@ lemma extendedChart_symm_differential_bijective [SmoothManifoldWithCorners I M] 
   · exact SmoothOn.contMDiffOn (extendedChart_symm_smooth I he)
   · exact SmoothOn.contMDiffOn (extendedChart_smooth I he)
 
+omit [SmoothManifoldWithCorners I M] in
 /-- The differential of each extended chart, regarded as a smooth map,
   is bijective at each point in its source. -/
 lemma extendedChart_differential_bijective [SmoothManifoldWithCorners I M] [I.Boundaryless]
