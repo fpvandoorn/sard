@@ -19,7 +19,7 @@ variable
   [MeasurableSpace F] [BorelSpace F]
 variable {m n r : ℕ} (hm : finrank ℝ E = m) (hn : finrank ℝ F = n) (hr : r > m-n)
 
-/-- Let $U ⊆ ℝ^n$ be an open set and f : U → ℝ^n be a C^1 map.
+/-- Let $U ⊆ ℝ^m$ be an open set and f : U → ℝ^n be a C^1 map.
   If $X\subset U$ has measure zero, so has $f(X)$.
   Note: this is false for merely C⁰ maps, the Cantor function $f$ provides a counterexample:
   the standard Cantor set has measure zero, but its image has measure one
@@ -30,9 +30,10 @@ lemma image_null_of_C1_of_null {f : E → F} {U : Set E} (hU : IsOpen U) (hf : C
   -- The m-dimensional Hausdorff measure on E resp. F agrees with the Lebesgue measure.
   have h₁ : μ = μH[m] := by
     -- The m-dimensional Hausdorff measure is the Lebesgue measure on R^m.
-    have aux : μH[m] = volume := by
+    -- Does not typecheck...
+    /- have aux (s : Set E) : μH[m] s = volume s := by
       rw [← Fintype.card_fin m]
-      exact hausdorffMeasure_pi_real (ι := Fin m)
+      exact hausdorffMeasure_pi_real (ι := Fin m) -/
     -- The Lebesgue measure is the Haar measure on R^m.
     -- xxx: doesn't typecheck yet, need a measurable equivalence between E and R^m
     -- have : μ = (volume : Measure (Fin m → ℝ)) := by sorry -- MeasureTheory.addHaarMeasure_eq_volume_pi

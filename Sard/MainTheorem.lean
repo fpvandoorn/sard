@@ -100,16 +100,16 @@ theorem sard_boundaryless {f : M → N} (hf : ContMDiff I J r f) [I.Boundaryless
   let f_local := (J ∘ e') ∘ f ∘ (e.extend I).symm
   -- "Obvious" computations from my data.
   have hwopen : IsOpen w := by
-    refine e.extend_isOpenMapOn_source I ?_ (inter_subset_left _ _)
+    refine e.extend_isOpenMapOn_source I ?_ inter_subset_left
     exact e.open_source.inter (e'.open_source.preimage hf.continuous)
   have hsw : s_better ⊆ w := by
     apply image_subset
     rw [inter_assoc]
-    apply inter_subset_right s _
+    exact inter_subset_right
   have hsbetter₀ : s_better ⊆ e.extend I '' e.source := by
     apply image_subset
     rw [inter_comm s, inter_assoc]
-    exact inter_subset_left _ _
+    exact inter_subset_left
   have cor : ((e.extend I).symm ∘ e.extend I) '' (s ∩ e.source ∩ f ⁻¹' e'.source) = s ∩ e.source ∩ f ⁻¹' e'.source := by
     have : (s ∩ e.source ∩ f ⁻¹' e'.source) ⊆ e.source := by
       rw [inter_comm s, inter_assoc]
@@ -122,17 +122,17 @@ theorem sard_boundaryless {f : M → N} (hf : ContMDiff I J r f) [I.Boundaryless
   -- Inclusions about s_better, which are needed at some point in the proofs below.
   have hsbetter₁ : (e.extend I).symm '' s_better ⊆ s := by
     rw [hsbetter, inter_assoc]
-    exact inter_subset_left s _
+    exact inter_subset_left
   have hsbetter₂ : (e.extend I).symm '' s_better ⊆ e.source := by
     rw [hsbetter]
     rw [inter_comm s, inter_assoc]
-    exact inter_subset_left _ _
+    exact inter_subset_left
 
   have hw : (f ∘ (e.extend I).symm) '' w ⊆ e'.source := calc
     (f ∘ (e.extend I).symm) '' w
       = f '' ((e.extend I).symm '' w) := by rw [image_comp]
     _ = f '' (e.source ∩ f ⁻¹' e'.source) := by sorry -- fully analogous to rw [hsbetter]
-    _ ⊆ f '' (f ⁻¹' e'.source) := image_subset _ (inter_subset_right _ _)
+    _ ⊆ f '' (f ⁻¹' e'.source) := image_subset _ inter_subset_right
     _ ⊆ e'.source := image_preimage_subset f e'.source
   have hsbetter₃ : (f ∘ (e.extend I).symm) '' s_better ⊆ e'.source := calc
     (f ∘ (e.extend I).symm) '' s_better
@@ -150,16 +150,16 @@ theorem sard_boundaryless {f : M → N} (hf : ContMDiff I J r f) [I.Boundaryless
   rw [this]
   apply sard_local hr (w := w) (s := s_better) (f := f_local) (f' := fderiv ℝ f_local) (μ := μ)
   · exact e.extend_isOpenMapOn_source _
-      (e.open_source.inter (e'.open_source.preimage hf.continuous)) (inter_subset_left _ _)
+      (e.open_source.inter (e'.open_source.preimage hf.continuous)) inter_subset_left
   · apply image_subset
     rw [inter_assoc]
-    exact inter_subset_right s _
+    exact inter_subset_right
   · -- ContDiffOn ℝ (↑r) f_local w follows by definition, of ContMDiff f in charts
     have he : e ∈ maximalAtlas I M := subset_maximalAtlas _ (chart_mem_atlas H x)
     have he' : e' ∈ maximalAtlas J N := subset_maximalAtlas _ (chart_mem_atlas G y)
-    have hs : e.source ∩ f ⁻¹' e'.source ⊆ e.source := inter_subset_left _ _
+    have hs : e.source ∩ f ⁻¹' e'.source ⊆ e.source := inter_subset_left
     have h2s : MapsTo f (e.source ∩ f ⁻¹' e'.source) e'.source :=
-      (mapsTo_preimage f e'.source).mono_left (inter_subset_right _ _)
+      (mapsTo_preimage f e'.source).mono_left inter_subset_right
     exact (contMDiffOn_iff_of_mem_maximalAtlas' (n := r) he he' hs h2s).mp hf.contMDiffOn
   · -- ∀ x ∈ s_better, HasFDerivWithinAt f_local (fderiv ℝ f_local x) s_better x
     -- XXX: there's not much happening, surely this can be golfed!

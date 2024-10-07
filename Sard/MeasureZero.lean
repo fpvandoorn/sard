@@ -63,7 +63,7 @@ protected lemma mono {s t : Set M} (hst : s ⊆ t) (ht : MeasureZero I t) :
 /-- The empty set has measure zero. -/
 protected lemma empty : MeasureZero I (∅: Set M) := by
   intro μ _ x
-  simp only [comp_apply, inter_empty, image_empty, OuterMeasure.empty']
+  simp only [comp_apply, inter_empty, image_empty, measure_empty]
 
 /-- The countable index union of measure zero sets has measure zero. -/
 protected lemma iUnion {ι : Type*} [Encodable ι] {s : ι → Set M}
@@ -74,7 +74,7 @@ protected lemma iUnion {ι : Type*} [Encodable ι] {s : ι → Set M}
     rw [inter_iUnion]
     exact image_iUnion
   -- union of null sets is a null set
-  simp_all only [comp_apply, OuterMeasure.iUnion_null_iff]
+  simp_all only [comp_apply, measure_iUnion_null_iff, e]
   intro i
   apply hs
 

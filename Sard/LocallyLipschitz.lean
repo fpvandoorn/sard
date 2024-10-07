@@ -36,7 +36,7 @@ protected lemma ToSubset.compatible_with_nhds_within (t U: Set X) {x : U} (hU : 
         _ = t ∩ U := by rw [htaU]
     · exact ⟨IsOpen.inter haopen hU, ⟨hxa, Subtype.mem x⟩⟩
   apply ToSubset.compatible_with_nhds
-  exact Filter.mem_of_superset this (inter_subset_left t U)
+  exact Filter.mem_of_superset this inter_subset_left
 
 /- Restrictions of Lipschitz functions is compatible with taking subtypes. -/
 protected lemma LipschitzOnWith.restrict_subtype {f : X → Y} {K : ℝ≥0} (s t : Set X)
@@ -98,7 +98,7 @@ protected lemma LipschitzOnWith.sum {Kf : ℝ≥0} {Kg : ℝ≥0} {s : Set X}
 /-- The sum of Lipschitz functions on `s` is Lipschitz on `s`. -/
 protected lemma LipschitzWith.sum {Kf : ℝ≥0} {Kg : ℝ≥0}
     (hf : LipschitzWith Kf f) (hg : LipschitzWith Kg g) : LipschitzWith (Kf + Kg) (f + g) :=
-  lipschitzOn_univ.mp ((lipschitzOn_univ.mpr hf).sum (lipschitzOn_univ.mpr hg))
+  lipschitzOnWith_univ.mp ((lipschitzOnWith_univ.mpr hf).sum (lipschitzOnWith_univ.mpr hg))
 
 /-- The sum of locally Lipschitz functions is locally Lipschitz. -/
 protected lemma LocallyLipschitz.sum (hf : LocallyLipschitz f) (hg : LocallyLipschitz g) :
@@ -107,8 +107,8 @@ protected lemma LocallyLipschitz.sum (hf : LocallyLipschitz f) (hg : LocallyLips
   rcases hf x with ⟨Kf, t₁, h₁t, hfL⟩
   rcases hg x with ⟨Kg, t₂, h₂t, hgL⟩
   use Kf + Kg, t₁ ∩ t₂
-  have hf' : LipschitzOnWith Kf f (t₁ ∩ t₂) := hfL.mono (Set.inter_subset_left t₁ t₂)
-  have hg' : LipschitzOnWith Kg g (t₁ ∩ t₂) := hgL.mono (Set.inter_subset_right t₁ t₂)
+  have hf' : LipschitzOnWith Kf f (t₁ ∩ t₂) := hfL.mono inter_subset_left
+  have hg' : LipschitzOnWith Kg g (t₁ ∩ t₂) := hgL.mono inter_subset_right
   exact ⟨Filter.inter_mem h₁t h₂t, hf'.sum hg'⟩
 
 -- this one should definitely be in mathlib!
@@ -151,7 +151,7 @@ protected lemma LipschitzOnWith.smul {K : ℝ≥0} {s : Set X} (hf : LipschitzOn
 
 protected lemma LipschitzWith.smul {K : ℝ≥0} (hf : LipschitzWith K f) {a : ℝ} :
     LipschitzWith (ENNReal.toNNReal (ENNReal.ofReal ‖a‖)  * K) (fun x ↦ a • f x) :=
-  lipschitzOn_univ.mp ((lipschitzOn_univ.mpr hf).smul a)
+  lipschitzOnWith_univ.mp ((lipschitzOnWith_univ.mpr hf).smul a)
 
 /-- Multiplying a locally Lipschitz function by a constant remains locally Lipschitz. -/
 protected lemma LocallyLipschitz.mysmul (hf : LocallyLipschitz f) {a : ℝ} : LocallyLipschitz (fun x ↦ a • f x) := by

@@ -16,7 +16,7 @@ lemma null_set_from_countable_cover {t : Set X} (μ : Measure X)
     calc μ t
       _ = μ ((⋃ (n : ℕ), s n) ∩ t) := by simp only [inter_eq_right.mpr hcov]
       _ = μ (⋃ (n : ℕ), (s n ∩ t)) := by rw [iUnion_inter]
-      _ ≤ ∑' (n : ℕ), μ (s n ∩ t) := by apply OuterMeasure.iUnion_nat
+      _ ≤ ∑' (n : ℕ), μ (s n ∩ t) := measure_iUnion_le fun i ↦ s i ∩ t
       _ = ∑' (n : ℕ), 0 := by simp_rw [this]
       _ = 0 := by rw [tsum_zero]
   simp only [nonpos_iff_eq_zero, zero_le] at h ⊢
@@ -63,9 +63,9 @@ lemma locally_lipschitz_image_of_null_set_is_null_set [SigmaCompactSpace X] {d :
   -- f is Lipschitz on each U_j, hence the previous lemma applies.
   have hnull: ∀ i : v, μH[d] (f '' (s ∩ U i)) = 0 := by
     intro i
-    have h₂ : μH[d] (s ∩ U i) = 0 := measure_mono_null (inter_subset_left s (U ↑i)) hs
-    have h₁ := ((hfL i).mono (hut i)).mono (inter_subset_right s (U i))
-    refine lipschitz_image_null_set_is_null_set (Nat.cast_nonneg d) h₁ h₂
+    have h₂ : μH[d] (s ∩ U i) = 0 := measure_mono_null inter_subset_left hs
+    have h₁ := ((hfL i).mono (hut i)).mono (inter_subset_right (s := s))
+    exact lipschitz_image_null_set_is_null_set (Nat.cast_nonneg d) h₁ h₂
 
   -- Finite subadditivity implies the claim.
   have coe : ⋃ (i : v), U i = ⋃ (i : X) (_ : i ∈ v), U i := iUnion_coe_set _ _
